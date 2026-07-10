@@ -42,3 +42,24 @@ Tested end-to-end with a scripted browser (save, edit, cancel-edit, delete, dupl
 prompt, backup, restore-with-dedupe, delete-while-editing) — all 16 checks passed.
 The export JSON format sent to the OneDrive Inbox is unchanged, so `sync_expenses.py`
 needs no changes.
+
+## Round 2 (2026-07-10, real usage feedback)
+
+You tried it on your phone and sent detailed feedback. Fixed the concrete stuff:
+- **Removed the "LIVE — exports sync to..." banner** at the top — noise, not needed.
+- **Added an "Others" category** so there's always a fallback if nothing else fits.
+- **Auto-category from store**: type a merchant you've used before (e.g. "Costco") and
+  the app fills in the category it last used for that store automatically — you only
+  need to tap a category manually for a new merchant or to override it.
+- **Store chips seeded with Costco/Target/Walmart** so you have quick-picks even before
+  any usage history builds up; your real history still takes priority once it exists.
+- **Payment method simplified to just Credit / Cash**, dropping the bank-specific chips.
+
+Tested with 9 new scripted-browser checks (banner gone, Others present, payment options,
+seeded chips, auto-category on type, auto-category doesn't override a manual pick,
+auto-category on chip tap) plus a re-run of all 16 checks from round 1 — all pass.
+
+## The big question you raised: cross-device sync + privacy + "anyone can use this"
+This needs your decision before I build it — see chat for the write-up of options,
+trade-offs, and my recommendation. Short version: phone-only `localStorage` is why your
+laptop doesn't see phone entries; fixing that means picking where the shared data lives.

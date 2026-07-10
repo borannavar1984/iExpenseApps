@@ -56,7 +56,6 @@
     <div class="badge">this month: <b id="monthTotal">$0</b></div>
   </div>
 </header>
-<div class="test-banner" style="background:#10241a;border-color:#1e4d38;color:#34d399">LIVE — exports sync to iFinance Monthly Reports + Master + Dashboard</div>
 
 <div class="label">Date</div>
 <input type="date" id="fDate">
@@ -95,8 +94,9 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const CATS = ["Rent","Travel","Gas","Groceries","Kids/Activities","Shopping","Health","Utilities/Phone","Subscriptions","Entertainment","Dining Out"];
-const DEFAULT_PAY = ["BofA","Fifth Third","DCU","Cash","Other"];
+const CATS = ["Rent","Travel","Gas","Groceries","Kids/Activities","Shopping","Health","Utilities/Phone","Subscriptions","Entertainment","Dining Out","Others"];
+const DEFAULT_PAY = ["Credit","Cash"];
+const DEFAULT_STORES = ["Costco","Target","Walmart"];
 const LS_KEY = "iexpense_entries_v1";
 
 let sel = {cat:null, pay:null};
@@ -110,20 +110,42 @@ function toast(msg,color){ const t=document.getElementById("toast"); t.textConte
 
 // build category grid
 const catGrid=document.getElementById("catGrid");
+function selectCategory(cat){
+  sel.cat=cat;
+  [...catGrid.children].forEach(x=>x.classList.toggle("sel",x.textContent===cat));
+}
 CATS.forEach(c=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=c;
-  b.onclick=()=>{ sel.cat=c; [...catGrid.children].forEach(x=>x.classList.toggle("sel",x.textContent===c)); }; catGrid.appendChild(b); });
+  b.onclick=()=>selectCategory(c); catGrid.appendChild(b); });
 
 // payment row
 const payRow=document.getElementById("payRow");
 DEFAULT_PAY.forEach(p=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=p;
   b.onclick=()=>{ sel.pay=p; [...payRow.children].forEach(x=>x.classList.toggle("sel",x.textContent===p)); }; payRow.appendChild(b); });
 
+// remembers which category was last used for a given store, so typing a known
+// merchant can fill in the category automatically
+function guessCategoryForStore(storeName){
+  const norm=(storeName||"").trim().toLowerCase();
+  if(!norm) return null;
+  for(let i=entries.length-1;i>=0;i--){
+    if((entries[i].store||"").trim().toLowerCase()===norm) return entries[i].category;
+  }
+  return null;
+}
+function applyStoreCategory(storeName){
+  if(sel.cat) return;
+  const guess=guessCategoryForStore(storeName);
+  if(guess) selectCategory(guess);
+}
+document.getElementById("fStore").addEventListener("input",(e)=>applyStoreCategory(e.target.value));
+
 // recent-store quick picks
 function renderStoreChips(){
   const box=document.getElementById("storeChips"); box.innerHTML="";
   const seen=[]; [...entries].reverse().forEach(e=>{ if(e.store && !seen.includes(e.store)) seen.push(e.store); });
+  DEFAULT_STORES.forEach(s=>{ if(!seen.includes(s)) seen.push(s); });
   seen.slice(0,8).forEach(s=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=s;
-    b.onclick=()=>{ document.getElementById("fStore").value=s; }; box.appendChild(b); });
+    b.onclick=()=>{ document.getElementById("fStore").value=s; applyStoreCategory(s); }; box.appendChild(b); });
 }
 
 function renderList(){
