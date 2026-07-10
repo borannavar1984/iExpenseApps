@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>iExpense</title>
+<style>
+  :root{
+    --bg:#0f1117; --card:#1a1d27; --card2:#232736; --border:#2e3345;
+    --text:#e8eaf0; --muted:#8a90a5; --accent:#4f8cff; --accent2:#2563eb;
+    --green:#34d399; --red:#f87171; --amber:#fbbf24;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:14px 14px 90px;max-width:520px;margin:0 auto}
+  header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  h1{font-size:22px;font-weight:700}
+  h1 span{color:var(--accent)}
+  .badge{background:var(--card2);border:1px solid var(--border);color:var(--muted);font-size:12px;padding:4px 10px;border-radius:20px}
+  .badge b{color:var(--amber)}
+  .label{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:16px 0 8px}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .chip-row{display:flex;flex-wrap:wrap;gap:8px}
+  button.opt{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:12px 6px;font-size:13.5px;font-weight:500;cursor:pointer;transition:all .12s}
+  button.opt.sel{background:var(--accent2);border-color:var(--accent);color:#fff;font-weight:700}
+  .chip-row button.opt{padding:10px 14px;border-radius:20px;flex:0 0 auto}
+  input[type=text],input[type=date],input[type=tel]{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:13px 14px;font-size:16px;outline:none}
+  input:focus{border-color:var(--accent)}
+  .amount-wrap{position:relative}
+  .amount-wrap::before{content:"$";position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:18px}
+  .amount-wrap input{padding-left:32px;font-size:22px;font-weight:700}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .btn{width:100%;border:none;border-radius:14px;padding:16px;font-size:17px;font-weight:700;cursor:pointer;margin-top:18px}
+  .btn-save{background:var(--accent2);color:#fff}
+  .btn-save:active{opacity:.8}
+  .btn-export{background:var(--green);color:#06281c;margin-top:10px}
+  .btn-ghost{background:var(--card2);color:var(--muted);font-size:14px;padding:12px;margin-top:10px}
+  .entry{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;font-size:14px}
+  .entry .cat{font-weight:600}
+  .entry .sub{color:var(--muted);font-size:12px;margin-top:2px}
+  .entry .amt{font-weight:700;font-size:16px;margin-right:10px}
+  .entry .del{color:var(--red);background:none;border:none;font-size:18px;padding:4px 6px;cursor:pointer}
+  .entry.exported{opacity:.45}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:#06281c;padding:12px 22px;border-radius:24px;font-weight:700;font-size:14px;display:none;z-index:99;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+  .test-banner{background:#3b2f10;border:1px solid #6b5518;color:var(--amber);font-size:12px;text-align:center;border-radius:10px;padding:7px;margin-bottom:12px}
+  textarea{width:100%;height:120px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:10px;font-size:12px;margin-top:8px;display:none}
+</style>
+</head>
+<body>
+<header>
+  <h1>i<span>Expense</span></h1>
+  <div class="badge">pending: <b id="pendCount">0</b></div>
+</header>
+<div class="test-banner" style="background:#10241a;border-color:#1e4d38;color:#34d399">LIVE — exports sync to iFinance Monthly Reports + Master + Dashboard</div>
+
+<div class="label">Date</div>
+<input type="date" id="fDate">
+
+<div class="label">Category</div>
+<div class="grid" id="catGrid"></div>
+
+<div class="label">Amount</div>
+<div class="amount-wrap"><input type="tel" id="fAmount" inputmode="decimal" placeholder="0.00"></div>
+
+<div class="label">Store / Merchant</div>
+<input type="text" id="fStore" placeholder="e.g. Costco" autocomplete="off">
+<div class="chip-row" id="storeChips" style="margin-top:8px"></div>
+
+<div class="label">Payment Method</div>
+<div class="chip-row" id="payRow"></div>
+
+<div class="label">Note (optional)</div>
+<input type="text" id="fNote" placeholder="">
+
+<button class="btn btn-save" onclick="saveEntry()">Save Expense</button>
+<button class="btn btn-export" onclick="exportEntries()">Export to OneDrive Inbox</button>
+<button class="btn btn-ghost" onclick="copyFallback()">Copy as text (fallback)</button>
+<textarea id="copyBox" readonly></textarea>
+
+<div class="label" style="margin-top:22px">Entries on this phone</div>
+<div id="entryList"></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const CATS = ["Rent","Travel","Gas","Groceries","Kids/Activities","Shopping","Health","Utilities/Phone","Subscriptions","Entertainment","Dining Out"];
+const DEFAULT_PAY = ["BofA","Fifth Third","DCU","Cash","Other"];
+const LS_KEY = "iexpense_entries_v1";
+
+let sel = {cat:null, pay:null};
+let entries = load();
+
+function load(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||"[]"); }catch(e){ return []; } }
+function persist(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(entries)); }catch(e){} }
+function todayStr(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function toast(msg,color){ const t=document.getElementById("toast"); t.textContent=msg; t.style.background=color||"var(--green)"; t.style.display="block"; setTimeout(()=>t.style.display="none",2200); }
+
+// build category grid
+const catGrid=document.getElementById("catGrid");
+CATS.forEach(c=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=c;
+  b.onclick=()=>{ sel.cat=c; [...catGrid.children].forEach(x=>x.classList.toggle("sel",x.textContent===c)); }; catGrid.appendChild(b); });
+
+// payment row
+const payRow=document.getElementById("payRow");
+DEFAULT_PAY.forEach(p=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=p;
+  b.onclick=()=>{ sel.pay=p; [...payRow.children].forEach(x=>x.classList.toggle("sel",x.textContent===p)); }; payRow.appendChild(b); });
+
+// recent-store quick picks
+function renderStoreChips(){
+  const box=document.getElementById("storeChips"); box.innerHTML="";
+  const seen=[]; [...entries].reverse().forEach(e=>{ if(e.store && !seen.includes(e.store)) seen.push(e.store); });
+  seen.slice(0,8).forEach(s=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=s;
+    b.onclick=()=>{ document.getElementById("fStore").value=s; }; box.appendChild(b); });
+}
+
+function renderList(){
+  const box=document.getElementById("entryList"); box.innerHTML="";
+  [...entries].reverse().forEach((e)=>{
+    const idx=entries.indexOf(e);
+    const d=document.createElement("div"); d.className="entry"+(e.exported?" exported":"");
+    d.innerHTML=`<div><div class="cat">${e.category}</div><div class="sub">${e.date} · ${e.store||"—"} · ${e.payment||"—"}${e.note?" · "+e.note:""}${e.exported?" · sent":""}</div></div>
+      <div style="display:flex;align-items:center"><span class="amt">$${Number(e.amount).toFixed(2)}</span><button class="del" onclick="delEntry(${idx})">✕</button></div>`;
+    box.appendChild(d);
+  });
+  document.getElementById("pendCount").textContent = entries.filter(e=>!e.exported).length;
+  renderStoreChips();
+}
+
+function saveEntry(){
+  const amt=parseFloat(document.getElementById("fAmount").value);
+  if(!sel.cat){ toast("Pick a category","var(--red)"); return; }
+  if(!amt || amt<=0){ toast("Enter an amount","var(--red)"); return; }
+  entries.push({ date:document.getElementById("fDate").value||todayStr(), category:sel.cat, amount:Math.round(amt*100)/100,
+    store:document.getElementById("fStore").value.trim(), payment:sel.pay||"", note:document.getElementById("fNote").value.trim(), exported:false });
+  persist();
+  document.getElementById("fAmount").value=""; document.getElementById("fStore").value=""; document.getElementById("fNote").value="";
+  sel.cat=null; [...catGrid.children].forEach(x=>x.classList.remove("sel"));
+  renderList(); toast("Saved ✓");
+}
+
+function delEntry(i){ entries.splice(i,1); persist(); renderList(); }
+
+function pendingPayload(){
+  const pend=entries.filter(e=>!e.exported);
+  return { exported:new Date().toISOString().slice(0,16), source:"iExpense", entries:pend.map(({exported,...rest})=>rest) };
+}
+
+async function exportEntries(){
+  const pend=entries.filter(e=>!e.exported);
+  if(!pend.length){ toast("Nothing to export","var(--amber)"); return; }
+  const payload=pendingPayload();
+  const stamp=payload.exported.replace(/[-:T]/g,"").slice(0,12);
+  const fname=`exp_${stamp}.json`;
+  const blob=new Blob([JSON.stringify(payload,null,1)],{type:"application/json"});
+  const file=new File([blob],fname,{type:"application/json"});
+  try{
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file],title:fname});
+      markExported(); return;
+    }
+  }catch(err){ if(err.name==="AbortError") return; }
+  // fallback: download link
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=fname; a.click();
+  markExported();
+}
+
+function markExported(){
+  entries.forEach(e=>e.exported=true); persist(); renderList();
+  toast("Exported — save to OneDrive ▸ Expense App ▸ Inbox");
+}
+
+function copyFallback(){
+  const box=document.getElementById("copyBox");
+  box.value=JSON.stringify(pendingPayload(),null,1);
+  box.style.display="block"; box.select();
+  try{ document.execCommand("copy"); toast("Copied — paste to Claude"); }catch(e){ toast("Select & copy the text below","var(--amber)"); }
+}
+
+document.getElementById("fDate").value=todayStr();
+renderList();
+</script>
+</body>
+</html>
