@@ -53,6 +53,7 @@
   .tabs{display:flex;gap:8px;margin-bottom:16px}
   .tabs button{flex:1;background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:12px;padding:10px;font-size:14px;font-weight:600;cursor:pointer}
   .tabs button.sel{background:var(--accent2);border-color:var(--accent);color:#fff}
+  .tabs button.sel#tabIncomeBtn{background:var(--green);border-color:var(--green);color:#06281c}
   .cloud-status{font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.5}
   .cloud-status.on{color:var(--green)}
   .cloud-status.off{color:var(--amber)}
@@ -65,10 +66,6 @@
   .dash-row .dr-fill{height:100%;background:var(--accent2);border-radius:6px}
   .dash-empty{color:var(--muted);font-size:14px;text-align:center;padding:30px 0}
   .theme-toggle{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:20px;font-size:14px;cursor:pointer;line-height:1}
-  .type-toggle{display:flex;gap:8px;margin-bottom:18px}
-  .type-toggle button{flex:1;background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:12px;padding:10px;font-size:14px;font-weight:700;cursor:pointer}
-  .type-toggle button.sel.exp{background:var(--accent2);border-color:var(--accent);color:#fff}
-  .type-toggle button.sel.inc{background:var(--green);border-color:var(--green);color:#06281c}
   .entry.income .amt{color:var(--green)}
   .dash-tabs{display:flex;gap:8px;margin-bottom:16px}
   .dash-tabs button{flex:1;background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:12px;padding:8px;font-size:13px;font-weight:600;cursor:pointer}
@@ -97,22 +94,18 @@
 <header>
   <h1>i<span>Expense</span></h1>
   <div style="display:flex;align-items:center;gap:8px">
-    <div class="badge">this month: <b id="monthTotal">$0</b></div>
+    <div class="badge">This Month Total: <b id="monthTotal">$0</b></div>
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">🌙</button>
   </div>
 </header>
 
 <div class="tabs">
-  <button class="sel" id="tabEntriesBtn" onclick="showTab('entries')">Entries</button>
-  <button id="tabDashboardBtn" onclick="showTab('dashboard')">Dashboard</button>
+  <button class="sel" id="tabExpenseBtn" onclick="showMainTab('expense')">💸 Expense</button>
+  <button id="tabIncomeBtn" onclick="showMainTab('income')">💰 Income</button>
+  <button id="tabDashboardBtn" onclick="showMainTab('dashboard')">📊 Dashboard</button>
 </div>
 
 <div id="entriesView">
-
-<div class="type-toggle">
-  <button class="sel exp" id="typeExpBtn" onclick="setFormType('expense')">💸 Expense</button>
-  <button id="typeIncBtn" onclick="setFormType('income')">💰 Income</button>
-</div>
 
 <div class="label">Date</div>
 <input type="date" id="fDate">
@@ -237,8 +230,11 @@ function updateSaveBtnLabel(){
 
 function setFormType(type){
   formType = type;
-  document.getElementById("typeExpBtn").classList.toggle("sel", type==="expense");
-  document.getElementById("typeIncBtn").classList.toggle("sel", type==="income");
+  document.getElementById("entriesView").style.display = "block";
+  document.getElementById("dashboardView").style.display = "none";
+  document.getElementById("tabExpenseBtn").classList.toggle("sel", type==="expense");
+  document.getElementById("tabIncomeBtn").classList.toggle("sel", type==="income");
+  document.getElementById("tabDashboardBtn").classList.remove("sel");
   document.getElementById("storeLabel").textContent = type==="expense" ? "Store / Merchant" : "Source";
   document.getElementById("fStore").placeholder = type==="expense" ? "e.g. Costco" : "e.g. Salary";
   document.getElementById("paymentSection").style.display = type==="expense" ? "block" : "none";
@@ -562,13 +558,17 @@ async function cloudPullOnLoad(){
 }
 
 // ===== Dashboard: all data computed entirely client-side from synced entries =====
-function showTab(tab){
-  const isEntries = tab==="entries";
-  document.getElementById("entriesView").style.display = isEntries ? "block" : "none";
-  document.getElementById("dashboardView").style.display = isEntries ? "none" : "block";
-  document.getElementById("tabEntriesBtn").classList.toggle("sel", isEntries);
-  document.getElementById("tabDashboardBtn").classList.toggle("sel", !isEntries);
-  if(!isEntries) renderDashboard();
+function showMainTab(tab){
+  if(tab==="dashboard"){
+    document.getElementById("entriesView").style.display = "none";
+    document.getElementById("dashboardView").style.display = "block";
+    document.getElementById("tabExpenseBtn").classList.remove("sel");
+    document.getElementById("tabIncomeBtn").classList.remove("sel");
+    document.getElementById("tabDashboardBtn").classList.add("sel");
+    renderDashboard();
+  } else {
+    setFormType(tab);
+  }
 }
 
 function monthLabel(m){
@@ -717,8 +717,7 @@ function renderMonthlyDetail(){
 }
 
 function editFromDashboard(idx){
-  showTab("entries");
-  editEntry(idx);
+  editEntry(idx); // editEntry already calls setFormType(), which switches the view/tab too
 }
 
 async function deleteFromDashboard(idx, evt){

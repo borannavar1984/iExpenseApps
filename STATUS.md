@@ -219,3 +219,22 @@ from there actually updates the record, deleting from the table removes it)
 plus a re-run of every still-relevant earlier suite — 84 checks, all passing.
 (The original round-1 test file was retired — it checked a "pending" badge
 that round 4 already removed, so it was already stale before this round.)
+
+## Round 8 (2026-07-11, flatten navigation, clearer labels)
+
+Two small but real clarity fixes:
+
+- **Navigation simplified to 3 flat tabs**: 💸 Expense / 💰 Income / 📊 Dashboard,
+  replacing the old two-level setup (an "Entries" tab containing a separate
+  Expense/Income toggle inside it). Tapping Expense or Income now directly
+  switches the form into that mode — no more "Entries vs. Expense" naming
+  confusion. Editing an entry from Dashboard → Monthly Detail now correctly
+  lands on whichever tab (Expense or Income) matches that entry.
+- **Header badge relabeled** from "this month" to "**This Month Total**" for
+  clarity. Confirmed (not just relabeled) that it strictly matches the actual
+  current calendar month and never bleeds in last month's data — if it reads
+  $0, that means no expense has been logged with today's real date yet
+  (income and past-month history intentionally don't count toward it).
+
+Tested by updating the test suite to the new tab IDs and re-running
+everything — 95 checks total, all still passing.
