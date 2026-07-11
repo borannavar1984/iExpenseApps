@@ -6,11 +6,17 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>iExpense</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root{
     --bg:#0f1117; --card:#1a1d27; --card2:#232736; --border:#2e3345;
     --text:#e8eaf0; --muted:#8a90a5; --accent:#4f8cff; --accent2:#2563eb;
-    --green:#34d399; --red:#f87171; --amber:#fbbf24;
+    --green:#34d399; --red:#f87171; --amber:#fbbf24; --purple:#a78bfa;
+  }
+  :root[data-theme="light"]{
+    --bg:#f4f6fa; --card:#ffffff; --card2:#eef1f6; --border:#dde3ec;
+    --text:#20242c; --muted:#5b6472; --accent:#2E75B6; --accent2:#1F4E79;
+    --green:#1f7a4d; --red:#c0392b; --amber:#b8720a; --purple:#7c3aed;
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:14px 14px 90px;max-width:520px;margin:0 auto}
@@ -58,12 +64,39 @@
   .dash-row .dr-bar{height:8px;background:var(--card2);border-radius:6px;overflow:hidden}
   .dash-row .dr-fill{height:100%;background:var(--accent2);border-radius:6px}
   .dash-empty{color:var(--muted);font-size:14px;text-align:center;padding:30px 0}
+  .theme-toggle{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:20px;font-size:14px;cursor:pointer;line-height:1}
+  .type-toggle{display:flex;gap:8px;margin-bottom:18px}
+  .type-toggle button{flex:1;background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:12px;padding:10px;font-size:14px;font-weight:700;cursor:pointer}
+  .type-toggle button.sel.exp{background:var(--accent2);border-color:var(--accent);color:#fff}
+  .type-toggle button.sel.inc{background:var(--green);border-color:var(--green);color:#06281c}
+  .entry.income .amt{color:var(--green)}
+  .dash-tabs{display:flex;gap:8px;margin-bottom:16px}
+  .dash-tabs button{flex:1;background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:12px;padding:8px;font-size:13px;font-weight:600;cursor:pointer}
+  .dash-tabs button.sel{background:var(--accent2);border-color:var(--accent);color:#fff}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;border-left:4px solid var(--accent2)}
+  .card.green{border-left-color:var(--green)}
+  .card.orange{border-left-color:var(--red)}
+  .card.purple{border-left-color:var(--purple)}
+  .card-label{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700}
+  .card-value{font-size:19px;font-weight:700;margin:4px 0 2px}
+  .card-sub{font-size:11px;color:var(--muted)}
+  .chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px}
+  .chart-card h4{font-size:12px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.4px;font-weight:700}
+  .dtable-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow-x:auto;margin-bottom:16px}
+  .dtable-wrap table{width:100%;border-collapse:collapse;font-size:12px;min-width:420px}
+  .dtable-wrap th{background:var(--card2);padding:8px 10px;text-align:left;font-size:10px;text-transform:uppercase;color:var(--muted);letter-spacing:.4px;white-space:nowrap}
+  .dtable-wrap td{padding:8px 10px;border-bottom:1px solid var(--card2);white-space:nowrap}
+  .tw-head{padding:10px 12px;font-weight:700;font-size:13px;border-bottom:1px solid var(--border)}
 </style>
 </head>
 <body>
 <header>
   <h1>i<span>Expense</span></h1>
-  <div class="badge">this month: <b id="monthTotal">$0</b></div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="badge">this month: <b id="monthTotal">$0</b></div>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">🌙</button>
+  </div>
 </header>
 
 <div class="tabs">
@@ -72,6 +105,11 @@
 </div>
 
 <div id="entriesView">
+
+<div class="type-toggle">
+  <button class="sel exp" id="typeExpBtn" onclick="setFormType('expense')">💸 Expense</button>
+  <button id="typeIncBtn" onclick="setFormType('income')">💰 Income</button>
+</div>
 
 <div class="label">Date</div>
 <input type="date" id="fDate">
@@ -82,12 +120,14 @@
 <div class="label">Amount</div>
 <div class="amount-wrap"><input type="tel" id="fAmount" inputmode="decimal" placeholder="0.00"></div>
 
-<div class="label">Store / Merchant</div>
+<div class="label" id="storeLabel">Store / Merchant</div>
 <input type="text" id="fStore" placeholder="e.g. Costco" autocomplete="off">
 <div class="chip-row" id="storeChips" style="margin-top:8px"></div>
 
-<div class="label">Payment Method</div>
-<div class="chip-row" id="payRow"></div>
+<div id="paymentSection">
+  <div class="label">Payment Method</div>
+  <div class="chip-row" id="payRow"></div>
+</div>
 
 <div class="label">Note (optional)</div>
 <input type="text" id="fNote" placeholder="">
@@ -122,16 +162,35 @@
 </div>
 
 <div id="dashboardView" style="display:none">
-  <div class="dash-month">
-    <select id="dashMonthSel" onchange="renderDashboard()"></select>
+  <div class="dash-tabs">
+    <button class="sel" id="dashOverviewBtn" onclick="showDashTab('overview')">Overview</button>
+    <button id="dashMonthlyBtn" onclick="showDashTab('monthly')">Monthly Detail</button>
   </div>
-  <div id="dashBody"></div>
+
+  <div id="dashOverviewView">
+    <div class="cards" id="ovCards"></div>
+    <div class="chart-card"><h4>Income vs Expenses by Month</h4><canvas id="barChart" height="180"></canvas></div>
+    <div class="chart-card"><h4>Net Savings Trend</h4><canvas id="lineChart" height="180"></canvas></div>
+    <div class="chart-card"><h4>Spend by Category (All Time)</h4><canvas id="pieChart" height="220"></canvas></div>
+    <div class="dtable-wrap"><div class="tw-head">Monthly Comparison</div><div id="ovMonthlyTable"></div></div>
+    <div class="dtable-wrap"><div class="tw-head">Category Breakdown — All Months</div><div id="ovCategoryTable"></div></div>
+  </div>
+
+  <div id="dashMonthlyView" style="display:none">
+    <div class="dash-month">
+      <select id="dashMonthSel" onchange="renderMonthlyDetail()"></select>
+    </div>
+    <div class="cards" id="monCards"></div>
+    <div class="dtable-wrap"><div class="tw-head" id="monIncomeHead">Income</div><div id="monIncomeTable"></div></div>
+    <div class="dtable-wrap"><div class="tw-head" id="monExpenseHead">Expenses</div><div id="monExpenseTable"></div></div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-const CATS = ["Rent","Travel","Gas","Groceries","Kids/Activities","Shopping","Health","Utilities/Phone","Subscriptions","Entertainment","Dining Out","Others"];
+const EXP_CATS = ["Rent","Travel","Gas","Groceries","Kids/Activities","Shopping","Health","Utilities/Phone","Subscriptions","Entertainment","Dining Out","Others"];
+const INC_CATS = ["Salary","Dividends","Bonus","Interest","Gift","Other"];
 const DEFAULT_PAY = ["Credit","Cash"];
 const DEFAULT_STORES = ["Costco","Target","Walmart"];
 const LS_KEY = "iexpense_entries_v1";
@@ -139,6 +198,7 @@ const LS_KEY = "iexpense_entries_v1";
 let sel = {cat:null, pay:null};
 let entries = load();
 let editIndex = null;
+let formType = "expense";
 
 function load(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||"[]"); }catch(e){ return []; } }
 function genId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
@@ -148,27 +208,53 @@ persist(); // backfill ids on any pre-existing data
 function todayStr(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function toast(msg,color){ const t=document.getElementById("toast"); t.textContent=msg; t.style.background=color||"var(--green)"; t.style.display="block"; setTimeout(()=>t.style.display="none",2200); }
 
-// build category grid
 const catGrid=document.getElementById("catGrid");
 function selectCategory(cat){
   sel.cat=cat;
   [...catGrid.children].forEach(x=>x.classList.toggle("sel",x.textContent===cat));
 }
-CATS.forEach(c=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=c;
-  b.onclick=()=>selectCategory(c); catGrid.appendChild(b); });
+function renderCatGrid(type){
+  catGrid.innerHTML="";
+  (type==="income" ? INC_CATS : EXP_CATS).forEach(c=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=c;
+    b.onclick=()=>selectCategory(c); catGrid.appendChild(b); });
+}
 
-// payment row
 const payRow=document.getElementById("payRow");
-DEFAULT_PAY.forEach(p=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=p;
-  b.onclick=()=>{ sel.pay=p; [...payRow.children].forEach(x=>x.classList.toggle("sel",x.textContent===p)); }; payRow.appendChild(b); });
+function renderPayRow(){
+  payRow.innerHTML="";
+  DEFAULT_PAY.forEach(p=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=p;
+    b.onclick=()=>{ sel.pay=p; [...payRow.children].forEach(x=>x.classList.toggle("sel",x.textContent===p)); }; payRow.appendChild(b); });
+}
 
-// remembers which category was last used for a given store, so typing a known
-// merchant can fill in the category automatically
+function updateSaveBtnLabel(){
+  const verb = editIndex!==null ? "Update" : "Save";
+  const noun = formType==="income" ? "Income" : "Expense";
+  document.getElementById("saveBtn").textContent = `${verb} ${noun}`;
+}
+
+function setFormType(type){
+  formType = type;
+  document.getElementById("typeExpBtn").classList.toggle("sel", type==="expense");
+  document.getElementById("typeIncBtn").classList.toggle("sel", type==="income");
+  document.getElementById("storeLabel").textContent = type==="expense" ? "Store / Merchant" : "Source";
+  document.getElementById("fStore").placeholder = type==="expense" ? "e.g. Costco" : "e.g. Salary";
+  document.getElementById("paymentSection").style.display = type==="expense" ? "block" : "none";
+  sel.cat=null; sel.pay=null;
+  renderCatGrid(type);
+  [...payRow.children].forEach(x=>x.classList.remove("sel"));
+  updateSaveBtnLabel();
+  renderStoreChips();
+}
+
+// remembers which category was last used for a given store/source, so typing
+// a known one can fill in the category automatically (scoped to the current
+// expense/income mode so they don't cross-contaminate each other's guesses)
 function guessCategoryForStore(storeName){
   const norm=(storeName||"").trim().toLowerCase();
   if(!norm) return null;
   for(let i=entries.length-1;i>=0;i--){
-    if((entries[i].store||"").trim().toLowerCase()===norm) return entries[i].category;
+    const e=entries[i];
+    if((e.type||"expense")===formType && (e.store||"").trim().toLowerCase()===norm) return e.category;
   }
   return null;
 }
@@ -179,11 +265,11 @@ function applyStoreCategory(storeName){
 }
 document.getElementById("fStore").addEventListener("input",(e)=>applyStoreCategory(e.target.value));
 
-// recent-store quick picks
+// recent-store quick picks, scoped to the current expense/income mode
 function renderStoreChips(){
   const box=document.getElementById("storeChips"); box.innerHTML="";
-  const seen=[]; [...entries].reverse().forEach(e=>{ if(e.store && !seen.includes(e.store)) seen.push(e.store); });
-  DEFAULT_STORES.forEach(s=>{ if(!seen.includes(s)) seen.push(s); });
+  const seen=[]; [...entries].reverse().forEach(e=>{ if((e.type||"expense")===formType && e.store && !seen.includes(e.store)) seen.push(e.store); });
+  if(formType==="expense") DEFAULT_STORES.forEach(s=>{ if(!seen.includes(s)) seen.push(s); });
   seen.slice(0,8).forEach(s=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=s;
     b.onclick=()=>{ document.getElementById("fStore").value=s; applyStoreCategory(s); }; box.appendChild(b); });
 }
@@ -192,20 +278,22 @@ function renderList(){
   const box=document.getElementById("entryList"); box.innerHTML="";
   [...entries].reverse().forEach((e)=>{
     const idx=entries.indexOf(e);
-    const d=document.createElement("div"); d.className="entry"+(idx===editIndex?" editing":"");
-    d.innerHTML=`<div><div class="cat">${e.category}</div><div class="sub">${e.date} · ${e.store||"—"} · ${e.payment||"—"}${e.note?" · "+e.note:""}</div></div>
-      <div style="display:flex;align-items:center"><span class="amt">$${Number(e.amount).toFixed(2)}</span><button class="del" onclick="delEntry(${idx},event)">✕</button></div>`;
+    const isIncome = e.type==="income";
+    const d=document.createElement("div"); d.className="entry"+(isIncome?" income":"")+(idx===editIndex?" editing":"");
+    const sign = isIncome ? "+" : "";
+    d.innerHTML=`<div><div class="cat">${isIncome?"💰 ":""}${e.category}</div><div class="sub">${e.date} · ${e.store||"—"}${!isIncome && e.payment?" · "+e.payment:""}${e.note?" · "+e.note:""}</div></div>
+      <div style="display:flex;align-items:center"><span class="amt">${sign}$${Number(e.amount).toFixed(2)}</span><button class="del" onclick="delEntry(${idx},event)">✕</button></div>`;
     d.onclick=()=>editEntry(idx);
     box.appendChild(d);
   });
   const monthPrefix = todayStr().slice(0,7);
-  const monthSum = entries.filter(e=>e.date && e.date.slice(0,7)===monthPrefix).reduce((s,e)=>s+Number(e.amount||0),0);
+  const monthSum = entries.filter(e=>(e.type||"expense")==="expense" && e.date && e.date.slice(0,7)===monthPrefix).reduce((s,e)=>s+Number(e.amount||0),0);
   document.getElementById("monthTotal").textContent = "$"+monthSum.toFixed(2);
   renderStoreChips();
 }
 
 function isDuplicate(candidate, skipIdx){
-  return entries.some((e,i)=> i!==skipIdx && e.date===candidate.date && e.category===candidate.category &&
+  return entries.some((e,i)=> i!==skipIdx && (e.type||"expense")===candidate.type && e.date===candidate.date && e.category===candidate.category &&
     Number(e.amount)===candidate.amount && (e.store||"").toLowerCase()===(candidate.store||"").toLowerCase());
 }
 
@@ -213,10 +301,13 @@ async function saveEntry(){
   const amt=parseFloat(document.getElementById("fAmount").value);
   if(!sel.cat){ toast("Pick a category","var(--red)"); return; }
   if(!amt || amt<=0){ toast("Enter an amount","var(--red)"); return; }
-  const candidate = { date:document.getElementById("fDate").value||todayStr(), category:sel.cat, amount:Math.round(amt*100)/100,
-    store:document.getElementById("fStore").value.trim(), payment:sel.pay||"", note:document.getElementById("fNote").value.trim() };
+  const candidate = { date:document.getElementById("fDate").value||todayStr(), type:formType, category:sel.cat, amount:Math.round(amt*100)/100,
+    store:document.getElementById("fStore").value.trim(), payment:formType==="expense" ? (sel.pay||"") : "", note:document.getElementById("fNote").value.trim() };
 
-  if(isDuplicate(candidate, editIndex) && !confirm("Possible duplicate: same date, category, amount and store already logged. Save anyway?")) return;
+  const dupMsg = formType==="income"
+    ? "Possible duplicate: same date, category, amount and source already logged. Save anyway?"
+    : "Possible duplicate: same date, category, amount and store already logged. Save anyway?";
+  if(isDuplicate(candidate, editIndex) && !confirm(dupMsg)) return;
 
   const wasEdit = editIndex!==null;
   let targetId;
@@ -251,11 +342,8 @@ async function saveEntry(){
 function resetForm(){
   editIndex=null;
   document.getElementById("fAmount").value=""; document.getElementById("fStore").value=""; document.getElementById("fNote").value="";
-  sel.cat=null; sel.pay=null;
-  [...catGrid.children].forEach(x=>x.classList.remove("sel"));
-  [...payRow.children].forEach(x=>x.classList.remove("sel"));
-  document.getElementById("saveBtn").textContent="Save Expense";
   document.getElementById("cancelEditBtn").style.display="none";
+  setFormType("expense");
   renderList();
 }
 
@@ -279,6 +367,7 @@ async function delEntry(i,evt){
 function editEntry(i){
   const e=entries[i];
   editIndex=i;
+  setFormType(e.type||"expense");
   document.getElementById("fDate").value=e.date;
   document.getElementById("fAmount").value=e.amount;
   document.getElementById("fStore").value=e.store||"";
@@ -286,8 +375,8 @@ function editEntry(i){
   sel.cat=e.category; sel.pay=e.payment||null;
   [...catGrid.children].forEach(x=>x.classList.toggle("sel",x.textContent===e.category));
   [...payRow.children].forEach(x=>x.classList.toggle("sel",x.textContent===e.payment));
-  document.getElementById("saveBtn").textContent="Update Expense";
   document.getElementById("cancelEditBtn").style.display="block";
+  updateSaveBtnLabel();
   renderList();
   window.scrollTo({top:0,behavior:"smooth"});
 }
@@ -315,13 +404,13 @@ function restoreData(evt){
     try{ data = JSON.parse(reader.result); }catch(e){ toast("Invalid backup file","var(--red)"); return; }
     const incoming = Array.isArray(data) ? data : (data.entries||[]);
     if(!Array.isArray(incoming) || !incoming.length){ toast("No entries found in file","var(--amber)"); return; }
-    const key = e => [e.date,e.category,e.amount,e.store,e.note].join("|");
+    const key = e => [(e.type||"expense"),e.date,e.category,e.amount,e.store,e.note].join("|");
     const existing = new Set(entries.map(key));
     let added = 0;
     incoming.forEach(e=>{
       if(!e || !e.date || !e.category || e.amount==null) return;
       if(existing.has(key(e))) return;
-      entries.push({ date:e.date, category:e.category, amount:Number(e.amount), store:e.store||"", payment:e.payment||"", note:e.note||"" });
+      entries.push({ date:e.date, type:e.type||"expense", category:e.category, amount:Number(e.amount), store:e.store||"", payment:e.payment||"", note:e.note||"" });
       existing.add(key(e));
       added++;
     });
@@ -341,7 +430,7 @@ let cloudCfg = loadCloudCfg();
 function utf8ToB64(str){ return btoa(unescape(encodeURIComponent(str))); }
 function b64ToUtf8(str){ return decodeURIComponent(escape(atob(str.replace(/\n/g,"")))); }
 function cloudApiUrl(cfg){ return `https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/entries.json`; }
-function mergeKey(e){ return e.id || [e.date,e.category,e.amount,e.store,e.note].join("|"); }
+function mergeKey(e){ return e.id || [(e.type||"expense"),e.date,e.category,e.amount,e.store,e.note].join("|"); }
 
 async function cloudFetchRemote(cfg){
   const res = await fetch(cloudApiUrl(cfg), { headers:{ Authorization:`Bearer ${cfg.token}`, Accept:"application/vnd.github+json" } });
@@ -464,7 +553,7 @@ async function cloudPullOnLoad(){
   }
 }
 
-// ===== Dashboard: month-over-month totals computed entirely client-side =====
+// ===== Dashboard: all data computed entirely client-side from synced entries =====
 function showTab(tab){
   const isEntries = tab==="entries";
   document.getElementById("entriesView").style.display = isEntries ? "block" : "none";
@@ -479,36 +568,160 @@ function monthLabel(m){
   return new Date(y, mo-1, 1).toLocaleString(undefined,{month:"long",year:"numeric"});
 }
 
-function populateDashMonths(){
-  const sel = document.getElementById("dashMonthSel");
-  const months = [...new Set(entries.map(e=>e.date && e.date.slice(0,7)).filter(Boolean))].sort().reverse();
+// every month that has data, plus the real current month, sorted oldest-first
+function allMonths(){
+  const months = [...new Set(entries.map(e=>e.date && e.date.slice(0,7)).filter(Boolean))];
   const cur = todayStr().slice(0,7);
-  if(!months.includes(cur)) months.unshift(cur);
-  const prevVal = sel.value;
-  sel.innerHTML="";
-  months.forEach(m=>{ const opt=document.createElement("option"); opt.value=m; opt.textContent=monthLabel(m); sel.appendChild(opt); });
-  sel.value = months.includes(prevVal) ? prevVal : cur;
+  if(!months.includes(cur)) months.push(cur);
+  return months.sort();
+}
+
+function monthTotals(m){
+  const me = entries.filter(e=>e.date && e.date.slice(0,7)===m);
+  const income = me.filter(e=>e.type==="income").reduce((s,e)=>s+Number(e.amount||0),0);
+  const expenses = me.filter(e=>(e.type||"expense")==="expense").reduce((s,e)=>s+Number(e.amount||0),0);
+  return { income, expenses, net: income-expenses, rate: income>0 ? (income-expenses)/income : 0 };
+}
+
+function showDashTab(tab){
+  const isOverview = tab==="overview";
+  document.getElementById("dashOverviewView").style.display = isOverview ? "block" : "none";
+  document.getElementById("dashMonthlyView").style.display = isOverview ? "none" : "block";
+  document.getElementById("dashOverviewBtn").classList.toggle("sel", isOverview);
+  document.getElementById("dashMonthlyBtn").classList.toggle("sel", !isOverview);
+  if(isOverview) renderOverview(); else renderMonthlyDetail();
 }
 
 function renderDashboard(){
-  populateDashMonths();
-  const month = document.getElementById("dashMonthSel").value;
-  const body = document.getElementById("dashBody");
-  const monthEntries = entries.filter(e=>e.date && e.date.slice(0,7)===month);
-  if(!monthEntries.length){ body.innerHTML='<div class="dash-empty">No expenses logged for this month yet</div>'; return; }
-  const total = monthEntries.reduce((s,e)=>s+Number(e.amount||0),0);
-  const byCat = {};
-  monthEntries.forEach(e=>{ byCat[e.category]=(byCat[e.category]||0)+Number(e.amount||0); });
-  const rows = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
-  const max = rows.length ? rows[0][1] : 1;
-  body.innerHTML = `<div class="dash-total">$${total.toFixed(2)}</div>` + rows.map(([cat,amt])=>`
-    <div class="dash-row">
-      <div class="dr-top"><span>${cat}</span><span>$${amt.toFixed(2)}</span></div>
-      <div class="dr-bar"><div class="dr-fill" style="width:${Math.round(amt/max*100)}%"></div></div>
-    </div>`).join("");
+  const overviewActive = document.getElementById("dashOverviewView").style.display !== "none";
+  if(overviewActive) renderOverview(); else renderMonthlyDetail();
 }
 
+let charts = { bar:null, line:null, pie:null };
+const CHART_PALETTE = ["#4f8cff","#f87171","#34d399","#fbbf24","#a78bfa","#38bdf8","#fb923c","#f472b6","#22d3ee","#a3e635","#c084fc","#facc15"];
+
+function themeColor(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+function renderOverview(){
+  const months = allMonths();
+  const totals = months.map(m=>({ m, ...monthTotals(m) }));
+  const totalIncome = totals.reduce((s,t)=>s+t.income,0);
+  const totalExpenses = totals.reduce((s,t)=>s+t.expenses,0);
+  const netSavings = totalIncome-totalExpenses;
+  const rate = totalIncome>0 ? netSavings/totalIncome : 0;
+
+  document.getElementById("ovCards").innerHTML = `
+    <div class="card"><div class="card-label">Total Income</div><div class="card-value">$${totalIncome.toFixed(2)}</div><div class="card-sub">All months</div></div>
+    <div class="card orange"><div class="card-label">Total Expenses</div><div class="card-value">$${totalExpenses.toFixed(2)}</div><div class="card-sub">All months</div></div>
+    <div class="card green"><div class="card-label">Net Savings</div><div class="card-value">$${netSavings.toFixed(2)}</div><div class="card-sub">Income − Expenses</div></div>
+    <div class="card purple"><div class="card-label">Savings Rate</div><div class="card-value">${(rate*100).toFixed(1)}%</div><div class="card-sub">Net / Income</div></div>
+  `;
+
+  const labels = months.map(monthLabel);
+
+  if(typeof Chart!=="undefined"){
+    const textColor = themeColor("--text");
+    const gridColor = themeColor("--border");
+
+    if(charts.bar) charts.bar.destroy();
+    charts.bar = new Chart(document.getElementById("barChart"), {
+      type:"bar",
+      data:{ labels, datasets:[
+        { label:"Income", data:totals.map(t=>t.income), backgroundColor:themeColor("--green") },
+        { label:"Expenses", data:totals.map(t=>t.expenses), backgroundColor:themeColor("--red") }
+      ]},
+      options:{ responsive:true, plugins:{ legend:{ position:"bottom", labels:{ color:textColor } } },
+        scales:{ x:{ ticks:{ color:textColor }, grid:{ color:gridColor } }, y:{ ticks:{ color:textColor }, grid:{ color:gridColor } } } }
+    });
+
+    if(charts.line) charts.line.destroy();
+    charts.line = new Chart(document.getElementById("lineChart"), {
+      type:"line",
+      data:{ labels, datasets:[{ label:"Net Savings", data:totals.map(t=>t.net), borderColor:themeColor("--accent"), backgroundColor:"rgba(79,140,255,0.15)", fill:true, tension:.3 }] },
+      options:{ responsive:true, plugins:{ legend:{ display:false } },
+        scales:{ x:{ ticks:{ color:textColor }, grid:{ color:gridColor } }, y:{ ticks:{ color:textColor }, grid:{ color:gridColor } } } }
+    });
+
+    const byCat = {};
+    entries.filter(e=>(e.type||"expense")==="expense").forEach(e=>{ byCat[e.category]=(byCat[e.category]||0)+Number(e.amount||0); });
+    const catEntries = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+    if(charts.pie) charts.pie.destroy();
+    charts.pie = new Chart(document.getElementById("pieChart"), {
+      type:"pie",
+      data:{ labels:catEntries.map(c=>c[0]), datasets:[{ data:catEntries.map(c=>c[1]), backgroundColor:CHART_PALETTE }] },
+      options:{ responsive:true, plugins:{ legend:{ position:"right", labels:{ boxWidth:12, font:{ size:11 }, color:textColor } } } }
+    });
+  }
+
+  document.getElementById("ovMonthlyTable").innerHTML = `<table><thead><tr><th>Month</th><th>Income</th><th>Expenses</th><th>Net</th><th>Rate</th></tr></thead><tbody>
+    ${totals.map(t=>`<tr><td>${monthLabel(t.m)}</td><td>$${t.income.toFixed(2)}</td><td>$${t.expenses.toFixed(2)}</td><td>$${t.net.toFixed(2)}</td><td>${(t.rate*100).toFixed(1)}%</td></tr>`).join("")}
+  </tbody></table>`;
+
+  const allCats = [...new Set(entries.filter(e=>(e.type||"expense")==="expense").map(e=>e.category))];
+  const catRows = allCats.map(cat=>{
+    const perMonth = months.map(m=>entries.filter(e=>(e.type||"expense")==="expense" && e.category===cat && e.date.slice(0,7)===m).reduce((s,e)=>s+Number(e.amount||0),0));
+    const total = perMonth.reduce((a,b)=>a+b,0);
+    return { cat, perMonth, total };
+  }).sort((a,b)=>b.total-a.total);
+  const grandTotal = catRows.reduce((s,r)=>s+r.total,0) || 1;
+  document.getElementById("ovCategoryTable").innerHTML = catRows.length ? `<table><thead><tr><th>Category</th>${months.map(m=>`<th>${monthLabel(m)}</th>`).join("")}<th>Total</th><th>% of Spend</th></tr></thead><tbody>
+    ${catRows.map(r=>`<tr><td><b>${r.cat}</b></td>${r.perMonth.map(v=>`<td>$${v.toFixed(2)}</td>`).join("")}<td><b>$${r.total.toFixed(2)}</b></td><td>${(r.total/grandTotal*100).toFixed(1)}%</td></tr>`).join("")}
+  </tbody></table>` : `<div class="dash-empty">No expenses logged yet</div>`;
+}
+
+function renderMonthlyDetail(){
+  const months = allMonths();
+  const sel = document.getElementById("dashMonthSel");
+  const prevVal = sel.value;
+  sel.innerHTML="";
+  months.slice().reverse().forEach(m=>{ const opt=document.createElement("option"); opt.value=m; opt.textContent=monthLabel(m); sel.appendChild(opt); });
+  const mostRecent = months[months.length-1];
+  sel.value = months.includes(prevVal) ? prevVal : mostRecent;
+
+  const month = sel.value;
+  const me = entries.filter(e=>e.date && e.date.slice(0,7)===month);
+  const income = me.filter(e=>e.type==="income");
+  const expenses = me.filter(e=>(e.type||"expense")==="expense");
+  const totalIncome = income.reduce((s,e)=>s+Number(e.amount||0),0);
+  const totalExpenses = expenses.reduce((s,e)=>s+Number(e.amount||0),0);
+  const net = totalIncome-totalExpenses;
+  const rate = totalIncome>0 ? net/totalIncome : 0;
+
+  document.getElementById("monCards").innerHTML = `
+    <div class="card"><div class="card-label">Income</div><div class="card-value">$${totalIncome.toFixed(2)}</div></div>
+    <div class="card orange"><div class="card-label">Expenses</div><div class="card-value">$${totalExpenses.toFixed(2)}</div></div>
+    <div class="card ${net>=0?"green":"orange"}"><div class="card-label">Net Savings</div><div class="card-value">$${net.toFixed(2)}</div></div>
+    <div class="card purple"><div class="card-label">Savings Rate</div><div class="card-value">${(rate*100).toFixed(1)}%</div></div>
+  `;
+
+  document.getElementById("monIncomeHead").textContent = `Income — ${monthLabel(month)} (${income.length})`;
+  document.getElementById("monIncomeTable").innerHTML = income.length ? `<table><thead><tr><th>Source</th><th>Category</th><th>Amount</th></tr></thead><tbody>
+    ${income.map(e=>`<tr><td>${e.store||"—"}</td><td>${e.category}</td><td>$${Number(e.amount).toFixed(2)}</td></tr>`).join("")}
+  </tbody></table>` : `<div class="dash-empty">No income logged for this month</div>`;
+
+  document.getElementById("monExpenseHead").textContent = `Expenses — ${monthLabel(month)} (${expenses.length})`;
+  document.getElementById("monExpenseTable").innerHTML = expenses.length ? `<table><thead><tr><th>Date</th><th>Item / Merchant</th><th>Category</th><th>Amount</th></tr></thead><tbody>
+    ${expenses.map(e=>`<tr><td>${e.date}</td><td>${e.store||"—"}</td><td>${e.category}</td><td>$${Number(e.amount).toFixed(2)}</td></tr>`).join("")}
+  </tbody></table>` : `<div class="dash-empty">No expenses logged for this month</div>`;
+}
+
+// ===== Light / dark theme, persisted =====
+function setTheme(theme){
+  document.documentElement.setAttribute("data-theme", theme);
+  document.getElementById("themeToggle").textContent = theme==="light" ? "☀️" : "🌙";
+  try{ localStorage.setItem("iexpense_theme", theme); }catch(e){}
+  const dashVisible = document.getElementById("dashboardView").style.display !== "none";
+  const overviewVisible = document.getElementById("dashOverviewView").style.display !== "none";
+  if(dashVisible && overviewVisible) renderOverview();
+}
+function toggleTheme(){
+  const current = document.documentElement.getAttribute("data-theme")==="light" ? "light" : "dark";
+  setTheme(current==="dark" ? "light" : "dark");
+}
+
+renderPayRow();
 document.getElementById("fDate").value=todayStr();
+setFormType("expense");
 renderList();
 if(cloudCfg){
   document.getElementById("cloudSetup").style.display="none";
@@ -519,6 +732,11 @@ if(cloudCfg){
 } else {
   setCloudStatus(false);
 }
+(function initTheme(){
+  let saved="dark";
+  try{ saved = localStorage.getItem("iexpense_theme") || "dark"; }catch(e){}
+  setTheme(saved);
+})();
 </script>
 </body>
 </html>
