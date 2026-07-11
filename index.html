@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="iExpense">
 <meta name="theme-color" content="#0f1117">
-<link rel="apple-touch-icon" href="icon-512.png">
-<link rel="icon" type="image/png" href="icon-512.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 <title>iExpense</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
@@ -44,6 +44,9 @@
   .label{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:16px 0 8px}
   .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
   .chip-row{display:flex;flex-wrap:wrap;gap:8px}
+  .chip-wrap{position:relative;display:inline-flex}
+  .chip-remove{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;border:2px solid var(--bg);font-size:12px;line-height:1;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;z-index:1}
+  .chip-remove:active{transform:scale(.9)}
   button.opt{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:12px 6px;font-size:13.5px;font-weight:500;cursor:pointer;transition:transform .1s ease,background .12s,border-color .12s}
   button.opt.sel{background:var(--accent2);border-color:var(--accent);color:#fff;font-weight:700}
   button.opt:active{transform:scale(.95)}
@@ -123,7 +126,7 @@
 </header>
 
 <div class="tabs">
-  <button class="sel" id="tabExpenseBtn" onclick="showMainTab('expense')">💸 Expense</button>
+  <button class="sel" id="tabExpenseBtn" onclick="showMainTab('expense')">🧾 Expense</button>
   <button id="tabIncomeBtn" onclick="showMainTab('income')">💰 Income</button>
   <button id="tabDashboardBtn" onclick="showMainTab('dashboard')">📊 Dashboard</button>
 </div>
@@ -304,12 +307,34 @@ function applyStoreCategory(storeName){
 document.getElementById("fStore").addEventListener("input",(e)=>applyStoreCategory(e.target.value));
 
 // recent-store quick picks, scoped to the current expense/income mode
+const HIDDEN_CHIPS_KEY = "iexpense_hidden_chips_v1";
+function loadHiddenChips(){ try{ return JSON.parse(localStorage.getItem(HIDDEN_CHIPS_KEY)||"[]"); }catch(e){ return []; } }
+function saveHiddenChips(list){ try{ localStorage.setItem(HIDDEN_CHIPS_KEY, JSON.stringify(list)); }catch(e){} }
+function hideChip(storeName){
+  const hidden = loadHiddenChips();
+  if(!hidden.includes(storeName)) hidden.push(storeName);
+  saveHiddenChips(hidden);
+  renderStoreChips();
+}
+function unhideChip(storeName){
+  const hidden = loadHiddenChips();
+  const idx = hidden.indexOf(storeName);
+  if(idx>=0){ hidden.splice(idx,1); saveHiddenChips(hidden); }
+}
 function renderStoreChips(){
   const box=document.getElementById("storeChips"); box.innerHTML="";
+  const hidden=loadHiddenChips();
   const seen=[]; [...entries].reverse().forEach(e=>{ if((e.type||"expense")===formType && e.store && !seen.includes(e.store)) seen.push(e.store); });
   if(formType==="expense") DEFAULT_STORES.forEach(s=>{ if(!seen.includes(s)) seen.push(s); });
-  seen.slice(0,8).forEach(s=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=s;
-    b.onclick=()=>{ document.getElementById("fStore").value=s; applyStoreCategory(s); }; box.appendChild(b); });
+  seen.filter(s=>!hidden.includes(s)).slice(0,8).forEach(s=>{
+    const wrap=document.createElement("div"); wrap.className="chip-wrap";
+    const b=document.createElement("button"); b.className="opt"; b.textContent=s;
+    b.onclick=()=>{ document.getElementById("fStore").value=s; applyStoreCategory(s); };
+    const x=document.createElement("button"); x.type="button"; x.className="chip-remove"; x.textContent="×";
+    x.setAttribute("aria-label","Remove "+s+" from quick picks");
+    x.onclick=(ev)=>{ ev.stopPropagation(); hideChip(s); };
+    wrap.appendChild(b); wrap.appendChild(x); box.appendChild(wrap);
+  });
 }
 
 // the home page only ever shows TODAY's entries, so it stays a short, bounded
@@ -351,6 +376,8 @@ async function saveEntry(){
     ? "Possible duplicate: same date, category, amount and source already logged. Save anyway?"
     : "Possible duplicate: same date, category, amount and store already logged. Save anyway?";
   if(isDuplicate(candidate, editIndex) && !confirm(dupMsg)) return;
+
+  if(candidate.store) unhideChip(candidate.store);
 
   const wasEdit = editIndex!==null;
   let targetId;
