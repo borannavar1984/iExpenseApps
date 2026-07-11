@@ -104,3 +104,23 @@ one user's data to reach another.
 with a login and everyone's data lives on one server. That's a much bigger, costlier build
 (real auth, hosting, ongoing security work) and isn't needed to get you — or anyone who
 copies this repo — a fully working personal tracker today.
+
+## Round 4 (2026-07-11, cloud sync live + cleanup)
+
+Cloud Sync is confirmed working end-to-end against your real private repo
+(`borannavar1984/expense-data`) — verified directly by reading your actual
+synced expense entries back out of GitHub, not just a "Connected" message.
+
+Since cloud sync now covers the "get my data off this one phone" need, the old
+manual flow it replaces is gone:
+- Removed the **Export to OneDrive Inbox** and **Copy as text (fallback)** buttons.
+- Removed the "pending" counter badge and the "sent"/dimmed styling on entries —
+  both only existed to track which entries had been through that export step,
+  so they became dead weight once the button was gone.
+- `Save Expense` still works exactly the same; entries no longer carry an
+  `exported` flag at all (backup/restore and cloud sync updated to match).
+
+Tested with 10 new scripted-browser checks (buttons gone, no leftover "sent"
+labels or dimming, save still works, month total still correct, backups no
+longer include the old field) plus a re-run of the round 2 and round 3 suites
+(9 + 22 checks) — 41 total, all passing.
