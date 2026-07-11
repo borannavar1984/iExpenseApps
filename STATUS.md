@@ -321,3 +321,38 @@ overlap under both a simulated notch device and a plain non-notch device,
 header content confirmed to clear the notch, the new icon file confirmed
 reachable and linked correctly) plus a re-run of every earlier suite — 123
 checks total, all passing.
+
+## Round 12 (2026-07-11, removable store chips + Expense tab icon)
+
+Two requests:
+
+- **Store/Merchant quick-pick chips can now be removed.** Every chip under
+  Store/Merchant (both your own history and the seeded Costco/Target/Walmart
+  ones) now has a small red "×" on its corner — tap it and that chip is gone
+  for good, so a one-off store (like a doctor's office you only visit once a
+  year) doesn't clutter the quick-pick row forever. This only hides the
+  chip; it never touches your actual logged entries or history — Dashboard
+  and cloud sync are unaffected. If you ever use that store again in a new
+  entry, its chip comes right back automatically, exactly like you asked
+  ("whenever I add a new one, add it; if I don't want it, I can remove it").
+- **Changed the Expense tab icon** from 💸 to 🧾 (a receipt) — reads more
+  clearly as "expense/spending record" and stands apart from Income's 💰
+  and Dashboard's 📊.
+
+Also, about the home-screen icon from Round 11: you sent a screenshot
+showing a plain black icon with just the letter "I" instead of the new $
+icon. That's iOS being stubborn about caching the old icon-less state from
+before the icon existed — simply removing and re-adding the shortcut isn't
+always enough to force it to re-check. Also improved the icon setup itself
+(added a properly-sized 180×180 version, which is what iOS prefers) to
+maximize the odds it picks it up cleanly on the next add. To be sure you get
+the new icon: remove the current iExpense icon from your home screen, then
+in Safari go to Settings → Safari → Advanced → Website Data, find
+"github.io," delete it (this clears the stuck cache), reload the app page,
+and then Add to Home Screen again.
+
+Tested with 9 new scripted-browser checks (every chip has a working remove
+button, removing a chip doesn't accidentally select it into the Store
+field, removed chips stay hidden after a reload, using a hidden store again
+in a new entry brings its chip back, seeded default chips can be removed
+too) plus a re-run of every earlier suite — 133 checks total, all passing.
