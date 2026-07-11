@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>iExpense</title>
@@ -19,39 +19,56 @@
     --green:#1f7a4d; --red:#c0392b; --amber:#b8720a; --purple:#7c3aed;
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:14px 14px 90px;max-width:520px;margin:0 auto}
-  header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-  h1{font-size:22px;font-weight:700}
+  html{-webkit-font-smoothing:antialiased}
+  body{
+    background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    padding:14px calc(14px + env(safe-area-inset-right)) calc(90px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left));
+    max-width:520px;margin:0 auto;
+  }
+  header{
+    display:flex;justify-content:space-between;align-items:center;
+    position:sticky;top:0;z-index:20;background:var(--bg);
+    margin:calc(-1 * env(safe-area-inset-top)) -14px 14px;
+    padding:calc(14px + env(safe-area-inset-top)) 14px 12px;
+    border-bottom:1px solid var(--border);
+  }
+  h1{font-size:22px;font-weight:700;letter-spacing:-.2px}
   h1 span{color:var(--accent)}
   .badge{background:var(--card2);border:1px solid var(--border);color:var(--muted);font-size:12px;padding:4px 10px;border-radius:20px}
   .badge b{color:var(--amber)}
   .label{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:16px 0 8px}
   .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
   .chip-row{display:flex;flex-wrap:wrap;gap:8px}
-  button.opt{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:12px 6px;font-size:13.5px;font-weight:500;cursor:pointer;transition:all .12s}
+  button.opt{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:12px 6px;font-size:13.5px;font-weight:500;cursor:pointer;transition:transform .1s ease,background .12s,border-color .12s}
   button.opt.sel{background:var(--accent2);border-color:var(--accent);color:#fff;font-weight:700}
+  button.opt:active{transform:scale(.95)}
   .chip-row button.opt{padding:10px 14px;border-radius:20px;flex:0 0 auto}
-  input[type=text],input[type=date],input[type=tel]{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:13px 14px;font-size:16px;outline:none}
-  input:focus{border-color:var(--accent)}
+  .grid button.opt{position:relative;padding:16px 6px 10px;display:flex;flex-direction:column;align-items:center;gap:5px;line-height:1.15}
+  .grid button.opt[data-icon]::before{content:attr(data-icon);font-size:18px}
+  input[type=text],input[type=date],input[type=tel]{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:13px 14px;font-size:16px;outline:none;transition:border-color .12s,box-shadow .12s}
+  input:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent)}
   .amount-wrap{position:relative}
   .amount-wrap::before{content:"$";position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:18px}
   .amount-wrap input{padding-left:32px;font-size:22px;font-weight:700}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:18px}
   .row2 .btn{margin-top:0}
-  .btn{width:100%;border:none;border-radius:14px;padding:16px;font-size:17px;font-weight:700;cursor:pointer;margin-top:18px}
+  .btn{width:100%;border:none;border-radius:14px;padding:16px;font-size:17px;font-weight:700;cursor:pointer;margin-top:18px;transition:transform .1s ease,opacity .1s ease}
+  .btn:active{transform:scale(.97);opacity:.85}
   .btn-save{background:var(--accent2);color:#fff}
-  .btn-save:active{opacity:.8}
   .btn-export{background:var(--green);color:#06281c;margin-top:10px}
   .btn-ghost{background:var(--card2);color:var(--muted);font-size:14px;padding:12px;margin-top:10px}
-  .entry{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;font-size:14px;cursor:pointer}
+  .entry{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;font-size:14px;cursor:pointer;transition:transform .1s ease,border-color .12s}
+  .entry:active{transform:scale(.98)}
   .entry.editing{border-color:var(--accent);background:var(--card2)}
   .entry .cat{font-weight:600}
   .entry .sub{color:var(--muted);font-size:12px;margin-top:2px}
   .entry .amt{font-weight:700;font-size:16px;margin-right:10px}
   .entry .del{color:var(--red);background:none;border:none;font-size:18px;padding:4px 6px;cursor:pointer}
-  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:#06281c;padding:12px 22px;border-radius:24px;font-weight:700;font-size:14px;display:none;z-index:99;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+  .toast{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:var(--green);color:#06281c;padding:12px 22px;border-radius:24px;font-weight:700;font-size:14px;display:none;z-index:99;box-shadow:0 6px 24px rgba(0,0,0,.35);max-width:calc(100% - 48px);text-align:center}
   .tabs{display:flex;gap:8px;margin-bottom:16px}
-  .tabs button{flex:1;background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:12px;padding:10px;font-size:14px;font-weight:600;cursor:pointer}
+  .tabs button{flex:1;background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:12px;padding:10px;font-size:14px;font-weight:600;cursor:pointer;transition:transform .1s ease,background .12s,border-color .12s}
+  .tabs button:active{transform:scale(.96)}
   .tabs button.sel{background:var(--accent2);border-color:var(--accent);color:#fff}
   .tabs button.sel#tabIncomeBtn{background:var(--green);border-color:var(--green);color:#06281c}
   .cloud-status{font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.5}
@@ -68,10 +85,12 @@
   .theme-toggle{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:20px;font-size:14px;cursor:pointer;line-height:1}
   .entry.income .amt{color:var(--green)}
   .dash-tabs{display:flex;gap:8px;margin-bottom:16px}
-  .dash-tabs button{flex:1;background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:12px;padding:8px;font-size:13px;font-weight:600;cursor:pointer}
+  .dash-tabs button{flex:1;background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:12px;padding:8px;font-size:13px;font-weight:600;cursor:pointer;transition:transform .1s ease}
+  .dash-tabs button:active{transform:scale(.96)}
   .dash-tabs button.sel{background:var(--accent2);border-color:var(--accent);color:#fff}
   .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px}
-  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;border-left:4px solid var(--accent2)}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;border-left:4px solid var(--accent2);transition:transform .12s ease,box-shadow .12s ease}
+  .card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.12)}
   .card.green{border-left-color:var(--green)}
   .card.orange{border-left-color:var(--red)}
   .card.purple{border-left-color:var(--purple)}
@@ -134,11 +153,11 @@
 </div>
 <button class="btn btn-ghost" id="cancelEditBtn" style="display:none" onclick="cancelEdit()">Cancel edit</button>
 
-<div class="label" style="margin-top:22px">Today's Entries</div>
+<div class="label" style="margin-top:22px">📝 Today's Entries</div>
 <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Tap an entry to edit it. Past days live in Dashboard → Monthly Detail.</div>
 <div id="entryList"></div>
 
-<div class="label" style="margin-top:22px">Cloud Sync</div>
+<div class="label" style="margin-top:22px">☁️ Cloud Sync</div>
 <div class="cloud-status" id="cloudStatus">Not connected — saving on this device only</div>
 <div id="cloudSetup">
   <input type="text" id="cloudOwner" placeholder="GitHub username" autocomplete="off">
@@ -150,7 +169,7 @@
   <button class="btn btn-ghost" onclick="cloudDisconnect()">Disconnect</button>
 </div>
 
-<div class="label" style="margin-top:22px">Backup</div>
+<div class="label" style="margin-top:22px">💾 Backup</div>
 <button class="btn btn-ghost" onclick="backupData()">Backup all data (.json)</button>
 <button class="btn btn-ghost" onclick="document.getElementById('restoreFile').click()">Restore from backup</button>
 <input type="file" id="restoreFile" accept="application/json" style="display:none" onchange="restoreData(event)">
@@ -187,6 +206,12 @@
 <script>
 const EXP_CATS = ["Rent","Travel","Gas","Groceries","Kids/Activities","Shopping","Health","Utilities/Phone","Subscriptions","Entertainment","Dining Out","Others"];
 const INC_CATS = ["Salary","Dividends","Bonus","Interest","Gift","Other"];
+const CAT_ICONS = {
+  Rent:"🏠", Travel:"✈️", Gas:"⛽", Groceries:"🛒", "Kids/Activities":"🧸", Shopping:"🛍️",
+  Health:"💊", "Utilities/Phone":"💡", Subscriptions:"🔁", Entertainment:"🎬", "Dining Out":"🍽️", Others:"📦",
+  Salary:"💼", Dividends:"📈", Bonus:"🎁", Interest:"🏦", Gift:"🎀", Other:"❔"
+};
+function catIcon(cat){ return CAT_ICONS[cat] ? CAT_ICONS[cat]+" " : ""; }
 const DEFAULT_PAY = ["Credit","Cash"];
 const DEFAULT_STORES = ["Costco","Target","Walmart"];
 const LS_KEY = "iexpense_entries_v1";
@@ -202,7 +227,11 @@ function ensureIds(){ entries.forEach(e=>{ if(!e.id) e.id=genId(); }); }
 function persist(){ ensureIds(); try{ localStorage.setItem(LS_KEY, JSON.stringify(entries)); }catch(e){} }
 persist(); // backfill ids on any pre-existing data
 function todayStr(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
-function toast(msg,color){ const t=document.getElementById("toast"); t.textContent=msg; t.style.background=color||"var(--green)"; t.style.display="block"; setTimeout(()=>t.style.display="none",2200); }
+function toast(msg,color){
+  const t=document.getElementById("toast");
+  const icon = color==="var(--red)" ? "⚠️ " : color==="var(--amber)" ? "ℹ️ " : "✅ ";
+  t.textContent=icon+msg; t.style.background=color||"var(--green)"; t.style.display="block"; setTimeout(()=>t.style.display="none",2200);
+}
 
 const catGrid=document.getElementById("catGrid");
 function selectCategory(cat){
@@ -212,6 +241,7 @@ function selectCategory(cat){
 function renderCatGrid(type){
   catGrid.innerHTML="";
   (type==="income" ? INC_CATS : EXP_CATS).forEach(c=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=c;
+    if(CAT_ICONS[c]) b.dataset.icon=CAT_ICONS[c];
     b.onclick=()=>selectCategory(c); catGrid.appendChild(b); });
 }
 
@@ -284,12 +314,12 @@ function renderList(){
     const isIncome = e.type==="income";
     const d=document.createElement("div"); d.className="entry"+(isIncome?" income":"")+(idx===editIndex?" editing":"");
     const sign = isIncome ? "+" : "";
-    d.innerHTML=`<div><div class="cat">${isIncome?"💰 ":""}${e.category}</div><div class="sub">${e.date} · ${e.store||"—"}${!isIncome && e.payment?" · "+e.payment:""}${e.note?" · "+e.note:""}</div></div>
+    d.innerHTML=`<div><div class="cat">${catIcon(e.category)}${e.category}</div><div class="sub">${e.date} · ${e.store||"—"}${!isIncome && e.payment?" · "+e.payment:""}${e.note?" · "+e.note:""}</div></div>
       <div style="display:flex;align-items:center"><span class="amt">${sign}$${Number(e.amount).toFixed(2)}</span><button class="del" onclick="delEntry(${idx},event)">✕</button></div>`;
     d.onclick=()=>editEntry(idx);
     box.appendChild(d);
   });
-  if(!todays.length){ box.innerHTML='<div class="dash-empty">Nothing logged today yet</div>'; }
+  if(!todays.length){ box.innerHTML='<div class="dash-empty">📭 Nothing logged today yet</div>'; }
   const monthPrefix = today.slice(0,7);
   const monthSum = entries.filter(e=>(e.type||"expense")==="expense" && e.date && e.date.slice(0,7)===monthPrefix).reduce((s,e)=>s+Number(e.amount||0),0);
   document.getElementById("monthTotal").textContent = "$"+monthSum.toFixed(2);
@@ -619,10 +649,10 @@ function renderOverview(){
   const rate = totalIncome>0 ? netSavings/totalIncome : 0;
 
   document.getElementById("ovCards").innerHTML = `
-    <div class="card"><div class="card-label">Total Income</div><div class="card-value">$${totalIncome.toFixed(2)}</div><div class="card-sub">All months</div></div>
-    <div class="card orange"><div class="card-label">Total Expenses</div><div class="card-value">$${totalExpenses.toFixed(2)}</div><div class="card-sub">All months</div></div>
-    <div class="card green"><div class="card-label">Net Savings</div><div class="card-value">$${netSavings.toFixed(2)}</div><div class="card-sub">Income − Expenses</div></div>
-    <div class="card purple"><div class="card-label">Savings Rate</div><div class="card-value">${(rate*100).toFixed(1)}%</div><div class="card-sub">Net / Income</div></div>
+    <div class="card"><div class="card-label">💰 Total Income</div><div class="card-value">$${totalIncome.toFixed(2)}</div><div class="card-sub">All months</div></div>
+    <div class="card orange"><div class="card-label">💸 Total Expenses</div><div class="card-value">$${totalExpenses.toFixed(2)}</div><div class="card-sub">All months</div></div>
+    <div class="card green"><div class="card-label">🏦 Net Savings</div><div class="card-value">$${netSavings.toFixed(2)}</div><div class="card-sub">Income − Expenses</div></div>
+    <div class="card purple"><div class="card-label">🎯 Savings Rate</div><div class="card-value">${(rate*100).toFixed(1)}%</div><div class="card-sub">Net / Income</div></div>
   `;
 
   const labels = months.map(monthLabel);
@@ -673,8 +703,8 @@ function renderOverview(){
   }).sort((a,b)=>b.total-a.total);
   const grandTotal = catRows.reduce((s,r)=>s+r.total,0) || 1;
   document.getElementById("ovCategoryTable").innerHTML = catRows.length ? `<table><thead><tr><th>Category</th>${months.map(m=>`<th>${monthLabel(m)}</th>`).join("")}<th>Total</th><th>% of Spend</th></tr></thead><tbody>
-    ${catRows.map(r=>`<tr><td><b>${r.cat}</b></td>${r.perMonth.map(v=>`<td>$${v.toFixed(2)}</td>`).join("")}<td><b>$${r.total.toFixed(2)}</b></td><td>${(r.total/grandTotal*100).toFixed(1)}%</td></tr>`).join("")}
-  </tbody></table>` : `<div class="dash-empty">No expenses logged yet</div>`;
+    ${catRows.map(r=>`<tr><td><b>${catIcon(r.cat)}${r.cat}</b></td>${r.perMonth.map(v=>`<td>$${v.toFixed(2)}</td>`).join("")}<td><b>$${r.total.toFixed(2)}</b></td><td>${(r.total/grandTotal*100).toFixed(1)}%</td></tr>`).join("")}
+  </tbody></table>` : `<div class="dash-empty">📊 No expenses logged yet</div>`;
 }
 
 function renderMonthlyDetail(){
@@ -699,21 +729,21 @@ function renderMonthlyDetail(){
   const rate = totalIncome>0 ? net/totalIncome : 0;
 
   document.getElementById("monCards").innerHTML = `
-    <div class="card"><div class="card-label">Income</div><div class="card-value">$${totalIncome.toFixed(2)}</div></div>
-    <div class="card orange"><div class="card-label">Expenses</div><div class="card-value">$${totalExpenses.toFixed(2)}</div></div>
-    <div class="card ${net>=0?"green":"orange"}"><div class="card-label">Net Savings</div><div class="card-value">$${net.toFixed(2)}</div></div>
-    <div class="card purple"><div class="card-label">Savings Rate</div><div class="card-value">${(rate*100).toFixed(1)}%</div></div>
+    <div class="card"><div class="card-label">💰 Income</div><div class="card-value">$${totalIncome.toFixed(2)}</div></div>
+    <div class="card orange"><div class="card-label">💸 Expenses</div><div class="card-value">$${totalExpenses.toFixed(2)}</div></div>
+    <div class="card ${net>=0?"green":"orange"}"><div class="card-label">🏦 Net Savings</div><div class="card-value">$${net.toFixed(2)}</div></div>
+    <div class="card purple"><div class="card-label">🎯 Savings Rate</div><div class="card-value">${(rate*100).toFixed(1)}%</div></div>
   `;
 
   document.getElementById("monIncomeHead").textContent = `Income — ${monthLabel(month)} (${income.length}) — tap a row to edit`;
   document.getElementById("monIncomeTable").innerHTML = income.length ? `<table><thead><tr><th>Source</th><th>Category</th><th>Amount</th><th></th></tr></thead><tbody>
-    ${income.map(o=>`<tr class="entry-row" onclick="editFromDashboard(${o.idx})"><td>${o.e.store||"—"}</td><td>${o.e.category}</td><td>$${Number(o.e.amount).toFixed(2)}</td><td><button class="row-del" onclick="deleteFromDashboard(${o.idx},event)">✕</button></td></tr>`).join("")}
-  </tbody></table>` : `<div class="dash-empty">No income logged for this month</div>`;
+    ${income.map(o=>`<tr class="entry-row" onclick="editFromDashboard(${o.idx})"><td>${o.e.store||"—"}</td><td>${catIcon(o.e.category)}${o.e.category}</td><td>$${Number(o.e.amount).toFixed(2)}</td><td><button class="row-del" onclick="deleteFromDashboard(${o.idx},event)">✕</button></td></tr>`).join("")}
+  </tbody></table>` : `<div class="dash-empty">💰 No income logged for this month</div>`;
 
   document.getElementById("monExpenseHead").textContent = `Expenses — ${monthLabel(month)} (${expenses.length}) — tap a row to edit`;
   document.getElementById("monExpenseTable").innerHTML = expenses.length ? `<table><thead><tr><th>Date</th><th>Item / Merchant</th><th>Category</th><th>Amount</th><th></th></tr></thead><tbody>
-    ${expenses.map(o=>`<tr class="entry-row" onclick="editFromDashboard(${o.idx})"><td>${o.e.date}</td><td>${o.e.store||"—"}</td><td>${o.e.category}</td><td>$${Number(o.e.amount).toFixed(2)}</td><td><button class="row-del" onclick="deleteFromDashboard(${o.idx},event)">✕</button></td></tr>`).join("")}
-  </tbody></table>` : `<div class="dash-empty">No expenses logged for this month</div>`;
+    ${expenses.map(o=>`<tr class="entry-row" onclick="editFromDashboard(${o.idx})"><td>${o.e.date}</td><td>${o.e.store||"—"}</td><td>${catIcon(o.e.category)}${o.e.category}</td><td>$${Number(o.e.amount).toFixed(2)}</td><td><button class="row-del" onclick="deleteFromDashboard(${o.idx},event)">✕</button></td></tr>`).join("")}
+  </tbody></table>` : `<div class="dash-empty">💸 No expenses logged for this month</div>`;
 }
 
 function editFromDashboard(idx){

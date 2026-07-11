@@ -236,5 +236,37 @@ Two small but real clarity fixes:
   $0, that means no expense has been logged with today's real date yet
   (income and past-month history intentionally don't count toward it).
 
+## Round 9 (2026-07-11, design/UX polish pass)
+
+You gave me full creative freedom to make the app look and feel better, with
+instructions to test and iterate until it's genuinely good — not just call it
+done. Here's what changed:
+
+- **Category icons** — every category (Rent 🏠, Groceries 🛒, Salary 💼, etc.)
+  now has an icon, shown above the label in the category grid and inline next
+  to the category name everywhere else (Today's Entries, Monthly Detail
+  tables, the Category Breakdown table). Makes scanning a long list much
+  faster than reading text alone.
+- **Tactile feel** — every button now presses down slightly when tapped
+  (a small scale animation), inputs get a soft focus glow instead of just a
+  color change, and Dashboard cards lift slightly on hover. Small things, but
+  they're what make an app feel responsive instead of static.
+- **Sticky header** — the title and "This Month Total" badge now stay pinned
+  at the top while you scroll a long Dashboard page, so you never lose track
+  of where you are.
+- **Notch-safe layout** — added proper safe-area padding so the header and
+  bottom toast don't collide with an iPhone's notch or home indicator bar.
+- **Small finishing touches** — toasts now show a ✅/⚠️/ℹ️ icon so you can
+  tell success from warning from info at a glance without reading the color;
+  empty states ("Nothing logged today yet," etc.) got matching icons instead
+  of bare text; Dashboard cards got icons (💰 Income, 💸 Expenses, 🏦 Net
+  Savings, 🎯 Savings Rate) to match the category treatment.
+
+All of this was done carefully to avoid touching any actual data or behavior
+— pure visual/interaction polish. Verified by re-running the entire existing
+test suite (95 checks across every prior round) with zero regressions, plus
+manual visual review via screenshots in both light and dark mode across all
+three tabs (Expense, Income, Dashboard) and the Today's Entries list.
+
 Tested by updating the test suite to the new tab IDs and re-running
 everything — 95 checks total, all still passing.
