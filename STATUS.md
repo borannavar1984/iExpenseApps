@@ -270,3 +270,30 @@ three tabs (Expense, Income, Dashboard) and the Today's Entries list.
 
 Tested by updating the test suite to the new tab IDs and re-running
 everything — 95 checks total, all still passing.
+
+## Round 10 (2026-07-11, category spend chart on Monthly Detail)
+
+You asked for a chart on the Monthly Detail page showing which categories
+you're spending on that month, alongside the existing income/expense tables.
+Added a vertical column (bar) chart, "Spend by Category — This Month," right
+above those tables — one bar per category, tallest to shortest, so you can
+see at a glance where the month's money went. Income doesn't appear in it,
+just expenses, matching what you asked for.
+
+While building it, I caught a real bug and fixed it before shipping: if the
+chart library can't load (e.g. no internet, or a network that blocks the
+chart CDN), the app was showing "No expenses to chart" — which is wrong and
+misleading, since you might have plenty of expenses logged; it's the chart
+that failed, not your data. Fixed so it now says the chart itself couldn't
+load and points you to the table below for the same numbers, and only says
+"No expenses" when a month is genuinely empty. Found the same mix-up in the
+three Overview charts (bar/line/pie) and fixed it there too, so this is
+consistent everywhere in the app now.
+
+Tested with 11 new scripted-browser checks (chart appears with expenses
+present, categories summed correctly, sorted highest-to-lowest, income
+excluded, empty month shows the chart hidden with the right message, theme
+toggle redraws it) plus 8 more checks specifically simulating "chart failed
+to load" against real data, confirming the honest failure message shows
+instead of a false "no expenses" claim — plus a re-run of every earlier
+suite. 114 checks total, all passing.

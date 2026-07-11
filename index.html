@@ -184,9 +184,9 @@
 
   <div id="dashOverviewView">
     <div class="cards" id="ovCards"></div>
-    <div class="chart-card"><h4>Income vs Expenses by Month</h4><canvas id="barChart" height="180"></canvas></div>
-    <div class="chart-card"><h4>Net Savings Trend</h4><canvas id="lineChart" height="180"></canvas></div>
-    <div class="chart-card"><h4>Spend by Category (All Time)</h4><canvas id="pieChart" height="220"></canvas></div>
+    <div class="chart-card"><h4>Income vs Expenses by Month</h4><canvas id="barChart" height="180"></canvas><div class="dash-empty" id="barChartEmpty" style="display:none"></div></div>
+    <div class="chart-card"><h4>Net Savings Trend</h4><canvas id="lineChart" height="180"></canvas><div class="dash-empty" id="lineChartEmpty" style="display:none"></div></div>
+    <div class="chart-card"><h4>Spend by Category (All Time)</h4><canvas id="pieChart" height="220"></canvas><div class="dash-empty" id="pieChartEmpty" style="display:none"></div></div>
     <div class="dtable-wrap"><div class="tw-head">Monthly Comparison</div><div id="ovMonthlyTable"></div></div>
     <div class="dtable-wrap"><div class="tw-head">Category Breakdown — All Months</div><div id="ovCategoryTable"></div></div>
   </div>
@@ -196,6 +196,11 @@
       <select id="dashMonthSel" onchange="renderMonthlyDetail()"></select>
     </div>
     <div class="cards" id="monCards"></div>
+    <div class="chart-card">
+      <h4>Spend by Category — This Month</h4>
+      <canvas id="monCatChart" height="220"></canvas>
+      <div class="dash-empty" id="monCatEmpty" style="display:none">📊 No expenses to chart for this month</div>
+    </div>
     <div class="dtable-wrap"><div class="tw-head" id="monIncomeHead">Income</div><div id="monIncomeTable"></div></div>
     <div class="dtable-wrap"><div class="tw-head" id="monExpenseHead">Expenses</div><div id="monExpenseTable"></div></div>
   </div>
@@ -635,10 +640,20 @@ function renderDashboard(){
   if(overviewActive) renderOverview(); else renderMonthlyDetail();
 }
 
-let charts = { bar:null, line:null, pie:null };
+let charts = { bar:null, line:null, pie:null, monCat:null };
 const CHART_PALETTE = ["#4f8cff","#f87171","#34d399","#fbbf24","#a78bfa","#38bdf8","#fb923c","#f472b6","#22d3ee","#a3e635","#c084fc","#facc15"];
 
 function themeColor(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function showChartFallback(canvasId, msg){
+  document.getElementById(canvasId).style.display="none";
+  const empty = document.getElementById(canvasId+"Empty");
+  empty.textContent = msg;
+  empty.style.display = "block";
+}
+function showChartCanvas(canvasId){
+  document.getElementById(canvasId).style.display="block";
+  document.getElementById(canvasId+"Empty").style.display="none";
+}
 
 function renderOverview(){
   const months = allMonths();
@@ -658,6 +673,7 @@ function renderOverview(){
   const labels = months.map(monthLabel);
 
   if(typeof Chart!=="undefined"){
+    showChartCanvas("barChart"); showChartCanvas("lineChart"); showChartCanvas("pieChart");
     const textColor = themeColor("--text");
     const gridColor = themeColor("--border");
 
@@ -689,6 +705,11 @@ function renderOverview(){
       data:{ labels:catEntries.map(c=>c[0]), datasets:[{ data:catEntries.map(c=>c[1]), backgroundColor:CHART_PALETTE }] },
       options:{ responsive:true, plugins:{ legend:{ position:"right", labels:{ boxWidth:12, font:{ size:11 }, color:textColor } } } }
     });
+  } else {
+    const msg = "📊 Chart couldn't load (check your connection) — see the tables below for the numbers";
+    showChartFallback("barChart", msg);
+    showChartFallback("lineChart", msg);
+    showChartFallback("pieChart", msg);
   }
 
   document.getElementById("ovMonthlyTable").innerHTML = `<table><thead><tr><th>Month</th><th>Income</th><th>Expenses</th><th>Net</th><th>Rate</th></tr></thead><tbody>
@@ -735,6 +756,46 @@ function renderMonthlyDetail(){
     <div class="card purple"><div class="card-label">🎯 Savings Rate</div><div class="card-value">${(rate*100).toFixed(1)}%</div></div>
   `;
 
+  // category-wise expense breakdown for the selected month, as a column chart
+  const byCat = {};
+  expenses.forEach(o=>{ byCat[o.e.category]=(byCat[o.e.category]||0)+Number(o.e.amount||0); });
+  const catEntries = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+  const monCatCanvas = document.getElementById("monCatChart");
+  const monCatEmpty = document.getElementById("monCatEmpty");
+  if(!catEntries.length){
+    monCatCanvas.style.display="none";
+    monCatEmpty.textContent="📊 No expenses to chart for this month";
+    monCatEmpty.style.display="block";
+    if(charts.monCat){ charts.monCat.destroy(); charts.monCat=null; }
+  } else if(typeof Chart!=="undefined"){
+    monCatCanvas.style.display="block";
+    monCatEmpty.style.display="none";
+    const textColor = themeColor("--text");
+    const gridColor = themeColor("--border");
+    if(charts.monCat) charts.monCat.destroy();
+    charts.monCat = new Chart(monCatCanvas, {
+      type:"bar",
+      data:{
+        labels: catEntries.map(c=>catIcon(c[0])+c[0]),
+        datasets:[{ label:"Spend", data: catEntries.map(c=>c[1]), backgroundColor: CHART_PALETTE }]
+      },
+      options:{
+        responsive:true,
+        plugins:{ legend:{ display:false } },
+        scales:{
+          x:{ ticks:{ color:textColor, autoSkip:false, maxRotation:60, minRotation:0 }, grid:{ display:false } },
+          y:{ ticks:{ color:textColor }, grid:{ color:gridColor } }
+        }
+      }
+    });
+  } else {
+    // there IS data, but the chart library failed to load (e.g. offline) —
+    // say so explicitly rather than implying there's nothing to chart
+    monCatCanvas.style.display="none";
+    monCatEmpty.textContent="📊 Chart couldn't load (check your connection) — see the table below for the numbers";
+    monCatEmpty.style.display="block";
+  }
+
   document.getElementById("monIncomeHead").textContent = `Income — ${monthLabel(month)} (${income.length}) — tap a row to edit`;
   document.getElementById("monIncomeTable").innerHTML = income.length ? `<table><thead><tr><th>Source</th><th>Category</th><th>Amount</th><th></th></tr></thead><tbody>
     ${income.map(o=>`<tr class="entry-row" onclick="editFromDashboard(${o.idx})"><td>${o.e.store||"—"}</td><td>${catIcon(o.e.category)}${o.e.category}</td><td>$${Number(o.e.amount).toFixed(2)}</td><td><button class="row-del" onclick="deleteFromDashboard(${o.idx},event)">✕</button></td></tr>`).join("")}
@@ -764,6 +825,7 @@ function setTheme(theme){
   const dashVisible = document.getElementById("dashboardView").style.display !== "none";
   const overviewVisible = document.getElementById("dashOverviewView").style.display !== "none";
   if(dashVisible && overviewVisible) renderOverview();
+  else if(dashVisible) renderMonthlyDetail();
 }
 function toggleTheme(){
   const current = document.documentElement.getAttribute("data-theme")==="light" ? "light" : "dark";
