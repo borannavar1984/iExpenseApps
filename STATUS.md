@@ -142,3 +142,53 @@ row, exactly one Sync Now button on the page, disconnected tap shows a helpful
 message, save still works, a real sync through the top button lands in the
 mocked cloud repo) plus a re-run of every earlier suite — 49 checks total,
 all passing.
+
+## Round 6 (2026-07-11, income tracking + full dashboard + light/dark mode)
+
+You sent your old Excel-based iFinance dashboard and asked for the equivalent,
+sourced live from the synced data instead of Excel. Three things landed:
+
+**Income tracking (new).** The app was expense-only before — there was no way
+to log income, so "Net Savings" and "Savings Rate" weren't possible. Added an
+Expense/Income toggle right on the entry form:
+- Switching to Income swaps the category list (Salary, Dividends, Bonus,
+  Interest, Gift, Other), hides Payment Method (not relevant for income), and
+  relabels "Store / Merchant" to "Source."
+- Income entries show in the list with a 💰 icon and a green "+$amount" —
+  visually distinct from expenses at a glance.
+- The "this month" badge in the header still means expenses only, so it keeps
+  answering "how much am I spending," not a mix of both.
+- Everything else — duplicate detection, auto-category-from-store, cloud sync,
+  backup/restore — was extended to handle both types correctly.
+
+**Dashboard, rebuilt to match your old report.** It's now two sub-views:
+- **Overview** — Total Income / Total Expenses / Net Savings / Savings Rate
+  cards across everything you've ever logged, a bar chart (income vs. expenses
+  by month), a line chart (net savings trend), a pie chart (spend by
+  category), a month-by-month comparison table, and a category-breakdown table
+  with every month as its own column — all computed live from your synced
+  data, not a static export.
+- **Monthly Detail** — pick a month (dropdown defaults to the most recent
+  month with data, and always includes the real current month even if it's
+  empty) and see that month's income and expense line items in full, same
+  shape as your old "Monthly Reports" tab.
+
+**Light / dark mode.** A toggle next to the header badge switches the whole
+app, not just the dashboard, between themes; your choice is remembered across
+visits. Charts recolor correctly when you switch.
+
+**One honest limitation:** this Dashboard uses Chart.js, loaded from a public
+CDN (cdnjs) — if you're ever fully offline, the cards and tables still work
+perfectly, but the three charts just won't render until you're back online.
+Nothing else in the app needs internet except Cloud Sync, which already
+required it.
+
+Tested with 35 new scripted-browser checks (income toggle swaps categories/
+hides payment/relabels Source, income entry saves and displays correctly,
+"this month" badge stays expense-only, editing an income entry restores income
+mode, all four Overview cards compute correctly from mixed income+expense
+data, all three charts receive the correct data — verified via a local stub
+since this sandbox's network blocks the real CDN, monthly detail defaults to
+the current month, income/expense tables show the right rows, theme toggle
+switches and persists across reload, backup round-trips the income type field)
+plus a re-run of every earlier suite — 84 checks total, all passing.
