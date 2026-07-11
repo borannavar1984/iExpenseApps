@@ -30,7 +30,8 @@
   .amount-wrap{position:relative}
   .amount-wrap::before{content:"$";position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:18px}
   .amount-wrap input{padding-left:32px;font-size:22px;font-weight:700}
-  .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:18px}
+  .row2 .btn{margin-top:0}
   .btn{width:100%;border:none;border-radius:14px;padding:16px;font-size:17px;font-weight:700;cursor:pointer;margin-top:18px}
   .btn-save{background:var(--accent2);color:#fff}
   .btn-save:active{opacity:.8}
@@ -91,7 +92,10 @@
 <div class="label">Note (optional)</div>
 <input type="text" id="fNote" placeholder="">
 
-<button class="btn btn-save" id="saveBtn" onclick="saveEntry()">Save Expense</button>
+<div class="row2">
+  <button class="btn btn-save" id="saveBtn" onclick="saveEntry()">Save Expense</button>
+  <button class="btn btn-export" id="syncNowTopBtn" onclick="cloudSyncNow()">Sync Now</button>
+</div>
 <button class="btn btn-ghost" id="cancelEditBtn" style="display:none" onclick="cancelEdit()">Cancel edit</button>
 
 <div class="label" style="margin-top:22px">Entries</div>
@@ -107,7 +111,6 @@
   <button class="btn btn-export" onclick="cloudConnect()">Connect &amp; Sync</button>
 </div>
 <div id="cloudControls" style="display:none">
-  <button class="btn btn-export" onclick="cloudSyncNow()">Sync Now</button>
   <button class="btn btn-ghost" onclick="cloudDisconnect()">Disconnect</button>
 </div>
 
@@ -425,7 +428,7 @@ async function cloudConnect(){
 }
 
 async function cloudSyncNow(){
-  if(!cloudCfg) return;
+  if(!cloudCfg){ toast("Connect Cloud Sync first (scroll down)","var(--amber)"); return; }
   toast("Syncing…","var(--amber)");
   try{
     const merged = await cloudSyncMutation(remote=>unionMerge(remote, entries));

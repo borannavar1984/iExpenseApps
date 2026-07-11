@@ -124,3 +124,21 @@ Tested with 10 new scripted-browser checks (buttons gone, no leftover "sent"
 labels or dimming, save still works, month total still correct, backups no
 longer include the old field) plus a re-run of the round 2 and round 3 suites
 (9 + 22 checks) — 41 total, all passing.
+
+## Round 5 (2026-07-11, layout tweak)
+
+Moved **Sync Now** up next to **Save Expense** as a side-by-side pair, instead
+of it being buried further down in the Cloud Sync section (which now only has
+"Disconnect"). Tapping Sync Now before connecting shows a reminder instead of
+silently doing nothing.
+
+Along the way, found and fixed a small CSS bug: the green button style used by
+Sync Now had its own top-margin meant for stacking vertically, which threw off
+alignment once placed next to Save Expense in a row — fixed so buttons in a
+side-by-side row always line up regardless of which color/style they use.
+
+Tested with 8 new scripted-browser checks (buttons visually aligned in the same
+row, exactly one Sync Now button on the page, disconnected tap shows a helpful
+message, save still works, a real sync through the top button lands in the
+mocked cloud repo) plus a re-run of every earlier suite — 49 checks total,
+all passing.
