@@ -88,6 +88,9 @@
   .dtable-wrap th{background:var(--card2);padding:8px 10px;text-align:left;font-size:10px;text-transform:uppercase;color:var(--muted);letter-spacing:.4px;white-space:nowrap}
   .dtable-wrap td{padding:8px 10px;border-bottom:1px solid var(--card2);white-space:nowrap}
   .tw-head{padding:10px 12px;font-weight:700;font-size:13px;border-bottom:1px solid var(--border)}
+  .entry-row{cursor:pointer}
+  .entry-row:hover td{background:var(--card2)}
+  .row-del{color:var(--red);background:none;border:none;font-size:15px;padding:2px 6px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -138,8 +141,8 @@
 </div>
 <button class="btn btn-ghost" id="cancelEditBtn" style="display:none" onclick="cancelEdit()">Cancel edit</button>
 
-<div class="label" style="margin-top:22px">Entries</div>
-<div style="font-size:12px;color:var(--muted);margin-bottom:8px">Tap an entry to edit it</div>
+<div class="label" style="margin-top:22px">Today's Entries</div>
+<div style="font-size:12px;color:var(--muted);margin-bottom:8px">Tap an entry to edit it. Past days live in Dashboard → Monthly Detail.</div>
 <div id="entryList"></div>
 
 <div class="label" style="margin-top:22px">Cloud Sync</div>
@@ -274,10 +277,14 @@ function renderStoreChips(){
     b.onclick=()=>{ document.getElementById("fStore").value=s; applyStoreCategory(s); }; box.appendChild(b); });
 }
 
+// the home page only ever shows TODAY's entries, so it stays a short, bounded
+// list no matter how much history piles up; everything else lives in
+// Dashboard > Monthly Detail
 function renderList(){
   const box=document.getElementById("entryList"); box.innerHTML="";
-  [...entries].reverse().forEach((e)=>{
-    const idx=entries.indexOf(e);
+  const today = todayStr();
+  const todays = entries.map((e,idx)=>({e,idx})).filter(o=>o.e.date===today).reverse();
+  todays.forEach(({e,idx})=>{
     const isIncome = e.type==="income";
     const d=document.createElement("div"); d.className="entry"+(isIncome?" income":"")+(idx===editIndex?" editing":"");
     const sign = isIncome ? "+" : "";
@@ -286,7 +293,8 @@ function renderList(){
     d.onclick=()=>editEntry(idx);
     box.appendChild(d);
   });
-  const monthPrefix = todayStr().slice(0,7);
+  if(!todays.length){ box.innerHTML='<div class="dash-empty">Nothing logged today yet</div>'; }
+  const monthPrefix = today.slice(0,7);
   const monthSum = entries.filter(e=>(e.type||"expense")==="expense" && e.date && e.date.slice(0,7)===monthPrefix).reduce((s,e)=>s+Number(e.amount||0),0);
   document.getElementById("monthTotal").textContent = "$"+monthSum.toFixed(2);
   renderStoreChips();
@@ -679,11 +687,14 @@ function renderMonthlyDetail(){
   sel.value = months.includes(prevVal) ? prevVal : mostRecent;
 
   const month = sel.value;
-  const me = entries.filter(e=>e.date && e.date.slice(0,7)===month);
-  const income = me.filter(e=>e.type==="income");
-  const expenses = me.filter(e=>(e.type||"expense")==="expense");
-  const totalIncome = income.reduce((s,e)=>s+Number(e.amount||0),0);
-  const totalExpenses = expenses.reduce((s,e)=>s+Number(e.amount||0),0);
+  // keep each row's real index into `entries` so tapping it can jump straight
+  // into editing, and the delete button works — this table is now the actual
+  // history browser, not just a read-only summary
+  const me = entries.map((e,idx)=>({e,idx})).filter(o=>o.e.date && o.e.date.slice(0,7)===month);
+  const income = me.filter(o=>o.e.type==="income");
+  const expenses = me.filter(o=>(o.e.type||"expense")==="expense");
+  const totalIncome = income.reduce((s,o)=>s+Number(o.e.amount||0),0);
+  const totalExpenses = expenses.reduce((s,o)=>s+Number(o.e.amount||0),0);
   const net = totalIncome-totalExpenses;
   const rate = totalIncome>0 ? net/totalIncome : 0;
 
@@ -694,15 +705,26 @@ function renderMonthlyDetail(){
     <div class="card purple"><div class="card-label">Savings Rate</div><div class="card-value">${(rate*100).toFixed(1)}%</div></div>
   `;
 
-  document.getElementById("monIncomeHead").textContent = `Income — ${monthLabel(month)} (${income.length})`;
-  document.getElementById("monIncomeTable").innerHTML = income.length ? `<table><thead><tr><th>Source</th><th>Category</th><th>Amount</th></tr></thead><tbody>
-    ${income.map(e=>`<tr><td>${e.store||"—"}</td><td>${e.category}</td><td>$${Number(e.amount).toFixed(2)}</td></tr>`).join("")}
+  document.getElementById("monIncomeHead").textContent = `Income — ${monthLabel(month)} (${income.length}) — tap a row to edit`;
+  document.getElementById("monIncomeTable").innerHTML = income.length ? `<table><thead><tr><th>Source</th><th>Category</th><th>Amount</th><th></th></tr></thead><tbody>
+    ${income.map(o=>`<tr class="entry-row" onclick="editFromDashboard(${o.idx})"><td>${o.e.store||"—"}</td><td>${o.e.category}</td><td>$${Number(o.e.amount).toFixed(2)}</td><td><button class="row-del" onclick="deleteFromDashboard(${o.idx},event)">✕</button></td></tr>`).join("")}
   </tbody></table>` : `<div class="dash-empty">No income logged for this month</div>`;
 
-  document.getElementById("monExpenseHead").textContent = `Expenses — ${monthLabel(month)} (${expenses.length})`;
-  document.getElementById("monExpenseTable").innerHTML = expenses.length ? `<table><thead><tr><th>Date</th><th>Item / Merchant</th><th>Category</th><th>Amount</th></tr></thead><tbody>
-    ${expenses.map(e=>`<tr><td>${e.date}</td><td>${e.store||"—"}</td><td>${e.category}</td><td>$${Number(e.amount).toFixed(2)}</td></tr>`).join("")}
+  document.getElementById("monExpenseHead").textContent = `Expenses — ${monthLabel(month)} (${expenses.length}) — tap a row to edit`;
+  document.getElementById("monExpenseTable").innerHTML = expenses.length ? `<table><thead><tr><th>Date</th><th>Item / Merchant</th><th>Category</th><th>Amount</th><th></th></tr></thead><tbody>
+    ${expenses.map(o=>`<tr class="entry-row" onclick="editFromDashboard(${o.idx})"><td>${o.e.date}</td><td>${o.e.store||"—"}</td><td>${o.e.category}</td><td>$${Number(o.e.amount).toFixed(2)}</td><td><button class="row-del" onclick="deleteFromDashboard(${o.idx},event)">✕</button></td></tr>`).join("")}
   </tbody></table>` : `<div class="dash-empty">No expenses logged for this month</div>`;
+}
+
+function editFromDashboard(idx){
+  showTab("entries");
+  editEntry(idx);
+}
+
+async function deleteFromDashboard(idx, evt){
+  if(evt) evt.stopPropagation();
+  await delEntry(idx);
+  renderMonthlyDetail();
 }
 
 // ===== Light / dark theme, persisted =====
