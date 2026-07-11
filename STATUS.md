@@ -192,3 +192,30 @@ since this sandbox's network blocks the real CDN, monthly detail defaults to
 the current month, income/expense tables show the right rows, theme toggle
 switches and persists across reload, backup round-trips the income type field)
 plus a re-run of every earlier suite — 84 checks total, all passing.
+
+## Round 7 (2026-07-11, actually move history off the home page)
+
+Caught a gap from Round 6: I'd built the rich Dashboard, but never actually
+removed the old flat entry list from the home page — so it was still growing
+unbounded exactly like you flagged. Fixed properly this time:
+
+- The **Entries** page now only shows **Today's Entries** — a short, bounded
+  list that never grows no matter how much history piles up.
+- All history — including everything already synced — lives in
+  **Dashboard → Monthly Detail**, which already showed month-by-month
+  Income/Expense tables, but they were read-only. They're not anymore: tap any
+  row to jump straight into the edit form (auto-switches to the Entries tab
+  with that entry loaded), or tap the ✕ to delete it right from the table.
+- One small rough edge: the ✕ delete button sits at the far right of these
+  tables and needs a horizontal scroll to reach on narrow phones — it works
+  (tested), just not visible without scrolling. Can tighten the layout later
+  if it's annoying in practice.
+
+Tested with 11 new scripted-browser checks (home page shows only today's
+entry and excludes older history, section is correctly labeled, historical
+entries show up in the right month under Monthly Detail, tapping a row jumps
+to the Entries tab with the right entry loaded for editing, saving an edit
+from there actually updates the record, deleting from the table removes it)
+plus a re-run of every still-relevant earlier suite — 84 checks, all passing.
+(The original round-1 test file was retired — it checked a "pending" badge
+that round 4 already removed, so it was already stale before this round.)
