@@ -297,3 +297,27 @@ toggle redraws it) plus 8 more checks specifically simulating "chart failed
 to load" against real data, confirming the honest failure message shows
 instead of a false "no expenses" claim — plus a re-run of every earlier
 suite. 114 checks total, all passing.
+
+## Round 11 (2026-07-11, mobile home-screen fixes)
+
+You reported that on your phone (opened via the home-screen icon), the top
+of the Expense/Income/Dashboard tab row was getting hidden behind the
+header. Found the cause: the header used a somewhat fragile technique
+(negative top margin) to slide its background up behind the iPhone's
+notch/status bar, and that technique wasn't playing nicely with the header
+being "sticky" (pinned while scrolling) — it was overlapping the row right
+below it instead of stacking cleanly on top of it. Replaced it with a
+simpler, sturdier approach: the page now reserves the right amount of space
+for the notch up front, and the header just sticks just below it — no more
+overlap, tested against a simulated notch/Dynamic-Island device to make
+sure it can't regress silently.
+
+Also added a proper **home-screen icon** — a white "$" on a blue gradient —
+so adding iExpense to your phone's home screen now shows a real app icon
+instead of a screenshot of whatever was on screen when you added it.
+
+Tested with 9 new scripted-browser checks (header and tabs verified not to
+overlap under both a simulated notch device and a plain non-notch device,
+header content confirmed to clear the notch, the new icon file confirmed
+reachable and linked correctly) plus a re-run of every earlier suite — 123
+checks total, all passing.
