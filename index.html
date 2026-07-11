@@ -42,10 +42,7 @@
   .entry .sub{color:var(--muted);font-size:12px;margin-top:2px}
   .entry .amt{font-weight:700;font-size:16px;margin-right:10px}
   .entry .del{color:var(--red);background:none;border:none;font-size:18px;padding:4px 6px;cursor:pointer}
-  .entry.exported{opacity:.45}
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:#06281c;padding:12px 22px;border-radius:24px;font-weight:700;font-size:14px;display:none;z-index:99;box-shadow:0 4px 20px rgba(0,0,0,.5)}
-  .test-banner{background:#3b2f10;border:1px solid #6b5518;color:var(--amber);font-size:12px;text-align:center;border-radius:10px;padding:7px;margin-bottom:12px}
-  textarea{width:100%;height:120px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:10px;font-size:12px;margin-top:8px;display:none}
   .tabs{display:flex;gap:8px;margin-bottom:16px}
   .tabs button{flex:1;background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:12px;padding:10px;font-size:14px;font-weight:600;cursor:pointer}
   .tabs button.sel{background:var(--accent2);border-color:var(--accent);color:#fff}
@@ -65,10 +62,7 @@
 <body>
 <header>
   <h1>i<span>Expense</span></h1>
-  <div style="display:flex;gap:6px">
-    <div class="badge">pending: <b id="pendCount">0</b></div>
-    <div class="badge">this month: <b id="monthTotal">$0</b></div>
-  </div>
+  <div class="badge">this month: <b id="monthTotal">$0</b></div>
 </header>
 
 <div class="tabs">
@@ -99,9 +93,6 @@
 
 <button class="btn btn-save" id="saveBtn" onclick="saveEntry()">Save Expense</button>
 <button class="btn btn-ghost" id="cancelEditBtn" style="display:none" onclick="cancelEdit()">Cancel edit</button>
-<button class="btn btn-export" onclick="exportEntries()">Export to OneDrive Inbox</button>
-<button class="btn btn-ghost" onclick="copyFallback()">Copy as text (fallback)</button>
-<textarea id="copyBox" readonly></textarea>
 
 <div class="label" style="margin-top:22px">Entries</div>
 <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Tap an entry to edit it</div>
@@ -198,13 +189,12 @@ function renderList(){
   const box=document.getElementById("entryList"); box.innerHTML="";
   [...entries].reverse().forEach((e)=>{
     const idx=entries.indexOf(e);
-    const d=document.createElement("div"); d.className="entry"+(e.exported?" exported":"")+(idx===editIndex?" editing":"");
-    d.innerHTML=`<div><div class="cat">${e.category}</div><div class="sub">${e.date} · ${e.store||"—"} · ${e.payment||"—"}${e.note?" · "+e.note:""}${e.exported?" · sent":""}</div></div>
+    const d=document.createElement("div"); d.className="entry"+(idx===editIndex?" editing":"");
+    d.innerHTML=`<div><div class="cat">${e.category}</div><div class="sub">${e.date} · ${e.store||"—"} · ${e.payment||"—"}${e.note?" · "+e.note:""}</div></div>
       <div style="display:flex;align-items:center"><span class="amt">$${Number(e.amount).toFixed(2)}</span><button class="del" onclick="delEntry(${idx},event)">✕</button></div>`;
     d.onclick=()=>editEntry(idx);
     box.appendChild(d);
   });
-  document.getElementById("pendCount").textContent = entries.filter(e=>!e.exported).length;
   const monthPrefix = todayStr().slice(0,7);
   const monthSum = entries.filter(e=>e.date && e.date.slice(0,7)===monthPrefix).reduce((s,e)=>s+Number(e.amount||0),0);
   document.getElementById("monthTotal").textContent = "$"+monthSum.toFixed(2);
@@ -234,7 +224,7 @@ async function saveEntry(){
     toast("Updated ✓");
   } else {
     targetId = genId();
-    entries.push({ ...candidate, id:targetId, exported:false });
+    entries.push({ ...candidate, id:targetId });
     persist();
     toast("Saved ✓");
   }
@@ -245,7 +235,7 @@ async function saveEntry(){
       await cloudSyncMutation(remote=>{
         const idx = remote.findIndex(e=>e.id===targetId);
         if(idx>=0) remote[idx] = { ...remote[idx], ...candidate, id:targetId };
-        else remote.push({ ...candidate, id:targetId, exported:false });
+        else remote.push({ ...candidate, id:targetId });
         return remote;
       });
       setCloudStatus(true);
@@ -304,35 +294,6 @@ function cancelEdit(){
   resetForm();
 }
 
-function pendingPayload(){
-  const pend=entries.filter(e=>!e.exported);
-  return { exported:new Date().toISOString().slice(0,16), source:"iExpense", entries:pend.map(({exported,...rest})=>rest) };
-}
-
-async function exportEntries(){
-  const pend=entries.filter(e=>!e.exported);
-  if(!pend.length){ toast("Nothing to export","var(--amber)"); return; }
-  const payload=pendingPayload();
-  const stamp=payload.exported.replace(/[-:T]/g,"").slice(0,12);
-  const fname=`exp_${stamp}.json`;
-  const blob=new Blob([JSON.stringify(payload,null,1)],{type:"application/json"});
-  const file=new File([blob],fname,{type:"application/json"});
-  try{
-    if(navigator.canShare && navigator.canShare({files:[file]})){
-      await navigator.share({files:[file],title:fname});
-      markExported(); return;
-    }
-  }catch(err){ if(err.name==="AbortError") return; }
-  // fallback: download link
-  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=fname; a.click();
-  markExported();
-}
-
-function markExported(){
-  entries.forEach(e=>e.exported=true); persist(); renderList();
-  toast("Exported — save to OneDrive ▸ Expense App ▸ Inbox");
-}
-
 function backupData(){
   const payload = { backup:new Date().toISOString(), source:"iExpense", entries:entries };
   const blob = new Blob([JSON.stringify(payload,null,1)],{type:"application/json"});
@@ -357,7 +318,7 @@ function restoreData(evt){
     incoming.forEach(e=>{
       if(!e || !e.date || !e.category || e.amount==null) return;
       if(existing.has(key(e))) return;
-      entries.push({ date:e.date, category:e.category, amount:Number(e.amount), store:e.store||"", payment:e.payment||"", note:e.note||"", exported:!!e.exported });
+      entries.push({ date:e.date, category:e.category, amount:Number(e.amount), store:e.store||"", payment:e.payment||"", note:e.note||"" });
       existing.add(key(e));
       added++;
     });
@@ -365,13 +326,6 @@ function restoreData(evt){
     toast(added ? `Restored ${added} entr${added===1?"y":"ies"}` : "Nothing new to restore");
   };
   reader.readAsText(file);
-}
-
-function copyFallback(){
-  const box=document.getElementById("copyBox");
-  box.value=JSON.stringify(pendingPayload(),null,1);
-  box.style.display="block"; box.select();
-  try{ document.execCommand("copy"); toast("Copied — paste to Claude"); }catch(e){ toast("Select & copy the text below","var(--amber)"); }
 }
 
 // ===== Cloud Sync: GitHub repo (private) acts as the shared data store =====
