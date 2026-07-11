@@ -42,3 +42,65 @@ Tested end-to-end with a scripted browser (save, edit, cancel-edit, delete, dupl
 prompt, backup, restore-with-dedupe, delete-while-editing) — all 16 checks passed.
 The export JSON format sent to the OneDrive Inbox is unchanged, so `sync_expenses.py`
 needs no changes.
+
+## Round 2 (2026-07-10, real usage feedback)
+
+You tried it on your phone and sent detailed feedback. Fixed the concrete stuff:
+- **Removed the "LIVE — exports sync to..." banner** at the top — noise, not needed.
+- **Added an "Others" category** so there's always a fallback if nothing else fits.
+- **Auto-category from store**: type a merchant you've used before (e.g. "Costco") and
+  the app fills in the category it last used for that store automatically — you only
+  need to tap a category manually for a new merchant or to override it.
+- **Store chips seeded with Costco/Target/Walmart** so you have quick-picks even before
+  any usage history builds up; your real history still takes priority once it exists.
+- **Payment method simplified to just Credit / Cash**, dropping the bank-specific chips.
+
+Tested with 9 new scripted-browser checks (banner gone, Others present, payment options,
+seeded chips, auto-category on type, auto-category doesn't override a manual pick,
+auto-category on chip tap) plus a re-run of all 16 checks from round 1 — all pass.
+
+## Round 3 (2026-07-10, cross-device sync)
+
+You picked the approach: your own private GitHub repo becomes the shared data store, no
+server, no cost. Here's what's built and what's left.
+
+**Built and tested (22 scripted-browser checks, mocked GitHub API):**
+- A new **Cloud Sync** section on the Entries tab: paste your GitHub username, the private
+  data repo name, and a personal access token, then tap "Connect & Sync" once.
+- On connect, the app merges whatever's on this phone with whatever's already in the cloud
+  repo (so connecting a second device never loses data from either side) and pushes the
+  result to `entries.json` in that private repo.
+- Every Save / Edit / Delete after that reads the latest cloud copy first, applies your
+  change, and writes it back — so two devices editing minutes apart merge instead of one
+  overwriting the other. If GitHub reports a conflict (rare — near-simultaneous edits from
+  two devices), the app automatically re-fetches and retries; you never see an error for
+  that.
+- If the phone is offline, changes still save locally as always; reconnecting later (or a
+  manual "Sync Now" tap) reconciles them into the cloud copy.
+- A new **Dashboard tab** next to Entries: pick a month, see the total and a per-category
+  breakdown — computed entirely in the browser from the same data, no separate build step,
+  no Python.
+- "Disconnect" turns cloud sync off and goes back to phone-only storage, no data lost
+  locally.
+
+**What's left before this goes live:**
+1. **You create the private data repo** (I can't — my GitHub access here isn't allowed to
+   create new repos). One-time, ~1 minute: go to github.com/new, name it
+   `iExpense-data`, set it to **Private**, check "Add a README," create it. Tell me once
+   it exists.
+2. **You generate one access token**, scoped to only that repo — see
+   `CLOUD_SYNC_SETUP.md` in this repo for the exact steps.
+3. Once both exist, open the app, go to Cloud Sync, fill in your GitHub username,
+   `iExpense-data`, and the token, tap "Connect & Sync" — that's the one-time setup, after
+   which phone and laptop will always agree.
+
+**On privacy:** the app code stays in this repo, which is public — but it's just code,
+zero financial data in it. Your actual numbers only ever live in the private data repo,
+readable only with your token. This also means anyone else could reuse this same public
+app with their own private data repo and their own token — no shared server, no way for
+one user's data to reach another.
+
+**Not built (and not recommended yet):** a single hosted version where anyone signs up
+with a login and everyone's data lives on one server. That's a much bigger, costlier build
+(real auth, hosting, ongoing security work) and isn't needed to get you — or anyone who
+copies this repo — a fully working personal tracker today.

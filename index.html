@@ -46,6 +46,20 @@
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:#06281c;padding:12px 22px;border-radius:24px;font-weight:700;font-size:14px;display:none;z-index:99;box-shadow:0 4px 20px rgba(0,0,0,.5)}
   .test-banner{background:#3b2f10;border:1px solid #6b5518;color:var(--amber);font-size:12px;text-align:center;border-radius:10px;padding:7px;margin-bottom:12px}
   textarea{width:100%;height:120px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:10px;font-size:12px;margin-top:8px;display:none}
+  .tabs{display:flex;gap:8px;margin-bottom:16px}
+  .tabs button{flex:1;background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:12px;padding:10px;font-size:14px;font-weight:600;cursor:pointer}
+  .tabs button.sel{background:var(--accent2);border-color:var(--accent);color:#fff}
+  .cloud-status{font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.5}
+  .cloud-status.on{color:var(--green)}
+  .cloud-status.off{color:var(--amber)}
+  .dash-month{display:flex;gap:8px;align-items:center;margin-bottom:14px}
+  .dash-month select{flex:1;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:12px;font-size:15px}
+  .dash-total{font-size:28px;font-weight:700;margin-bottom:18px}
+  .dash-row{margin-bottom:10px}
+  .dash-row .dr-top{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}
+  .dash-row .dr-bar{height:8px;background:var(--card2);border-radius:6px;overflow:hidden}
+  .dash-row .dr-fill{height:100%;background:var(--accent2);border-radius:6px}
+  .dash-empty{color:var(--muted);font-size:14px;text-align:center;padding:30px 0}
 </style>
 </head>
 <body>
@@ -56,7 +70,13 @@
     <div class="badge">this month: <b id="monthTotal">$0</b></div>
   </div>
 </header>
-<div class="test-banner" style="background:#10241a;border-color:#1e4d38;color:#34d399">LIVE — exports sync to iFinance Monthly Reports + Master + Dashboard</div>
+
+<div class="tabs">
+  <button class="sel" id="tabEntriesBtn" onclick="showTab('entries')">Entries</button>
+  <button id="tabDashboardBtn" onclick="showTab('dashboard')">Dashboard</button>
+</div>
+
+<div id="entriesView">
 
 <div class="label">Date</div>
 <input type="date" id="fDate">
@@ -83,20 +103,43 @@
 <button class="btn btn-ghost" onclick="copyFallback()">Copy as text (fallback)</button>
 <textarea id="copyBox" readonly></textarea>
 
-<div class="label" style="margin-top:22px">Entries on this phone</div>
+<div class="label" style="margin-top:22px">Entries</div>
 <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Tap an entry to edit it</div>
 <div id="entryList"></div>
+
+<div class="label" style="margin-top:22px">Cloud Sync</div>
+<div class="cloud-status" id="cloudStatus">Not connected — saving on this device only</div>
+<div id="cloudSetup">
+  <input type="text" id="cloudOwner" placeholder="GitHub username" autocomplete="off">
+  <input type="text" id="cloudRepo" placeholder="Private data repo name (e.g. iExpense-data)" autocomplete="off" style="margin-top:8px">
+  <input type="password" id="cloudToken" placeholder="Personal access token" autocomplete="off" style="margin-top:8px">
+  <button class="btn btn-export" onclick="cloudConnect()">Connect &amp; Sync</button>
+</div>
+<div id="cloudControls" style="display:none">
+  <button class="btn btn-export" onclick="cloudSyncNow()">Sync Now</button>
+  <button class="btn btn-ghost" onclick="cloudDisconnect()">Disconnect</button>
+</div>
 
 <div class="label" style="margin-top:22px">Backup</div>
 <button class="btn btn-ghost" onclick="backupData()">Backup all data (.json)</button>
 <button class="btn btn-ghost" onclick="document.getElementById('restoreFile').click()">Restore from backup</button>
 <input type="file" id="restoreFile" accept="application/json" style="display:none" onchange="restoreData(event)">
 
+</div>
+
+<div id="dashboardView" style="display:none">
+  <div class="dash-month">
+    <select id="dashMonthSel" onchange="renderDashboard()"></select>
+  </div>
+  <div id="dashBody"></div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
-const CATS = ["Rent","Travel","Gas","Groceries","Kids/Activities","Shopping","Health","Utilities/Phone","Subscriptions","Entertainment","Dining Out"];
-const DEFAULT_PAY = ["BofA","Fifth Third","DCU","Cash","Other"];
+const CATS = ["Rent","Travel","Gas","Groceries","Kids/Activities","Shopping","Health","Utilities/Phone","Subscriptions","Entertainment","Dining Out","Others"];
+const DEFAULT_PAY = ["Credit","Cash"];
+const DEFAULT_STORES = ["Costco","Target","Walmart"];
 const LS_KEY = "iexpense_entries_v1";
 
 let sel = {cat:null, pay:null};
@@ -104,26 +147,51 @@ let entries = load();
 let editIndex = null;
 
 function load(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||"[]"); }catch(e){ return []; } }
-function persist(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(entries)); }catch(e){} }
+function genId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
+function ensureIds(){ entries.forEach(e=>{ if(!e.id) e.id=genId(); }); }
+function persist(){ ensureIds(); try{ localStorage.setItem(LS_KEY, JSON.stringify(entries)); }catch(e){} }
+persist(); // backfill ids on any pre-existing data
 function todayStr(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function toast(msg,color){ const t=document.getElementById("toast"); t.textContent=msg; t.style.background=color||"var(--green)"; t.style.display="block"; setTimeout(()=>t.style.display="none",2200); }
 
 // build category grid
 const catGrid=document.getElementById("catGrid");
+function selectCategory(cat){
+  sel.cat=cat;
+  [...catGrid.children].forEach(x=>x.classList.toggle("sel",x.textContent===cat));
+}
 CATS.forEach(c=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=c;
-  b.onclick=()=>{ sel.cat=c; [...catGrid.children].forEach(x=>x.classList.toggle("sel",x.textContent===c)); }; catGrid.appendChild(b); });
+  b.onclick=()=>selectCategory(c); catGrid.appendChild(b); });
 
 // payment row
 const payRow=document.getElementById("payRow");
 DEFAULT_PAY.forEach(p=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=p;
   b.onclick=()=>{ sel.pay=p; [...payRow.children].forEach(x=>x.classList.toggle("sel",x.textContent===p)); }; payRow.appendChild(b); });
 
+// remembers which category was last used for a given store, so typing a known
+// merchant can fill in the category automatically
+function guessCategoryForStore(storeName){
+  const norm=(storeName||"").trim().toLowerCase();
+  if(!norm) return null;
+  for(let i=entries.length-1;i>=0;i--){
+    if((entries[i].store||"").trim().toLowerCase()===norm) return entries[i].category;
+  }
+  return null;
+}
+function applyStoreCategory(storeName){
+  if(sel.cat) return;
+  const guess=guessCategoryForStore(storeName);
+  if(guess) selectCategory(guess);
+}
+document.getElementById("fStore").addEventListener("input",(e)=>applyStoreCategory(e.target.value));
+
 // recent-store quick picks
 function renderStoreChips(){
   const box=document.getElementById("storeChips"); box.innerHTML="";
   const seen=[]; [...entries].reverse().forEach(e=>{ if(e.store && !seen.includes(e.store)) seen.push(e.store); });
+  DEFAULT_STORES.forEach(s=>{ if(!seen.includes(s)) seen.push(s); });
   seen.slice(0,8).forEach(s=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=s;
-    b.onclick=()=>{ document.getElementById("fStore").value=s; }; box.appendChild(b); });
+    b.onclick=()=>{ document.getElementById("fStore").value=s; applyStoreCategory(s); }; box.appendChild(b); });
 }
 
 function renderList(){
@@ -148,7 +216,7 @@ function isDuplicate(candidate, skipIdx){
     Number(e.amount)===candidate.amount && (e.store||"").toLowerCase()===(candidate.store||"").toLowerCase());
 }
 
-function saveEntry(){
+async function saveEntry(){
   const amt=parseFloat(document.getElementById("fAmount").value);
   if(!sel.cat){ toast("Pick a category","var(--red)"); return; }
   if(!amt || amt<=0){ toast("Enter an amount","var(--red)"); return; }
@@ -157,16 +225,34 @@ function saveEntry(){
 
   if(isDuplicate(candidate, editIndex) && !confirm("Possible duplicate: same date, category, amount and store already logged. Save anyway?")) return;
 
-  if(editIndex!==null){
+  const wasEdit = editIndex!==null;
+  let targetId;
+  if(wasEdit){
+    targetId = entries[editIndex].id;
     entries[editIndex] = { ...entries[editIndex], ...candidate };
     persist();
     toast("Updated ✓");
   } else {
-    entries.push({ ...candidate, exported:false });
+    targetId = genId();
+    entries.push({ ...candidate, id:targetId, exported:false });
     persist();
     toast("Saved ✓");
   }
   resetForm();
+
+  if(cloudCfg){
+    try{
+      await cloudSyncMutation(remote=>{
+        const idx = remote.findIndex(e=>e.id===targetId);
+        if(idx>=0) remote[idx] = { ...remote[idx], ...candidate, id:targetId };
+        else remote.push({ ...candidate, id:targetId, exported:false });
+        return remote;
+      });
+      setCloudStatus(true);
+    }catch(err){
+      setCloudStatus(false, "Saved locally — cloud sync failed, tap Sync Now later");
+    }
+  }
 }
 
 function resetForm(){
@@ -180,11 +266,21 @@ function resetForm(){
   renderList();
 }
 
-function delEntry(i,evt){
+async function delEntry(i,evt){
   if(evt) evt.stopPropagation();
+  const idToDelete = entries[i].id;
   entries.splice(i,1); persist();
   if(editIndex===i) cancelEdit();
   else renderList();
+
+  if(cloudCfg){
+    try{
+      await cloudSyncMutation(remote=>remote.filter(e=>e.id!==idToDelete));
+      setCloudStatus(true);
+    }catch(err){
+      setCloudStatus(false, "Deleted locally — cloud sync failed, tap Sync Now later");
+    }
+  }
 }
 
 function editEntry(i){
@@ -278,8 +374,194 @@ function copyFallback(){
   try{ document.execCommand("copy"); toast("Copied — paste to Claude"); }catch(e){ toast("Select & copy the text below","var(--amber)"); }
 }
 
+// ===== Cloud Sync: GitHub repo (private) acts as the shared data store =====
+const CLOUD_KEY = "iexpense_cloud_cfg";
+function loadCloudCfg(){ try{ return JSON.parse(localStorage.getItem(CLOUD_KEY)||"null"); }catch(e){ return null; } }
+function saveCloudCfg(cfg){ localStorage.setItem(CLOUD_KEY, JSON.stringify(cfg)); }
+function clearCloudCfg(){ localStorage.removeItem(CLOUD_KEY); }
+let cloudCfg = loadCloudCfg();
+
+function utf8ToB64(str){ return btoa(unescape(encodeURIComponent(str))); }
+function b64ToUtf8(str){ return decodeURIComponent(escape(atob(str.replace(/\n/g,"")))); }
+function cloudApiUrl(cfg){ return `https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/entries.json`; }
+function mergeKey(e){ return e.id || [e.date,e.category,e.amount,e.store,e.note].join("|"); }
+
+async function cloudFetchRemote(cfg){
+  const res = await fetch(cloudApiUrl(cfg), { headers:{ Authorization:`Bearer ${cfg.token}`, Accept:"application/vnd.github+json" } });
+  if(res.status===404) return { entries:[], sha:null };
+  if(!res.ok) throw new Error(`GitHub read failed (${res.status})`);
+  const data = await res.json();
+  let remoteEntries=[];
+  try{ remoteEntries = JSON.parse(b64ToUtf8(data.content)); }catch(e){ remoteEntries=[]; }
+  if(!Array.isArray(remoteEntries)) remoteEntries=[];
+  return { entries: remoteEntries, sha: data.sha };
+}
+
+async function cloudWriteRemote(cfg, newEntries, sha){
+  const body = { message:"iExpense sync", content: utf8ToB64(JSON.stringify(newEntries,null,1)) };
+  if(sha) body.sha = sha;
+  const res = await fetch(cloudApiUrl(cfg), {
+    method:"PUT",
+    headers:{ Authorization:`Bearer ${cfg.token}`, Accept:"application/vnd.github+json", "Content-Type":"application/json" },
+    body: JSON.stringify(body)
+  });
+  if(res.status===409){ const err=new Error("Someone else changed the cloud copy — retrying"); err.conflict=true; throw err; }
+  if(!res.ok) throw new Error(`GitHub write failed (${res.status})`);
+}
+
+// fetches the freshest remote copy right before applying each change, so two
+// devices editing minutes apart don't clobber each other; retries on conflict
+async function cloudSyncMutation(mutateFn, attempts){
+  attempts = attempts || 3;
+  if(!cloudCfg) return null;
+  let lastErr;
+  for(let i=0;i<attempts;i++){
+    try{
+      const { entries: remote, sha } = await cloudFetchRemote(cloudCfg);
+      const updated = mutateFn(remote);
+      await cloudWriteRemote(cloudCfg, updated, sha);
+      return updated;
+    }catch(err){
+      lastErr = err;
+      if(!err.conflict) throw err;
+    }
+  }
+  throw lastErr;
+}
+
+function setCloudStatus(ok, msg){
+  const el = document.getElementById("cloudStatus");
+  if(!cloudCfg){ el.textContent="Not connected — saving on this device only"; el.className="cloud-status off"; return; }
+  if(ok){ el.textContent=`Connected to ${cloudCfg.owner}/${cloudCfg.repo} — last synced ${new Date().toLocaleTimeString()}`; el.className="cloud-status on"; }
+  else { el.textContent = msg || "Cloud sync error"; el.className="cloud-status off"; }
+}
+
+function unionMerge(remote, local){
+  const seen = new Set(remote.map(mergeKey));
+  const out = [...remote];
+  local.forEach(e=>{ const k=mergeKey(e); if(!seen.has(k)){ out.push(e); seen.add(k); } });
+  return out;
+}
+
+async function cloudConnect(){
+  const owner=document.getElementById("cloudOwner").value.trim();
+  const repo=document.getElementById("cloudRepo").value.trim();
+  const token=document.getElementById("cloudToken").value.trim();
+  if(!owner||!repo||!token){ toast("Fill in owner, repo and token","var(--red)"); return; }
+  const cfg={owner,repo,token};
+  toast("Connecting…","var(--amber)");
+  try{
+    const { entries: remote, sha } = await cloudFetchRemote(cfg);
+    const merged = unionMerge(remote, entries);
+    await cloudWriteRemote(cfg, merged, sha);
+    cloudCfg = cfg;
+    saveCloudCfg(cfg);
+    entries = merged;
+    persist();
+    renderList();
+    document.getElementById("cloudSetup").style.display="none";
+    document.getElementById("cloudControls").style.display="block";
+    document.getElementById("cloudToken").value="";
+    toast(`Connected — ${merged.length} entries synced`);
+    setCloudStatus(true);
+  }catch(err){
+    toast("Connect failed: "+err.message,"var(--red)");
+    setCloudStatus(false, "Not connected — check token/repo and try again");
+  }
+}
+
+async function cloudSyncNow(){
+  if(!cloudCfg) return;
+  toast("Syncing…","var(--amber)");
+  try{
+    const merged = await cloudSyncMutation(remote=>unionMerge(remote, entries));
+    entries = merged; persist(); renderList();
+    toast("Synced ✓");
+    setCloudStatus(true);
+  }catch(err){
+    toast("Sync failed: "+err.message,"var(--red)");
+    setCloudStatus(false, "Sync failed — try again");
+  }
+}
+
+function cloudDisconnect(){
+  cloudCfg=null; clearCloudCfg();
+  document.getElementById("cloudSetup").style.display="block";
+  document.getElementById("cloudControls").style.display="none";
+  document.getElementById("cloudOwner").value="";
+  document.getElementById("cloudRepo").value="";
+  setCloudStatus(false);
+  toast("Disconnected — saving on this device only","var(--amber)");
+}
+
+async function cloudPullOnLoad(){
+  try{
+    const { entries: remote } = await cloudFetchRemote(cloudCfg);
+    const merged = unionMerge(remote, entries);
+    const hadLocalOnly = merged.length > remote.length;
+    entries = merged; persist(); renderList();
+    setCloudStatus(true);
+    if(hadLocalOnly) cloudSyncNow();
+  }catch(err){
+    setCloudStatus(false, "Offline or cloud unreachable — using local copy");
+  }
+}
+
+// ===== Dashboard: month-over-month totals computed entirely client-side =====
+function showTab(tab){
+  const isEntries = tab==="entries";
+  document.getElementById("entriesView").style.display = isEntries ? "block" : "none";
+  document.getElementById("dashboardView").style.display = isEntries ? "none" : "block";
+  document.getElementById("tabEntriesBtn").classList.toggle("sel", isEntries);
+  document.getElementById("tabDashboardBtn").classList.toggle("sel", !isEntries);
+  if(!isEntries) renderDashboard();
+}
+
+function monthLabel(m){
+  const [y,mo]=m.split("-").map(Number);
+  return new Date(y, mo-1, 1).toLocaleString(undefined,{month:"long",year:"numeric"});
+}
+
+function populateDashMonths(){
+  const sel = document.getElementById("dashMonthSel");
+  const months = [...new Set(entries.map(e=>e.date && e.date.slice(0,7)).filter(Boolean))].sort().reverse();
+  const cur = todayStr().slice(0,7);
+  if(!months.includes(cur)) months.unshift(cur);
+  const prevVal = sel.value;
+  sel.innerHTML="";
+  months.forEach(m=>{ const opt=document.createElement("option"); opt.value=m; opt.textContent=monthLabel(m); sel.appendChild(opt); });
+  sel.value = months.includes(prevVal) ? prevVal : cur;
+}
+
+function renderDashboard(){
+  populateDashMonths();
+  const month = document.getElementById("dashMonthSel").value;
+  const body = document.getElementById("dashBody");
+  const monthEntries = entries.filter(e=>e.date && e.date.slice(0,7)===month);
+  if(!monthEntries.length){ body.innerHTML='<div class="dash-empty">No expenses logged for this month yet</div>'; return; }
+  const total = monthEntries.reduce((s,e)=>s+Number(e.amount||0),0);
+  const byCat = {};
+  monthEntries.forEach(e=>{ byCat[e.category]=(byCat[e.category]||0)+Number(e.amount||0); });
+  const rows = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+  const max = rows.length ? rows[0][1] : 1;
+  body.innerHTML = `<div class="dash-total">$${total.toFixed(2)}</div>` + rows.map(([cat,amt])=>`
+    <div class="dash-row">
+      <div class="dr-top"><span>${cat}</span><span>$${amt.toFixed(2)}</span></div>
+      <div class="dr-bar"><div class="dr-fill" style="width:${Math.round(amt/max*100)}%"></div></div>
+    </div>`).join("");
+}
+
 document.getElementById("fDate").value=todayStr();
 renderList();
+if(cloudCfg){
+  document.getElementById("cloudSetup").style.display="none";
+  document.getElementById("cloudControls").style.display="block";
+  document.getElementById("cloudOwner").value=cloudCfg.owner;
+  document.getElementById("cloudRepo").value=cloudCfg.repo;
+  cloudPullOnLoad();
+} else {
+  setCloudStatus(false);
+}
 </script>
 </body>
 </html>
