@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="i-Health">
+<meta name="theme-color" content="#0f1117">
+<link rel="apple-touch-icon" sizes="180x180" href="health-icon-180.png">
+<link rel="icon" type="image/png" sizes="512x512" href="health-icon-512.png">
+<title>i-HealthApp</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0f1117; --card:#1a1d27; --card2:#232736; --border:#2e3345;
+    --text:#e8eaf0; --muted:#8a90a5; --accent:#22c98e; --accent2:#0f9d6f;
+    --green:#34d399; --red:#f87171; --amber:#fbbf24; --purple:#a78bfa;
+  }
+  :root[data-theme="light"]{
+    --bg:#f4f6fa; --card:#ffffff; --card2:#eef1f6; --border:#dde3ec;
+    --text:#20242c; --muted:#5b6472; --accent:#0f9d6f; --accent2:#0c7d59;
+    --green:#1f7a4d; --red:#c0392b; --amber:#b8720a; --purple:#7c3aed;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{-webkit-font-smoothing:antialiased}
+  body{
+    background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    padding:calc(14px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) calc(90px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left));
+    max-width:520px;margin:0 auto;
+  }
+  header{
+    display:flex;justify-content:space-between;align-items:center;
+    position:sticky;top:env(safe-area-inset-top);z-index:20;background:var(--bg);
+    margin:0 -14px 14px;
+    padding:14px 14px 12px;
+    border-bottom:1px solid var(--border);
+  }
+  h1{font-size:22px;font-weight:700;letter-spacing:-.2px}
+  h1 span{color:var(--accent)}
+  .badge{background:var(--card2);border:1px solid var(--border);color:var(--muted);font-size:12px;padding:4px 10px;border-radius:20px}
+  .badge b{color:var(--amber)}
+  .label{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:16px 0 8px}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .chip-row{display:flex;flex-wrap:wrap;gap:8px}
+  button.opt{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:12px 6px;font-size:13.5px;font-weight:500;cursor:pointer;transition:transform .1s ease,background .12s,border-color .12s}
+  button.opt.sel{background:var(--accent2);border-color:var(--accent);color:#fff;font-weight:700}
+  button.opt:active{transform:scale(.95)}
+  .chip-row button.opt{padding:10px 14px;border-radius:20px;flex:0 0 auto}
+  .grid button.opt{position:relative;padding:16px 6px 10px;display:flex;flex-direction:column;align-items:center;gap:5px;line-height:1.15}
+  .grid button.opt[data-icon]::before{content:attr(data-icon);font-size:18px}
+  input[type=text],input[type=date],input[type=tel]{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:13px 14px;font-size:16px;outline:none;transition:border-color .12s,box-shadow .12s}
+  input:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent)}
+  .val-wrap{position:relative}
+  .val-wrap .unit{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px}
+  .val-wrap input{font-size:22px;font-weight:700;padding-right:56px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:18px}
+  .row2 .btn{margin-top:0}
+  .btn{width:100%;border:none;border-radius:14px;padding:16px;font-size:17px;font-weight:700;cursor:pointer;margin-top:18px;transition:transform .1s ease,opacity .1s ease}
+  .btn:active{transform:scale(.97);opacity:.85}
+  .btn-save{background:var(--accent2);color:#fff}
+  .btn-export{background:var(--green);color:#06281c;margin-top:10px}
+  .btn-ghost{background:var(--card2);color:var(--muted);font-size:14px;padding:12px;margin-top:10px}
+  .entry{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;font-size:14px;cursor:pointer;transition:transform .1s ease,border-color .12s}
+  .entry:active{transform:scale(.98)}
+  .entry.editing{border-color:var(--accent);background:var(--card2)}
+  .entry .cat{font-weight:600}
+  .entry .sub{color:var(--muted);font-size:12px;margin-top:2px}
+  .entry .amt{font-weight:700;font-size:16px;margin-right:10px}
+  .entry .del{color:var(--red);background:none;border:none;font-size:18px;padding:4px 6px;cursor:pointer}
+  .toast{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:var(--green);color:#06281c;padding:12px 22px;border-radius:24px;font-weight:700;font-size:14px;display:none;z-index:99;box-shadow:0 6px 24px rgba(0,0,0,.35);max-width:calc(100% - 48px);text-align:center}
+  .tabs{display:flex;gap:8px;margin-bottom:16px}
+  .tabs button{flex:1;background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:12px;padding:10px 4px;font-size:13px;font-weight:600;cursor:pointer;transition:transform .1s ease,background .12s,border-color .12s}
+  .tabs button:active{transform:scale(.96)}
+  .tabs button.sel{background:var(--accent2);border-color:var(--accent);color:#fff}
+  .cloud-status{font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.5}
+  .cloud-status.on{color:var(--green)}
+  .cloud-status.off{color:var(--amber)}
+  .dash-month{display:flex;gap:8px;align-items:center;margin-bottom:14px}
+  .dash-month select{flex:1;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:12px;font-size:15px}
+  .dash-empty{color:var(--muted);font-size:14px;text-align:center;padding:30px 0}
+  .theme-toggle{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:20px;font-size:14px;cursor:pointer;line-height:1}
+  .dash-tabs{display:flex;gap:8px;margin-bottom:16px}
+  .dash-tabs button{flex:1;background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:12px;padding:8px;font-size:13px;font-weight:600;cursor:pointer;transition:transform .1s ease}
+  .dash-tabs button:active{transform:scale(.96)}
+  .dash-tabs button.sel{background:var(--accent2);border-color:var(--accent);color:#fff}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;border-left:4px solid var(--accent2);transition:transform .12s ease,box-shadow .12s ease}
+  .card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.12)}
+  .card.green{border-left-color:var(--green)}
+  .card.orange{border-left-color:var(--red)}
+  .card.purple{border-left-color:var(--purple)}
+  .card-label{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700}
+  .card-value{font-size:19px;font-weight:700;margin:4px 0 2px}
+  .card-sub{font-size:11px;color:var(--muted)}
+  .chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px}
+  .chart-card h4{font-size:12px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.4px;font-weight:700}
+  .dtable-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow-x:auto;margin-bottom:16px}
+  .dtable-wrap table{width:100%;border-collapse:collapse;font-size:12px;min-width:420px}
+  .dtable-wrap th{background:var(--card2);padding:8px 10px;text-align:left;font-size:10px;text-transform:uppercase;color:var(--muted);letter-spacing:.4px;white-space:nowrap}
+  .dtable-wrap td{padding:8px 10px;border-bottom:1px solid var(--card2);white-space:nowrap}
+  .tw-head{padding:10px 12px;font-weight:700;font-size:13px;border-bottom:1px solid var(--border)}
+  .entry-row{cursor:pointer}
+  .entry-row:hover td{background:var(--card2)}
+  .row-del{color:var(--red);background:none;border:none;font-size:15px;padding:2px 6px;cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+  <h1>i-<span>Health</span></h1>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="badge">This Week: <b id="weekBadge">—</b></div>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">🌙</button>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="sel" id="tabWorkoutBtn" onclick="showMainTab('workout')">🏋️ Workout</button>
+  <button id="tabWeightBtn" onclick="showMainTab('weight')">⚖️ Weight</button>
+  <button id="tabLogBtn" onclick="showMainTab('log')">💧 Log</button>
+  <button id="tabDashboardBtn" onclick="showMainTab('dashboard')">📊 Dashboard</button>
+</div>
+
+<div id="entriesView">
+
+<div class="label">Date</div>
+<input type="date" id="fDate">
+
+<div class="label" id="catLabel">Type</div>
+<div class="grid" id="catGrid"></div>
+
+<div id="workoutExtra">
+  <div class="label">Duration (minutes)</div>
+  <div class="val-wrap"><input type="tel" id="fDuration" inputmode="numeric" placeholder="30"><span class="unit">min</span></div>
+  <div class="label">Intensity</div>
+  <div class="chip-row" id="intensityRow"></div>
+</div>
+
+<div id="weightExtra" style="display:none">
+  <div class="label">Weight</div>
+  <div class="val-wrap"><input type="tel" id="fWeight" inputmode="decimal" placeholder="0.0"><span class="unit">lb</span></div>
+  <div class="label">Body Fat % (optional)</div>
+  <div class="val-wrap"><input type="tel" id="fBodyFat" inputmode="decimal" placeholder="optional"><span class="unit">%</span></div>
+</div>
+
+<div id="logExtra" style="display:none">
+  <div class="label" id="logValueLabel">Amount</div>
+  <input type="text" id="fLogValue" placeholder="e.g. 16 oz">
+</div>
+
+<div class="label">Note (optional)</div>
+<input type="text" id="fNote" placeholder="">
+
+<div class="row2">
+  <button class="btn btn-save" id="saveBtn" onclick="saveEntry()">Save Workout</button>
+  <button class="btn btn-export" id="syncNowTopBtn" onclick="cloudSyncNow()">Sync Now</button>
+</div>
+<button class="btn btn-ghost" id="cancelEditBtn" style="display:none" onclick="cancelEdit()">Cancel edit</button>
+
+<div class="label" style="margin-top:22px">📝 Today's Entries</div>
+<div style="font-size:12px;color:var(--muted);margin-bottom:8px">Tap an entry to edit it. Past days live in Dashboard → Monthly Detail.</div>
+<div id="entryList"></div>
+
+<div class="label" style="margin-top:22px">☁️ Cloud Sync</div>
+<div class="cloud-status" id="cloudStatus">Not connected — saving on this device only</div>
+<div id="cloudSetup">
+  <input type="text" id="cloudOwner" placeholder="GitHub username" autocomplete="off">
+  <input type="text" id="cloudRepo" placeholder="Private data repo name (e.g. iHealth-data)" autocomplete="off" style="margin-top:8px">
+  <input type="password" id="cloudToken" placeholder="Personal access token" autocomplete="off" style="margin-top:8px">
+  <button class="btn btn-export" onclick="cloudConnect()">Connect &amp; Sync</button>
+</div>
+<div id="cloudControls" style="display:none">
+  <button class="btn btn-ghost" onclick="cloudDisconnect()">Disconnect</button>
+</div>
+
+<div class="label" style="margin-top:22px">💾 Backup</div>
+<button class="btn btn-ghost" onclick="backupData()">Backup all data (.json)</button>
+<button class="btn btn-ghost" onclick="document.getElementById('restoreFile').click()">Restore from backup</button>
+<input type="file" id="restoreFile" accept="application/json" style="display:none" onchange="restoreData(event)">
+
+</div>
+
+<div id="dashboardView" style="display:none">
+  <div class="dash-tabs">
+    <button class="sel" id="dashOverviewBtn" onclick="showDashTab('overview')">Overview</button>
+    <button id="dashMonthlyBtn" onclick="showDashTab('monthly')">Monthly Detail</button>
+  </div>
+
+  <div id="dashOverviewView">
+    <div class="cards" id="ovCards"></div>
+    <div class="chart-card"><h4>Weight Trend</h4><canvas id="weightChart" height="180"></canvas><div class="dash-empty" id="weightChartEmpty" style="display:none"></div></div>
+    <div class="chart-card"><h4>Workout Minutes by Month</h4><canvas id="workoutChart" height="180"></canvas><div class="dash-empty" id="workoutChartEmpty" style="display:none"></div></div>
+    <div class="chart-card"><h4>Workout Types (All Time)</h4><canvas id="typeChart" height="220"></canvas><div class="dash-empty" id="typeChartEmpty" style="display:none"></div></div>
+    <div class="dtable-wrap"><div class="tw-head">Monthly Summary</div><div id="ovMonthlyTable"></div></div>
+  </div>
+
+  <div id="dashMonthlyView" style="display:none">
+    <div class="dash-month">
+      <select id="dashMonthSel" onchange="renderMonthlyDetail()"></select>
+    </div>
+    <div class="cards" id="monCards"></div>
+    <div class="dtable-wrap"><div class="tw-head" id="monWorkoutHead">Workouts</div><div id="monWorkoutTable"></div></div>
+    <div class="dtable-wrap"><div class="tw-head" id="monWeightHead">Weight</div><div id="monWeightTable"></div></div>
+    <div class="dtable-wrap"><div class="tw-head" id="monLogHead">Water / Nutrition / Meds</div><div id="monLogTable"></div></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const WORKOUT_CATS = ["Cardio","Strength","Yoga","Walking","Running","Cycling","Sports","Other"];
+const LOG_CATS = ["Water","Meal","Snack","Medication","Vitals/BP","Other"];
+const CAT_ICONS = {
+  Cardio:"🏃", Strength:"🏋️", Yoga:"🧘", Walking:"🚶", Running:"🏃‍♂️", Cycling:"🚴", Sports:"⚽", Other:"❔",
+  Water:"💧", Meal:"🍽️", Snack:"🍎", Medication:"💊", "Vitals/BP":"❤️"
+};
+function catIcon(cat){ return CAT_ICONS[cat] ? CAT_ICONS[cat]+" " : ""; }
+const INTENSITIES = ["Light","Moderate","Intense"];
+const LOG_PLACEHOLDERS = { Water:"e.g. 16 oz", Meal:"e.g. 550 cal", Snack:"e.g. 150 cal", Medication:"e.g. 500mg Ibuprofen", "Vitals/BP":"e.g. 120/80", Other:"" };
+const LS_KEY = "ihealth_entries_v1";
+
+let sel = {cat:null, intensity:null};
+let entries = load();
+let editIndex = null;
+let formType = "workout";
+
+function load(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||"[]"); }catch(e){ return []; } }
+function genId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
+function ensureIds(){ entries.forEach(e=>{ if(!e.id) e.id=genId(); }); }
+function persist(){ ensureIds(); try{ localStorage.setItem(LS_KEY, JSON.stringify(entries)); }catch(e){} }
+persist(); // backfill ids on any pre-existing data
+function todayStr(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function toast(msg,color){
+  const t=document.getElementById("toast");
+  const icon = color==="var(--red)" ? "⚠️ " : color==="var(--amber)" ? "ℹ️ " : "✅ ";
+  t.textContent=icon+msg; t.style.background=color||"var(--green)"; t.style.display="block"; setTimeout(()=>t.style.display="none",2200);
+}
+
+const catGrid=document.getElementById("catGrid");
+function selectCategory(cat){
+  sel.cat=cat;
+  [...catGrid.children].forEach(x=>x.classList.toggle("sel",x.textContent===cat));
+  if(formType==="log"){
+    document.getElementById("logValueLabel").textContent = cat==="Medication" ? "Dose" : cat==="Vitals/BP" ? "Reading" : "Amount";
+    document.getElementById("fLogValue").placeholder = LOG_PLACEHOLDERS[cat] || "";
+  }
+}
+function renderCatGrid(type){
+  catGrid.innerHTML="";
+  const cats = type==="log" ? LOG_CATS : WORKOUT_CATS;
+  if(type==="weight"){ catGrid.parentElement.style.display=""; }
+  cats.forEach(c=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=c;
+    if(CAT_ICONS[c]) b.dataset.icon=CAT_ICONS[c];
+    b.onclick=()=>selectCategory(c); catGrid.appendChild(b); });
+}
+
+const intensityRow=document.getElementById("intensityRow");
+function renderIntensityRow(){
+  intensityRow.innerHTML="";
+  INTENSITIES.forEach(p=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=p;
+    b.onclick=()=>{ sel.intensity=p; [...intensityRow.children].forEach(x=>x.classList.toggle("sel",x.textContent===p)); }; intensityRow.appendChild(b); });
+}
+
+function updateSaveBtnLabel(){
+  const verb = editIndex!==null ? "Update" : "Save";
+  const noun = formType==="workout" ? "Workout" : formType==="weight" ? "Weight" : "Log";
+  document.getElementById("saveBtn").textContent = `${verb} ${noun}`;
+}
+
+function setFormType(type){
+  formType = type;
+  document.getElementById("entriesView").style.display = "block";
+  document.getElementById("dashboardView").style.display = "none";
+  document.getElementById("tabWorkoutBtn").classList.toggle("sel", type==="workout");
+  document.getElementById("tabWeightBtn").classList.toggle("sel", type==="weight");
+  document.getElementById("tabLogBtn").classList.toggle("sel", type==="log");
+  document.getElementById("tabDashboardBtn").classList.remove("sel");
+
+  document.getElementById("catLabel").parentElement.querySelector = null; // no-op, keep structure
+  document.getElementById("catLabel").style.display = type==="weight" ? "none" : "block";
+  document.getElementById("catGrid").style.display = type==="weight" ? "none" : "grid";
+  document.getElementById("workoutExtra").style.display = type==="workout" ? "block" : "none";
+  document.getElementById("weightExtra").style.display = type==="weight" ? "block" : "none";
+  document.getElementById("logExtra").style.display = type==="log" ? "block" : "none";
+
+  sel.cat=null; sel.intensity=null;
+  if(type!=="weight") renderCatGrid(type);
+  [...intensityRow.children].forEach(x=>x.classList.remove("sel"));
+  updateSaveBtnLabel();
+}
+
+function renderList(){
+  const box=document.getElementById("entryList"); box.innerHTML="";
+  const today = todayStr();
+  const todays = entries.map((e,idx)=>({e,idx})).filter(o=>o.e.date===today).reverse();
+  todays.forEach(({e,idx})=>{
+    const d=document.createElement("div"); d.className="entry"+(idx===editIndex?" editing":"");
+    d.innerHTML = renderEntryRow(e, idx);
+    d.onclick=()=>editEntry(idx);
+    box.appendChild(d);
+  });
+  if(!todays.length){ box.innerHTML='<div class="dash-empty">📭 Nothing logged today yet</div>'; }
+
+  const weekStart = new Date(); weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+  const weekStartStr = weekStart.getFullYear()+"-"+String(weekStart.getMonth()+1).padStart(2,"0")+"-"+String(weekStart.getDate()).padStart(2,"0");
+  const weekWorkouts = entries.filter(e=>e.type==="workout" && e.date>=weekStartStr).length;
+  const weekMinutes = entries.filter(e=>e.type==="workout" && e.date>=weekStartStr).reduce((s,e)=>s+Number(e.duration||0),0);
+  document.getElementById("weekBadge").textContent = weekWorkouts ? `${weekWorkouts} workout${weekWorkouts===1?"":"s"} · ${weekMinutes}min` : "No workouts yet";
+}
+
+function renderEntryRow(e, idx){
+  if(e.type==="workout"){
+    return `<div><div class="cat">${catIcon(e.category)}${e.category}</div><div class="sub">${e.date}${e.intensity?" · "+e.intensity:""}${e.note?" · "+e.note:""}</div></div>
+      <div style="display:flex;align-items:center"><span class="amt">${e.duration||0}min</span><button class="del" onclick="delEntry(${idx},event)">✕</button></div>`;
+  }
+  if(e.type==="weight"){
+    return `<div><div class="cat">⚖️ Weight</div><div class="sub">${e.date}${e.bodyFat?" · "+e.bodyFat+"% BF":""}${e.note?" · "+e.note:""}</div></div>
+      <div style="display:flex;align-items:center"><span class="amt">${e.weight}lb</span><button class="del" onclick="delEntry(${idx},event)">✕</button></div>`;
+  }
+  return `<div><div class="cat">${catIcon(e.category)}${e.category}</div><div class="sub">${e.date}${e.note?" · "+e.note:""}</div></div>
+    <div style="display:flex;align-items:center"><span class="amt" style="font-size:14px">${e.value||""}</span><button class="del" onclick="delEntry(${idx},event)">✕</button></div>`;
+}
+
+function isDuplicate(candidate, skipIdx){
+  return entries.some((e,i)=> i!==skipIdx && e.type===candidate.type && e.date===candidate.date && JSON.stringify({c:e.category,d:e.duration,w:e.weight,v:e.value})===JSON.stringify({c:candidate.category,d:candidate.duration,w:candidate.weight,v:candidate.value}));
+}
+
+async function saveEntry(){
+  const date = document.getElementById("fDate").value||todayStr();
+  const note = document.getElementById("fNote").value.trim();
+  let candidate;
+
+  if(formType==="workout"){
+    if(!sel.cat){ toast("Pick a workout type","var(--red)"); return; }
+    const duration = parseInt(document.getElementById("fDuration").value,10);
+    if(!duration || duration<=0){ toast("Enter a duration","var(--red)"); return; }
+    candidate = { date, type:"workout", category:sel.cat, duration, intensity:sel.intensity||"", note };
+  } else if(formType==="weight"){
+    const weight = parseFloat(document.getElementById("fWeight").value);
+    if(!weight || weight<=0){ toast("Enter your weight","var(--red)"); return; }
+    const bodyFat = parseFloat(document.getElementById("fBodyFat").value);
+    candidate = { date, type:"weight", weight:Math.round(weight*10)/10, bodyFat: bodyFat>0 ? Math.round(bodyFat*10)/10 : null, note };
+  } else {
+    if(!sel.cat){ toast("Pick a category","var(--red)"); return; }
+    const value = document.getElementById("fLogValue").value.trim();
+    if(!value){ toast("Enter a value","var(--red)"); return; }
+    candidate = { date, type:"log", category:sel.cat, value, note };
+  }
+
+  if(isDuplicate(candidate, editIndex) && !confirm("Possible duplicate entry — Save anyway?")) return;
+
+  const wasEdit = editIndex!==null;
+  let targetId;
+  if(wasEdit){
+    targetId = entries[editIndex].id;
+    entries[editIndex] = { ...entries[editIndex], ...candidate };
+    persist();
+    toast("Updated ✓");
+  } else {
+    targetId = genId();
+    entries.push({ ...candidate, id:targetId });
+    persist();
+    toast("Saved ✓");
+  }
+  resetForm();
+
+  if(cloudCfg){
+    try{
+      await cloudSyncMutation(remote=>{
+        const idx = remote.findIndex(e=>e.id===targetId);
+        if(idx>=0) remote[idx] = { ...remote[idx], ...candidate, id:targetId };
+        else remote.push({ ...candidate, id:targetId });
+        return remote;
+      });
+      setCloudStatus(true);
+    }catch(err){
+      setCloudStatus(false, "Saved locally — cloud sync failed, tap Sync Now later");
+    }
+  }
+}
+
+function resetForm(){
+  editIndex=null;
+  document.getElementById("fDuration").value=""; document.getElementById("fWeight").value=""; document.getElementById("fBodyFat").value="";
+  document.getElementById("fLogValue").value=""; document.getElementById("fNote").value="";
+  document.getElementById("cancelEditBtn").style.display="none";
+  const type = formType;
+  setFormType(type);
+  renderList();
+}
+
+async function delEntry(i,evt){
+  if(evt) evt.stopPropagation();
+  const idToDelete = entries[i].id;
+  entries.splice(i,1); persist();
+  if(editIndex===i) cancelEdit();
+  else renderList();
+
+  if(cloudCfg){
+    try{
+      await cloudSyncMutation(remote=>remote.filter(e=>e.id!==idToDelete));
+      setCloudStatus(true);
+    }catch(err){
+      setCloudStatus(false, "Deleted locally — cloud sync failed, tap Sync Now later");
+    }
+  }
+}
+
+function editEntry(i){
+  const e=entries[i];
+  editIndex=i;
+  setFormType(e.type);
+  document.getElementById("fDate").value=e.date;
+  document.getElementById("fNote").value=e.note||"";
+  if(e.type==="workout"){
+    document.getElementById("fDuration").value=e.duration;
+    sel.cat=e.category; sel.intensity=e.intensity||null;
+    [...catGrid.children].forEach(x=>x.classList.toggle("sel",x.textContent===e.category));
+    [...intensityRow.children].forEach(x=>x.classList.toggle("sel",x.textContent===e.intensity));
+  } else if(e.type==="weight"){
+    document.getElementById("fWeight").value=e.weight;
+    document.getElementById("fBodyFat").value=e.bodyFat||"";
+  } else {
+    document.getElementById("fLogValue").value=e.value||"";
+    sel.cat=e.category;
+    [...catGrid.children].forEach(x=>x.classList.toggle("sel",x.textContent===e.category));
+    selectCategory(e.category);
+  }
+  document.getElementById("cancelEditBtn").style.display="block";
+  updateSaveBtnLabel();
+  renderList();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function cancelEdit(){
+  document.getElementById("fDate").value=todayStr();
+  resetForm();
+}
+
+function backupData(){
+  const payload = { backup:new Date().toISOString(), source:"i-HealthApp", entries:entries };
+  const blob = new Blob([JSON.stringify(payload,null,1)],{type:"application/json"});
+  const fname = `ihealth_backup_${payload.backup.replace(/[-:T]/g,"").slice(0,14)}.json`;
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=fname; a.click();
+  toast("Backup downloaded");
+}
+
+function restoreData(evt){
+  const file = evt.target.files[0];
+  evt.target.value = "";
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    let data;
+    try{ data = JSON.parse(reader.result); }catch(e){ toast("Invalid backup file","var(--red)"); return; }
+    const incoming = Array.isArray(data) ? data : (data.entries||[]);
+    if(!Array.isArray(incoming) || !incoming.length){ toast("No entries found in file","var(--amber)"); return; }
+    const key = e => [e.type,e.date,e.category,e.duration,e.weight,e.value,e.note].join("|");
+    const existing = new Set(entries.map(key));
+    let added = 0;
+    incoming.forEach(e=>{
+      if(!e || !e.date || !e.type) return;
+      if(existing.has(key(e))) return;
+      entries.push({ ...e, id:e.id||genId() });
+      existing.add(key(e));
+      added++;
+    });
+    persist(); renderList();
+    toast(added ? `Restored ${added} entr${added===1?"y":"ies"}` : "Nothing new to restore");
+  };
+  reader.readAsText(file);
+}
+
+// ===== Cloud Sync: GitHub repo (private) acts as the shared data store =====
+const CLOUD_KEY = "ihealth_cloud_cfg";
+function loadCloudCfg(){ try{ return JSON.parse(localStorage.getItem(CLOUD_KEY)||"null"); }catch(e){ return null; } }
+function saveCloudCfg(cfg){ localStorage.setItem(CLOUD_KEY, JSON.stringify(cfg)); }
+function clearCloudCfg(){ localStorage.removeItem(CLOUD_KEY); }
+let cloudCfg = loadCloudCfg();
+
+function utf8ToB64(str){ return btoa(unescape(encodeURIComponent(str))); }
+function b64ToUtf8(str){ return decodeURIComponent(escape(atob(str.replace(/\n/g,"")))); }
+function cloudApiUrl(cfg){ return `https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/entries.json`; }
+function mergeKey(e){ return e.id || [e.type,e.date,e.category,e.duration,e.weight,e.value,e.note].join("|"); }
+
+async function cloudFetchRemote(cfg){
+  const res = await fetch(cloudApiUrl(cfg), { headers:{ Authorization:`Bearer ${cfg.token}`, Accept:"application/vnd.github+json" } });
+  if(res.status===404) return { entries:[], sha:null };
+  if(!res.ok) throw new Error(`GitHub read failed (${res.status})`);
+  const data = await res.json();
+  let remoteEntries=[];
+  try{ remoteEntries = JSON.parse(b64ToUtf8(data.content)); }catch(e){ remoteEntries=[]; }
+  if(!Array.isArray(remoteEntries)) remoteEntries=[];
+  return { entries: remoteEntries, sha: data.sha };
+}
+
+async function cloudWriteRemote(cfg, newEntries, sha){
+  const body = { message:"i-HealthApp sync", content: utf8ToB64(JSON.stringify(newEntries,null,1)) };
+  if(sha) body.sha = sha;
+  const res = await fetch(cloudApiUrl(cfg), {
+    method:"PUT",
+    headers:{ Authorization:`Bearer ${cfg.token}`, Accept:"application/vnd.github+json", "Content-Type":"application/json" },
+    body: JSON.stringify(body)
+  });
+  if(res.status===409){ const err=new Error("Someone else changed the cloud copy — retrying"); err.conflict=true; throw err; }
+  if(!res.ok) throw new Error(`GitHub write failed (${res.status})`);
+}
+
+async function cloudSyncMutation(mutateFn, attempts){
+  attempts = attempts || 3;
+  if(!cloudCfg) return null;
+  let lastErr;
+  for(let i=0;i<attempts;i++){
+    try{
+      const { entries: remote, sha } = await cloudFetchRemote(cloudCfg);
+      const updated = mutateFn(remote);
+      await cloudWriteRemote(cloudCfg, updated, sha);
+      return updated;
+    }catch(err){
+      lastErr = err;
+      if(!err.conflict) throw err;
+    }
+  }
+  throw lastErr;
+}
+
+function setCloudStatus(ok, msg){
+  const el = document.getElementById("cloudStatus");
+  if(!cloudCfg){ el.textContent="Not connected — saving on this device only"; el.className="cloud-status off"; return; }
+  if(ok){ el.textContent=`Connected to ${cloudCfg.owner}/${cloudCfg.repo} — last synced ${new Date().toLocaleTimeString()}`; el.className="cloud-status on"; }
+  else { el.textContent = msg || "Cloud sync error"; el.className="cloud-status off"; }
+}
+
+function unionMerge(remote, local){
+  const seen = new Set(remote.map(mergeKey));
+  const out = [...remote];
+  local.forEach(e=>{ const k=mergeKey(e); if(!seen.has(k)){ out.push(e); seen.add(k); } });
+  return out;
+}
+
+async function cloudConnect(){
+  const owner=document.getElementById("cloudOwner").value.trim();
+  const repo=document.getElementById("cloudRepo").value.trim();
+  const token=document.getElementById("cloudToken").value.trim();
+  if(!owner||!repo||!token){ toast("Fill in owner, repo and token","var(--red)"); return; }
+  const cfg={owner,repo,token};
+  toast("Connecting…","var(--amber)");
+  try{
+    const { entries: remote, sha } = await cloudFetchRemote(cfg);
+    const merged = unionMerge(remote, entries);
+    await cloudWriteRemote(cfg, merged, sha);
+    cloudCfg = cfg;
+    saveCloudCfg(cfg);
+    entries = merged;
+    persist();
+    renderList();
+    document.getElementById("cloudSetup").style.display="none";
+    document.getElementById("cloudControls").style.display="block";
+    document.getElementById("cloudToken").value="";
+    toast(`Connected — ${merged.length} entries synced`);
+    setCloudStatus(true);
+  }catch(err){
+    toast("Connect failed: "+err.message,"var(--red)");
+    setCloudStatus(false, "Not connected — check token/repo and try again");
+  }
+}
+
+async function cloudSyncNow(){
+  if(!cloudCfg){ toast("Connect Cloud Sync first (scroll down)","var(--amber)"); return; }
+  toast("Syncing…","var(--amber)");
+  try{
+    const merged = await cloudSyncMutation(remote=>unionMerge(remote, entries));
+    entries = merged; persist(); renderList();
+    toast("Synced ✓");
+    setCloudStatus(true);
+  }catch(err){
+    toast("Sync failed: "+err.message,"var(--red)");
+    setCloudStatus(false, "Sync failed — try again");
+  }
+}
+
+function cloudDisconnect(){
+  cloudCfg=null; clearCloudCfg();
+  document.getElementById("cloudSetup").style.display="block";
+  document.getElementById("cloudControls").style.display="none";
+  document.getElementById("cloudOwner").value="";
+  document.getElementById("cloudRepo").value="";
+  setCloudStatus(false);
+  toast("Disconnected — saving on this device only","var(--amber)");
+}
+
+async function cloudPullOnLoad(){
+  try{
+    const { entries: remote } = await cloudFetchRemote(cloudCfg);
+    const merged = unionMerge(remote, entries);
+    const hadLocalOnly = merged.length > remote.length;
+    entries = merged; persist(); renderList();
+    setCloudStatus(true);
+    if(hadLocalOnly) cloudSyncNow();
+  }catch(err){
+    setCloudStatus(false, "Offline or cloud unreachable — using local copy");
+  }
+}
+
+// ===== Dashboard: all data computed entirely client-side from synced entries =====
+function showMainTab(tab){
+  if(tab==="dashboard"){
+    document.getElementById("entriesView").style.display = "none";
+    document.getElementById("dashboardView").style.display = "block";
+    document.getElementById("tabWorkoutBtn").classList.remove("sel");
+    document.getElementById("tabWeightBtn").classList.remove("sel");
+    document.getElementById("tabLogBtn").classList.remove("sel");
+    document.getElementById("tabDashboardBtn").classList.add("sel");
+    renderDashboard();
+  } else {
+    setFormType(tab);
+  }
+}
+
+function monthLabel(m){
+  const [y,mo]=m.split("-").map(Number);
+  return new Date(y, mo-1, 1).toLocaleString(undefined,{month:"long",year:"numeric"});
+}
+
+function allMonths(){
+  const months = [...new Set(entries.map(e=>e.date && e.date.slice(0,7)).filter(Boolean))];
+  const cur = todayStr().slice(0,7);
+  if(!months.includes(cur)) months.push(cur);
+  return months.sort();
+}
+
+function showDashTab(tab){
+  const isOverview = tab==="overview";
+  document.getElementById("dashOverviewView").style.display = isOverview ? "block" : "none";
+  document.getElementById("dashMonthlyView").style.display = isOverview ? "none" : "block";
+  document.getElementById("dashOverviewBtn").classList.toggle("sel", isOverview);
+  document.getElementById("dashMonthlyBtn").classList.toggle("sel", !isOverview);
+  if(isOverview) renderOverview(); else renderMonthlyDetail();
+}
+
+function renderDashboard(){
+  const overviewActive = document.getElementById("dashOverviewView").style.display !== "none";
+  if(overviewActive) renderOverview(); else renderMonthlyDetail();
+}
+
+let charts = { weight:null, workout:null, type:null };
+const CHART_PALETTE = ["#22c98e","#f87171","#4f8cff","#fbbf24","#a78bfa","#38bdf8","#fb923c","#f472b6"];
+
+function themeColor(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function showChartFallback(canvasId, msg){
+  document.getElementById(canvasId).style.display="none";
+  const empty = document.getElementById(canvasId+"Empty");
+  empty.textContent = msg;
+  empty.style.display = "block";
+}
+function showChartCanvas(canvasId){
+  document.getElementById(canvasId).style.display="block";
+  document.getElementById(canvasId+"Empty").style.display="none";
+}
+
+function renderOverview(){
+  const workouts = entries.filter(e=>e.type==="workout");
+  const weights = entries.filter(e=>e.type==="weight").sort((a,b)=>a.date.localeCompare(b.date));
+  const months = allMonths();
+
+  const totalWorkouts = workouts.length;
+  const totalMinutes = workouts.reduce((s,e)=>s+Number(e.duration||0),0);
+  const latestWeight = weights.length ? weights[weights.length-1] : null;
+  const firstWeight = weights.length ? weights[0] : null;
+  const weightChange = (latestWeight && firstWeight && weights.length>1) ? Math.round((latestWeight.weight-firstWeight.weight)*10)/10 : null;
+
+  document.getElementById("ovCards").innerHTML = `
+    <div class="card"><div class="card-label">🏋️ Total Workouts</div><div class="card-value">${totalWorkouts}</div><div class="card-sub">All time</div></div>
+    <div class="card green"><div class="card-label">⏱️ Total Minutes</div><div class="card-value">${totalMinutes}</div><div class="card-sub">All time</div></div>
+    <div class="card purple"><div class="card-label">⚖️ Latest Weight</div><div class="card-value">${latestWeight ? latestWeight.weight+"lb" : "—"}</div><div class="card-sub">${latestWeight ? latestWeight.date : "No entries yet"}</div></div>
+    <div class="card orange"><div class="card-label">📉 Weight Change</div><div class="card-value">${weightChange!==null ? (weightChange>0?"+":"")+weightChange+"lb" : "—"}</div><div class="card-sub">Since first entry</div></div>
+  `;
+
+  if(typeof Chart!=="undefined"){
+    const textColor = themeColor("--text");
+    const gridColor = themeColor("--border");
+
+    if(weights.length){
+      showChartCanvas("weightChart");
+      if(charts.weight) charts.weight.destroy();
+      charts.weight = new Chart(document.getElementById("weightChart"), {
+        type:"line",
+        data:{ labels: weights.map(w=>w.date), datasets:[{ label:"Weight (lb)", data: weights.map(w=>w.weight), borderColor:themeColor("--accent"), backgroundColor:"rgba(34,201,142,0.15)", fill:true, tension:.3 }] },
+        options:{ responsive:true, plugins:{ legend:{ display:false } },
+          scales:{ x:{ ticks:{ color:textColor, maxRotation:60 }, grid:{ color:gridColor } }, y:{ ticks:{ color:textColor }, grid:{ color:gridColor } } } }
+      });
+    } else {
+      showChartFallback("weightChart", "⚖️ No weight entries yet");
+    }
+
+    const monthMinutes = months.map(m=>workouts.filter(e=>e.date.slice(0,7)===m).reduce((s,e)=>s+Number(e.duration||0),0));
+    if(workouts.length){
+      showChartCanvas("workoutChart");
+      if(charts.workout) charts.workout.destroy();
+      charts.workout = new Chart(document.getElementById("workoutChart"), {
+        type:"bar",
+        data:{ labels: months.map(monthLabel), datasets:[{ label:"Minutes", data: monthMinutes, backgroundColor: themeColor("--accent") }] },
+        options:{ responsive:true, plugins:{ legend:{ display:false } },
+          scales:{ x:{ ticks:{ color:textColor }, grid:{ display:false } }, y:{ ticks:{ color:textColor }, grid:{ color:gridColor } } } }
+      });
+    } else {
+      showChartFallback("workoutChart", "🏋️ No workouts logged yet");
+    }
+
+    const byType = {};
+    workouts.forEach(e=>{ byType[e.category]=(byType[e.category]||0)+1; });
+    const typeEntries = Object.entries(byType).sort((a,b)=>b[1]-a[1]);
+    if(typeEntries.length){
+      showChartCanvas("typeChart");
+      if(charts.type) charts.type.destroy();
+      charts.type = new Chart(document.getElementById("typeChart"), {
+        type:"pie",
+        data:{ labels:typeEntries.map(c=>c[0]), datasets:[{ data:typeEntries.map(c=>c[1]), backgroundColor:CHART_PALETTE }] },
+        options:{ responsive:true, plugins:{ legend:{ position:"right", labels:{ boxWidth:12, font:{ size:11 }, color:textColor } } } }
+      });
+    } else {
+      showChartFallback("typeChart", "🏋️ No workouts logged yet");
+    }
+  } else {
+    const msg = "📊 Chart couldn't load (check your connection) — see the tables below for the numbers";
+    showChartFallback("weightChart", msg);
+    showChartFallback("workoutChart", msg);
+    showChartFallback("typeChart", msg);
+  }
+
+  const rows = months.map(m=>{
+    const mWorkouts = workouts.filter(e=>e.date.slice(0,7)===m);
+    const mMinutes = mWorkouts.reduce((s,e)=>s+Number(e.duration||0),0);
+    const mWeights = weights.filter(e=>e.date.slice(0,7)===m);
+    const mLogs = entries.filter(e=>e.type==="log" && e.date.slice(0,7)===m).length;
+    const avgWeight = mWeights.length ? (mWeights.reduce((s,e)=>s+e.weight,0)/mWeights.length).toFixed(1) : "—";
+    return { m, count:mWorkouts.length, minutes:mMinutes, avgWeight, logs:mLogs };
+  });
+  document.getElementById("ovMonthlyTable").innerHTML = `<table><thead><tr><th>Month</th><th>Workouts</th><th>Minutes</th><th>Avg Weight</th><th>Log Entries</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr><td>${monthLabel(r.m)}</td><td>${r.count}</td><td>${r.minutes}</td><td>${r.avgWeight}${r.avgWeight!=="—"?"lb":""}</td><td>${r.logs}</td></tr>`).join("")}
+  </tbody></table>`;
+}
+
+function renderMonthlyDetail(){
+  const months = allMonths();
+  const sel = document.getElementById("dashMonthSel");
+  const prevVal = sel.value;
+  sel.innerHTML="";
+  months.slice().reverse().forEach(m=>{ const opt=document.createElement("option"); opt.value=m; opt.textContent=monthLabel(m); sel.appendChild(opt); });
+  const mostRecent = months[months.length-1];
+  sel.value = months.includes(prevVal) ? prevVal : mostRecent;
+
+  const month = sel.value;
+  const me = entries.map((e,idx)=>({e,idx})).filter(o=>o.e.date && o.e.date.slice(0,7)===month);
+  const workouts = me.filter(o=>o.e.type==="workout");
+  const weights = me.filter(o=>o.e.type==="weight");
+  const logs = me.filter(o=>o.e.type==="log");
+  const totalMinutes = workouts.reduce((s,o)=>s+Number(o.e.duration||0),0);
+  const avgWeight = weights.length ? (weights.reduce((s,o)=>s+o.e.weight,0)/weights.length).toFixed(1) : "—";
+
+  document.getElementById("monCards").innerHTML = `
+    <div class="card"><div class="card-label">🏋️ Workouts</div><div class="card-value">${workouts.length}</div></div>
+    <div class="card green"><div class="card-label">⏱️ Minutes</div><div class="card-value">${totalMinutes}</div></div>
+    <div class="card purple"><div class="card-label">⚖️ Avg Weight</div><div class="card-value">${avgWeight}${avgWeight!=="—"?"lb":""}</div></div>
+    <div class="card orange"><div class="card-label">💧 Log Entries</div><div class="card-value">${logs.length}</div></div>
+  `;
+
+  document.getElementById("monWorkoutHead").textContent = `Workouts — ${monthLabel(month)} (${workouts.length}) — tap a row to edit`;
+  document.getElementById("monWorkoutTable").innerHTML = workouts.length ? `<table><thead><tr><th>Date</th><th>Type</th><th>Duration</th><th>Intensity</th><th></th></tr></thead><tbody>
+    ${workouts.map(o=>`<tr class="entry-row" onclick="editFromDashboard(${o.idx})"><td>${o.e.date}</td><td>${catIcon(o.e.category)}${o.e.category}</td><td>${o.e.duration}min</td><td>${o.e.intensity||"—"}</td><td><button class="row-del" onclick="deleteFromDashboard(${o.idx},event)">✕</button></td></tr>`).join("")}
+  </tbody></table>` : `<div class="dash-empty">🏋️ No workouts logged for this month</div>`;
+
+  document.getElementById("monWeightHead").textContent = `Weight — ${monthLabel(month)} (${weights.length}) — tap a row to edit`;
+  document.getElementById("monWeightTable").innerHTML = weights.length ? `<table><thead><tr><th>Date</th><th>Weight</th><th>Body Fat</th><th></th></tr></thead><tbody>
+    ${weights.map(o=>`<tr class="entry-row" onclick="editFromDashboard(${o.idx})"><td>${o.e.date}</td><td>${o.e.weight}lb</td><td>${o.e.bodyFat?o.e.bodyFat+"%":"—"}</td><td><button class="row-del" onclick="deleteFromDashboard(${o.idx},event)">✕</button></td></tr>`).join("")}
+  </tbody></table>` : `<div class="dash-empty">⚖️ No weight logged for this month</div>`;
+
+  document.getElementById("monLogHead").textContent = `Water / Nutrition / Meds — ${monthLabel(month)} (${logs.length}) — tap a row to edit`;
+  document.getElementById("monLogTable").innerHTML = logs.length ? `<table><thead><tr><th>Date</th><th>Category</th><th>Value</th><th></th></tr></thead><tbody>
+    ${logs.map(o=>`<tr class="entry-row" onclick="editFromDashboard(${o.idx})"><td>${o.e.date}</td><td>${catIcon(o.e.category)}${o.e.category}</td><td>${o.e.value||"—"}</td><td><button class="row-del" onclick="deleteFromDashboard(${o.idx},event)">✕</button></td></tr>`).join("")}
+  </tbody></table>` : `<div class="dash-empty">💧 No log entries for this month</div>`;
+}
+
+function editFromDashboard(idx){
+  editEntry(idx); // editEntry already calls setFormType(), which switches the view/tab too
+}
+
+async function deleteFromDashboard(idx, evt){
+  if(evt) evt.stopPropagation();
+  await delEntry(idx);
+  renderMonthlyDetail();
+}
+
+// ===== Light / dark theme, persisted =====
+function setTheme(theme){
+  document.documentElement.setAttribute("data-theme", theme);
+  document.getElementById("themeToggle").textContent = theme==="light" ? "☀️" : "🌙";
+  try{ localStorage.setItem("ihealth_theme", theme); }catch(e){}
+  const dashVisible = document.getElementById("dashboardView").style.display !== "none";
+  const overviewVisible = document.getElementById("dashOverviewView").style.display !== "none";
+  if(dashVisible && overviewVisible) renderOverview();
+  else if(dashVisible) renderMonthlyDetail();
+}
+function toggleTheme(){
+  const current = document.documentElement.getAttribute("data-theme")==="light" ? "light" : "dark";
+  setTheme(current==="dark" ? "light" : "dark");
+}
+
+renderIntensityRow();
+document.getElementById("fDate").value=todayStr();
+setFormType("workout");
+renderList();
+if(cloudCfg){
+  document.getElementById("cloudSetup").style.display="none";
+  document.getElementById("cloudControls").style.display="block";
+  document.getElementById("cloudOwner").value=cloudCfg.owner;
+  document.getElementById("cloudRepo").value=cloudCfg.repo;
+  cloudPullOnLoad();
+} else {
+  setCloudStatus(false);
+}
+(function initTheme(){
+  let saved="dark";
+  try{ saved = localStorage.getItem("ihealth_theme") || "dark"; }catch(e){}
+  setTheme(saved);
+})();
+</script>
+</body>
+</html>

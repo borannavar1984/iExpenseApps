@@ -27,3 +27,13 @@ Tell Claude the month's income amounts and they'll be filled in.
 ## Notes
 - Payment method is stored in column E of the Expenses tab; the master builder ignores it (kept for reference)
 - Test_Data/ contains only the old sandbox trial — safe to delete anytime
+
+## i-HealthApp (health-app.html)
+
+A companion phone-first PWA for tracking workouts, weight, and water/nutrition/meds,
+built the same way as iExpense: single static `health-app.html`, local storage first,
+optional GitHub-backed cloud sync (own private repo, e.g. `iHealth-data`), and a
+client-side Dashboard (weight trend, monthly workout minutes, workout type breakdown).
+
+See `CLOUD_SYNC_SETUP.md` for the connect steps — same process, just point it at a
+private repo for health data instead of expense data.
