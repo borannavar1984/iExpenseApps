@@ -280,9 +280,9 @@ function setFormType(type){
   document.getElementById("storeLabel").textContent = type==="expense" ? "Store / Merchant" : "Source";
   document.getElementById("fStore").placeholder = type==="expense" ? "e.g. Costco" : "e.g. Salary";
   document.getElementById("paymentSection").style.display = type==="expense" ? "block" : "none";
-  sel.cat=null; sel.pay=null;
+  sel.cat=null; sel.pay = type==="expense" ? "Credit" : null;
   renderCatGrid(type);
-  [...payRow.children].forEach(x=>x.classList.remove("sel"));
+  [...payRow.children].forEach(x=>x.classList.toggle("sel", x.textContent===sel.pay));
   updateSaveBtnLabel();
   renderStoreChips();
 }
