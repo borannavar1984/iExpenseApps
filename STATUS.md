@@ -356,3 +356,20 @@ button, removing a chip doesn't accidentally select it into the Store
 field, removed chips stay hidden after a reload, using a hidden store again
 in a new entry brings its chip back, seeded default chips can be removed
 too) plus a re-run of every earlier suite — 133 checks total, all passing.
+
+## Round 13 (2026-07-11, Credit as the default payment method)
+
+Small but handy tweak: since most of your expenses are Credit, the Payment
+Method now starts pre-selected on **Credit** every time you open a new
+Expense entry — no need to tap it every single time. If a particular
+expense was Cash, just tap Cash before saving, same as before; the next new
+entry goes right back to defaulting to Credit. Editing an existing entry
+still shows whatever payment method it was actually saved with (Credit or
+Cash), it's only brand-new entries that default to Credit.
+
+Tested with 7 new scripted-browser checks (Credit pre-selected on first
+load, saving without touching payment method records Credit, explicitly
+picking Cash is respected and saved correctly, the form goes back to
+defaulting to Credit after a Cash save rather than getting stuck, editing a
+past Cash entry still shows Cash and isn't silently changed to Credit) plus
+a re-run of every earlier suite — 140 checks total, all passing.
