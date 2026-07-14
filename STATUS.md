@@ -373,3 +373,38 @@ picking Cash is respected and saved correctly, the form goes back to
 defaulting to Credit after a Cash save rather than getting stuck, editing a
 past Cash entry still shows Cash and isn't silently changed to Credit) plus
 a re-run of every earlier suite — 140 checks total, all passing.
+
+## Round 14 (2026-07-14, dev/test environment with a separate link)
+
+You asked for a proper way to try out new changes before they go live —
+without any chance of test data mixing with your real numbers. Here's what
+this sets up:
+
+- A **`develop` branch** in GitHub, a copy of `main` (production). Going
+  forward, every new feature gets built and tested there first. Nothing
+  reaches your live app until you're happy with it and it gets merged into
+  `main`.
+- A **separate dev link** — `https://borannavar1984.github.io/iExpenseApps/dev/`
+  — that always reflects whatever is currently on the `develop` branch,
+  updating automatically a minute or two after any change is pushed there.
+  Your real app link stays exactly the same and is completely unaffected.
+- **Your data is fully separated, automatically, with no setup on your
+  part.** The dev link uses entirely different storage than the real app —
+  different saved entries, different theme choice, different Cloud Sync
+  connection — even though both links technically live on the same
+  website. Nothing you do on the dev link can ever touch your real numbers,
+  and nothing on the real app can leak into dev. The dev page also shows a
+  small orange "DEV" badge next to the title so there's never any doubt
+  which one you're looking at.
+- If you want to see your real numbers while testing a new look on the dev
+  link (so it feels realistic instead of empty), use **Backup** on your
+  real app to download a snapshot, then **Restore from backup** on the dev
+  link to load that snapshot in — it's a one-time copy, not a live
+  connection, so nothing you do to it afterward touches your real data.
+
+Tested with 13 new scripted-browser checks proving the isolation actually
+holds — confirmed the dev link and the real app never share saved entries,
+theme, or any other data even when opened in the very same browser at the
+very same time — plus a re-run of the entire existing suite against the
+real app to confirm it behaves exactly as before. 153 checks total, all
+passing.

@@ -216,6 +216,17 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// when this same file is served from a "/dev/" preview path (see the develop
+// branch's auto-deployed preview), use separate storage keys and show a DEV
+// badge so testing can never read or overwrite real production data — the
+// production site at the root path keeps using the original, unsuffixed keys
+const IS_DEV_PREVIEW = location.pathname.includes("/dev/");
+function nsKey(key){ return IS_DEV_PREVIEW ? key+"_dev" : key; }
+if(IS_DEV_PREVIEW){
+  document.title = "iExpense (DEV)";
+  document.querySelector("header h1").insertAdjacentHTML("beforeend",
+    ' <span style="font-size:11px;background:var(--amber);color:#3a2a00;padding:2px 8px;border-radius:10px;vertical-align:middle;font-weight:800;">DEV</span>');
+}
 const EXP_CATS = ["Rent","Travel","Gas","Groceries","Kids/Activities","Shopping","Health","Utilities/Phone","Subscriptions","Entertainment","Dining Out","Others"];
 const INC_CATS = ["Salary","Dividends","Bonus","Interest","Gift","Other"];
 const CAT_ICONS = {
@@ -226,7 +237,7 @@ const CAT_ICONS = {
 function catIcon(cat){ return CAT_ICONS[cat] ? CAT_ICONS[cat]+" " : ""; }
 const DEFAULT_PAY = ["Credit","Cash"];
 const DEFAULT_STORES = ["Costco","Target","Walmart"];
-const LS_KEY = "iexpense_entries_v1";
+const LS_KEY = nsKey("iexpense_entries_v1");
 
 let sel = {cat:null, pay:null};
 let entries = load();
@@ -307,7 +318,7 @@ function applyStoreCategory(storeName){
 document.getElementById("fStore").addEventListener("input",(e)=>applyStoreCategory(e.target.value));
 
 // recent-store quick picks, scoped to the current expense/income mode
-const HIDDEN_CHIPS_KEY = "iexpense_hidden_chips_v1";
+const HIDDEN_CHIPS_KEY = nsKey("iexpense_hidden_chips_v1");
 function loadHiddenChips(){ try{ return JSON.parse(localStorage.getItem(HIDDEN_CHIPS_KEY)||"[]"); }catch(e){ return []; } }
 function saveHiddenChips(list){ try{ localStorage.setItem(HIDDEN_CHIPS_KEY, JSON.stringify(list)); }catch(e){} }
 function hideChip(storeName){
@@ -491,7 +502,7 @@ function restoreData(evt){
 }
 
 // ===== Cloud Sync: GitHub repo (private) acts as the shared data store =====
-const CLOUD_KEY = "iexpense_cloud_cfg";
+const CLOUD_KEY = nsKey("iexpense_cloud_cfg");
 function loadCloudCfg(){ try{ return JSON.parse(localStorage.getItem(CLOUD_KEY)||"null"); }catch(e){ return null; } }
 function saveCloudCfg(cfg){ localStorage.setItem(CLOUD_KEY, JSON.stringify(cfg)); }
 function clearCloudCfg(){ localStorage.removeItem(CLOUD_KEY); }
@@ -852,7 +863,7 @@ async function deleteFromDashboard(idx, evt){
 function setTheme(theme){
   document.documentElement.setAttribute("data-theme", theme);
   document.getElementById("themeToggle").textContent = theme==="light" ? "☀️" : "🌙";
-  try{ localStorage.setItem("iexpense_theme", theme); }catch(e){}
+  try{ localStorage.setItem(nsKey("iexpense_theme"), theme); }catch(e){}
   const dashVisible = document.getElementById("dashboardView").style.display !== "none";
   const overviewVisible = document.getElementById("dashOverviewView").style.display !== "none";
   if(dashVisible && overviewVisible) renderOverview();
@@ -878,7 +889,7 @@ if(cloudCfg){
 }
 (function initTheme(){
   let saved="dark";
-  try{ saved = localStorage.getItem("iexpense_theme") || "dark"; }catch(e){}
+  try{ saved = localStorage.getItem(nsKey("iexpense_theme")) || "dark"; }catch(e){}
   setTheme(saved);
 })();
 </script>
