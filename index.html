@@ -59,6 +59,10 @@
   .amount-wrap::before{content:"$";position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:18px}
   #nwAmountWrap.inr::before{content:"₹"}
   .amount-wrap input{padding-left:32px;font-size:22px;font-weight:700}
+  .fx-manual-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+  .fx-manual-row input[type=tel]{width:90px;padding:10px 12px;font-size:15px}
+  .fx-manual-row .fx-label{font-size:13px;color:var(--muted)}
+  .fx-manual-row .btn-fx{background:var(--accent2);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:18px}
   .row2 .btn{margin-top:0}
   .btn{width:100%;border:none;border-radius:14px;padding:16px;font-size:17px;font-weight:700;cursor:pointer;margin-top:18px;transition:transform .1s ease,opacity .1s ease}
@@ -252,6 +256,12 @@
     <div class="dash-month">
       <div class="chip-row" id="nwDisplayCurrencyRow" style="flex:1"></div>
     </div>
+    <div class="fx-manual-row" id="fxManualRow">
+      <span class="fx-label">$1 =</span>
+      <input type="tel" id="nwManualRateInput" inputmode="decimal" placeholder="e.g. 95">
+      <span class="fx-label">₹ today</span>
+      <button class="btn-fx" id="nwSaveRateBtn" onclick="saveManualFxRate()">Set Rate</button>
+    </div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:14px" id="nwRateStatus"></div>
     <div class="cards" id="nwCards"></div>
     <div class="chart-card"><h4>Net Worth Trend</h4><canvas id="nwTrendChart" height="180"></canvas><div class="dash-empty" id="nwTrendChartEmpty" style="display:none"></div></div>
@@ -299,6 +309,7 @@ const NW_LS_KEY = nsKey("iexpense_networth_v1");
 const NW_CURRENCIES = ["USD","INR"];
 const NW_CUR_SYMBOL = { USD:"$", INR:"₹" };
 const FX_CACHE_KEY = nsKey("iexpense_fx_rate");
+const FX_MANUAL_KEY = nsKey("iexpense_fx_manual");
 
 let sel = {cat:null, pay:null};
 let entries = load();
@@ -1193,10 +1204,23 @@ function nwAllMonths(){
 // this network blocks it), conversion is skipped honestly rather than
 // guessed — items that can't be converted are called out, never silently
 // mixed into a wrong-looking total. =====
+function getManualFxRate(){
+  try{ return JSON.parse(localStorage.getItem(FX_MANUAL_KEY)||"null"); }catch(e){ return null; }
+}
+function saveManualFxRate(){
+  const val = Number(document.getElementById("nwManualRateInput").value);
+  if(!val || val<=0){ toast("Enter a valid rate, e.g. 95","var(--red)"); return; }
+  const fresh = { rate:val, date:todayStr(), manual:true };
+  try{ localStorage.setItem(FX_MANUAL_KEY, JSON.stringify(fresh)); }catch(e){}
+  toast("Rate saved ✓");
+  renderDashNetWorth();
+}
 async function getUsdInrRate(){
+  const today = todayStr();
+  const manual = getManualFxRate();
+  if(manual && manual.date===today) return manual; // a rate you typed in yourself always wins for today
   let cached = null;
   try{ cached = JSON.parse(localStorage.getItem(FX_CACHE_KEY)||"null"); }catch(e){}
-  const today = todayStr();
   if(cached && cached.date===today) return cached;
   try{
     const res = await fetch("https://api.frankfurter.dev/v1/latest?from=USD&to=INR");
@@ -1204,11 +1228,11 @@ async function getUsdInrRate(){
     const data = await res.json();
     const rate = data.rates && data.rates.INR;
     if(!rate) throw new Error("no rate in response");
-    const fresh = { rate, date:today };
+    const fresh = { rate, date:today, manual:false };
     try{ localStorage.setItem(FX_CACHE_KEY, JSON.stringify(fresh)); }catch(e){}
     return fresh;
   }catch(err){
-    return cached; // stale cache is still better than nothing; null if we've never had one
+    return manual || cached; // a stale manual entry beats a stale auto one; null if neither ever existed
   }
 }
 function nwConvert(value, fromCur, toCur, rateInfo){
@@ -1247,14 +1271,16 @@ async function renderDashNetWorth(){
   const anyForeign = items.some(e=>(e.currency||"USD")!==toCur);
 
   if(rateInfo){
-    const otherCur = toCur==="USD" ? "INR" : "USD";
     const rateText = toCur==="USD" ? `₹${rateInfo.rate.toFixed(2)} = $1` : `$1 = ₹${rateInfo.rate.toFixed(2)}`;
-    document.getElementById("nwRateStatus").textContent = anyForeign ? `Using ${rateText} (rate as of ${rateInfo.date})` : "";
+    const source = rateInfo.manual ? "set by you" : `as of ${rateInfo.date}`;
+    document.getElementById("nwRateStatus").textContent = anyForeign ? `Using ${rateText} (rate ${source})` : "";
   } else if(anyForeign){
-    document.getElementById("nwRateStatus").textContent = "⚠️ Couldn't fetch today's exchange rate — items in a different currency are excluded from the totals below";
+    document.getElementById("nwRateStatus").textContent = "⚠️ Couldn't fetch today's exchange rate — enter it manually below, or items in a different currency are excluded from the totals";
   } else {
     document.getElementById("nwRateStatus").textContent = "";
   }
+  const rateInput = document.getElementById("nwManualRateInput");
+  if(document.activeElement !== rateInput) rateInput.value = rateInfo ? rateInfo.rate : "";
 
   let totalAssets=0, totalLiabilities=0, currentIncomplete=false;
   items.forEach(e=>{
