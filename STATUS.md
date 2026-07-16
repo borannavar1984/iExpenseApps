@@ -535,3 +535,18 @@ directions, 5 more confirming the honest fallback when the exchange rate
 is unreachable (no fake numbers, no NaN), and a full re-run of the entire
 existing suite (two older Net Worth tests updated to account for the new
 daily rate fetch) — all green.
+
+## Round 19 (2026-07-16, fix: currency conversion wasn't actually fetching a rate)
+
+You tried the new USD/INR conversion on the dev link with real data and it
+wasn't working. Found the cause: the exchange-rate service the app was
+calling (Frankfurter) moved its API to a new address a while back — the
+app was still pointed at the old one, which no longer answers requests.
+Switched it over to the current address; nothing else about how it works
+changed (same daily-fetch-and-cache behavior, same honest ⚠️ fallback if a
+rate genuinely can't be fetched).
+
+Re-tested all 4 Net Worth test files against the corrected endpoint — 52
+checks, all passing. Please try it again on the dev link with the data
+you added; it should now show real converted totals instead of the
+"couldn't fetch today's exchange rate" message.
