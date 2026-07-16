@@ -594,3 +594,18 @@ Tested with 7 new checks (a 3.5 crore item and a 10 lakh item both format
 correctly everywhere they appear, a small USD item stays untouched,
 switching the Dashboard to view in USD drops the notation entirely) plus
 a full re-run of the whole existing suite — all green.
+
+## Round 22 (2026-07-16, fix: lakh/crore missing from the charts)
+
+You reported the lakh/crore formatting still wasn't showing, even in a
+private browser tab (which rules out a stuck cache). You were right —
+Round 21 covered the cards and tables, but missed the Net Worth Trend
+chart's numbers and both charts' tap/hover tooltips, which is exactly
+where your screenshot showed a long raw number. Fixed: both the trend
+chart's scale and the category breakdown chart's tooltip now use the same
+lakh/crore formatting as everywhere else.
+
+Tested with 4 new checks confirming the chart's actual axis and tooltip
+formatting functions produce "₹3.5 Cr" for a large value (and plain
+numbers when viewing in USD) plus a full re-run of the whole existing
+suite — all green.
