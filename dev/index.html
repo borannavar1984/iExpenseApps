@@ -176,10 +176,12 @@
   <button class="btn btn-ghost" onclick="cloudDisconnect()">Disconnect</button>
 </div>
 
+<div id="backupSection">
 <div class="label" style="margin-top:22px">💾 Backup</div>
 <button class="btn btn-ghost" onclick="backupData()">Backup all data (.json)</button>
 <button class="btn btn-ghost" onclick="document.getElementById('restoreFile').click()">Restore from backup</button>
 <input type="file" id="restoreFile" accept="application/json" style="display:none" onchange="restoreData(event)">
+</div>
 
 </div>
 
@@ -621,33 +623,6 @@ function cloudDisconnect(){
   toast("Disconnected — saving on this device only","var(--amber)");
 }
 
-// ===== Dev preview only: pull a read-only snapshot of production data to
-// test against. This never calls cloudWriteRemote and never sets cloudCfg,
-// so it can't sync back to production no matter what — it's a one-time,
-// one-way copy into this dev instance's own isolated storage. =====
-const DEV_SRC_KEY = nsKey("iexpense_dev_src_cfg");
-function loadDevSrcCfg(){ try{ return JSON.parse(localStorage.getItem(DEV_SRC_KEY)||"null"); }catch(e){ return null; } }
-function saveDevSrcCfg(cfg){ try{ localStorage.setItem(DEV_SRC_KEY, JSON.stringify(cfg)); }catch(e){} }
-
-async function devPullProdData(){
-  const owner=document.getElementById("devSrcOwner").value.trim();
-  const repo=document.getElementById("devSrcRepo").value.trim();
-  const token=document.getElementById("devSrcToken").value.trim();
-  if(!owner||!repo||!token){ toast("Fill in owner, repo and token","var(--red)"); return; }
-  toast("Loading production data…","var(--amber)");
-  try{
-    const { entries: remote } = await cloudFetchRemote({owner,repo,token});
-    entries = remote;
-    persist();
-    renderList();
-    saveDevSrcCfg({owner,repo});
-    document.getElementById("devSrcToken").value="";
-    toast(`Loaded ${remote.length} entries from production (read-only — this dev copy only)`);
-  }catch(err){
-    toast("Load failed: "+err.message,"var(--red)");
-  }
-}
-
 async function cloudPullOnLoad(){
   try{
     const { entries: remote } = await cloudFetchRemote(cloudCfg);
@@ -915,20 +890,7 @@ if(cloudCfg){
   setCloudStatus(false);
 }
 if(IS_DEV_PREVIEW){
-  document.getElementById("cloudControls").insertAdjacentHTML("afterend", `
-    <div class="label" style="margin-top:22px">🧪 Dev Testing</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Pull a fresh, read-only copy of your real production data to test against here. This never writes anything back to production — it's a one-way, one-time copy into this dev-only preview.</div>
-    <input type="text" id="devSrcOwner" placeholder="GitHub username" autocomplete="off">
-    <input type="text" id="devSrcRepo" placeholder="Production data repo (e.g. expense-data)" autocomplete="off" style="margin-top:8px">
-    <input type="password" id="devSrcToken" placeholder="Personal access token" autocomplete="off" style="margin-top:8px">
-    <button class="btn btn-export" id="devPullBtn">📥 Load production data (read-only)</button>
-  `);
-  document.getElementById("devPullBtn").onclick = devPullProdData;
-  const savedSrc = loadDevSrcCfg();
-  if(savedSrc){
-    document.getElementById("devSrcOwner").value = savedSrc.owner;
-    document.getElementById("devSrcRepo").value = savedSrc.repo;
-  }
+  document.getElementById("backupSection").style.display = "none";
 }
 (function initTheme(){
   let saved="dark";
