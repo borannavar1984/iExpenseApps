@@ -73,11 +73,12 @@
   .entry .amt{font-weight:700;font-size:16px;margin-right:10px}
   .entry .del{color:var(--red);background:none;border:none;font-size:18px;padding:4px 6px;cursor:pointer}
   .toast{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:var(--green);color:#06281c;padding:12px 22px;border-radius:24px;font-weight:700;font-size:14px;display:none;z-index:99;box-shadow:0 6px 24px rgba(0,0,0,.35);max-width:calc(100% - 48px);text-align:center}
-  .tabs{display:flex;gap:8px;margin-bottom:16px}
-  .tabs button{flex:1;background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:12px;padding:10px;font-size:14px;font-weight:600;cursor:pointer;transition:transform .1s ease,background .12s,border-color .12s}
+  .tabs{display:flex;gap:6px;margin-bottom:16px}
+  .tabs button{flex:1;background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:12px;padding:10px 4px;font-size:12.5px;font-weight:600;cursor:pointer;transition:transform .1s ease,background .12s,border-color .12s}
   .tabs button:active{transform:scale(.96)}
   .tabs button.sel{background:var(--accent2);border-color:var(--accent);color:#fff}
   .tabs button.sel#tabIncomeBtn{background:var(--green);border-color:var(--green);color:#06281c}
+  .tabs button.sel#tabNetWorthBtn{background:var(--purple);border-color:var(--purple);color:#fff}
   .cloud-status{font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.5}
   .cloud-status.on{color:var(--green)}
   .cloud-status.off{color:var(--amber)}
@@ -128,6 +129,7 @@
 <div class="tabs">
   <button class="sel" id="tabExpenseBtn" onclick="showMainTab('expense')">🧾 Expense</button>
   <button id="tabIncomeBtn" onclick="showMainTab('income')">💰 Income</button>
+  <button id="tabNetWorthBtn" onclick="showMainTab('networth')">💎 Net Worth</button>
   <button id="tabDashboardBtn" onclick="showMainTab('dashboard')">📊 Dashboard</button>
 </div>
 
@@ -185,10 +187,38 @@
 
 </div>
 
+<div id="netWorthView" style="display:none">
+
+<div class="label">Date</div>
+<input type="date" id="nwDate">
+
+<div class="label">Category</div>
+<div class="grid" id="nwCatGrid"></div>
+
+<div class="label">Item Name</div>
+<input type="text" id="nwItem" placeholder="e.g. Fidelity 401k" autocomplete="off">
+<div class="chip-row" id="nwItemChips" style="margin-top:8px"></div>
+
+<div class="label">Current Value</div>
+<div class="amount-wrap"><input type="tel" id="nwValue" inputmode="decimal" placeholder="0.00"></div>
+
+<div class="label">Annual Growth Rate % (optional)</div>
+<input type="tel" id="nwGrowth" inputmode="decimal" placeholder="e.g. 7 — used for projections">
+
+<button class="btn btn-save" id="nwSaveBtn" onclick="saveNW()">Save Net Worth Entry</button>
+<button class="btn btn-ghost" id="nwCancelEditBtn" style="display:none" onclick="cancelNWEdit()">Cancel edit</button>
+
+<div class="label" style="margin-top:22px">📋 Your Items</div>
+<div style="font-size:12px;color:var(--muted);margin-bottom:8px">Shows the latest value for each item. Log a fresh entry each month (same item name, new value) to track its growth over time.</div>
+<div id="nwItemList"></div>
+
+</div>
+
 <div id="dashboardView" style="display:none">
   <div class="dash-tabs">
     <button class="sel" id="dashOverviewBtn" onclick="showDashTab('overview')">Overview</button>
     <button id="dashMonthlyBtn" onclick="showDashTab('monthly')">Monthly Detail</button>
+    <button id="dashNetWorthBtn" onclick="showDashTab('networth')">Net Worth</button>
   </div>
 
   <div id="dashOverviewView">
@@ -212,6 +242,14 @@
     </div>
     <div class="dtable-wrap"><div class="tw-head" id="monIncomeHead">Income</div><div id="monIncomeTable"></div></div>
     <div class="dtable-wrap"><div class="tw-head" id="monExpenseHead">Expenses</div><div id="monExpenseTable"></div></div>
+  </div>
+
+  <div id="dashNetWorthView" style="display:none">
+    <div class="cards" id="nwCards"></div>
+    <div class="chart-card"><h4>Net Worth Trend</h4><canvas id="nwTrendChart" height="180"></canvas><div class="dash-empty" id="nwTrendChartEmpty" style="display:none"></div></div>
+    <div class="chart-card"><h4>Breakdown by Category</h4><canvas id="nwCatChart" height="220"></canvas><div class="dash-empty" id="nwCatChartEmpty" style="display:none"></div></div>
+    <div class="dtable-wrap"><div class="tw-head">Your Accounts &amp; Assets</div><div id="nwItemsTable"></div></div>
+    <div class="dtable-wrap"><div class="tw-head">Growth Projections</div><div id="nwProjectionsTable"></div></div>
   </div>
 </div>
 
@@ -241,16 +279,33 @@ const DEFAULT_PAY = ["Credit","Cash"];
 const DEFAULT_STORES = ["Costco","Target","Walmart"];
 const LS_KEY = nsKey("iexpense_entries_v1");
 
+// ===== Net Worth: what you own (assets) minus what you owe (liabilities) =====
+const NW_CATS = ["Cash & Bank","Retirement (401k/IRA)","Investments (Stocks)","Real Estate","Other Assets","Liabilities/Debt"];
+const NW_CAT_ICONS = {
+  "Cash & Bank":"🏦", "Retirement (401k/IRA)":"🏛️", "Investments (Stocks)":"📈",
+  "Real Estate":"🏡", "Other Assets":"💎", "Liabilities/Debt":"💳"
+};
+function nwCatIcon(cat){ return NW_CAT_ICONS[cat] ? NW_CAT_ICONS[cat]+" " : ""; }
+function isLiability(cat){ return cat === "Liabilities/Debt"; }
+const NW_LS_KEY = nsKey("iexpense_networth_v1");
+
 let sel = {cat:null, pay:null};
 let entries = load();
 let editIndex = null;
 let formType = "expense";
+let nwSel = {cat:null};
+let nwEntries = loadNW();
+let nwEditIndex = null;
 
 function load(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||"[]"); }catch(e){ return []; } }
 function genId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
 function ensureIds(){ entries.forEach(e=>{ if(!e.id) e.id=genId(); }); }
 function persist(){ ensureIds(); try{ localStorage.setItem(LS_KEY, JSON.stringify(entries)); }catch(e){} }
 persist(); // backfill ids on any pre-existing data
+function loadNW(){ try{ return JSON.parse(localStorage.getItem(NW_LS_KEY)||"[]"); }catch(e){ return []; } }
+function ensureNWIds(){ nwEntries.forEach(e=>{ if(!e.id) e.id=genId(); }); }
+function persistNW(){ ensureNWIds(); try{ localStorage.setItem(NW_LS_KEY, JSON.stringify(nwEntries)); }catch(e){} }
+persistNW();
 function todayStr(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function toast(msg,color){
   const t=document.getElementById("toast");
@@ -277,6 +332,18 @@ function renderPayRow(){
     b.onclick=()=>{ sel.pay=p; [...payRow.children].forEach(x=>x.classList.toggle("sel",x.textContent===p)); }; payRow.appendChild(b); });
 }
 
+const nwCatGrid=document.getElementById("nwCatGrid");
+function nwSelectCategory(cat){
+  nwSel.cat=cat;
+  [...nwCatGrid.children].forEach(x=>x.classList.toggle("sel",x.textContent===cat));
+}
+function renderNWCatGrid(){
+  nwCatGrid.innerHTML="";
+  NW_CATS.forEach(c=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=c;
+    if(NW_CAT_ICONS[c]) b.dataset.icon=NW_CAT_ICONS[c];
+    b.onclick=()=>nwSelectCategory(c); nwCatGrid.appendChild(b); });
+}
+
 function updateSaveBtnLabel(){
   const verb = editIndex!==null ? "Update" : "Save";
   const noun = formType==="income" ? "Income" : "Expense";
@@ -286,9 +353,11 @@ function updateSaveBtnLabel(){
 function setFormType(type){
   formType = type;
   document.getElementById("entriesView").style.display = "block";
+  document.getElementById("netWorthView").style.display = "none";
   document.getElementById("dashboardView").style.display = "none";
   document.getElementById("tabExpenseBtn").classList.toggle("sel", type==="expense");
   document.getElementById("tabIncomeBtn").classList.toggle("sel", type==="income");
+  document.getElementById("tabNetWorthBtn").classList.remove("sel");
   document.getElementById("tabDashboardBtn").classList.remove("sel");
   document.getElementById("storeLabel").textContent = type==="expense" ? "Store / Merchant" : "Source";
   document.getElementById("fStore").placeholder = type==="expense" ? "e.g. Costco" : "e.g. Salary";
@@ -503,6 +572,149 @@ function restoreData(evt){
   reader.readAsText(file);
 }
 
+// ===== Net Worth: quick-pick chips for previously-used item names, so logging
+// a monthly update is just tap-the-chip + type-the-new-value =====
+function renderNWItemChips(){
+  const box=document.getElementById("nwItemChips"); box.innerHTML="";
+  const seen=[]; [...nwEntries].reverse().forEach(e=>{ if(e.item && !seen.includes(e.item)) seen.push(e.item); });
+  seen.slice(0,8).forEach(item=>{
+    const b=document.createElement("button"); b.className="opt"; b.textContent=item;
+    b.onclick=()=>{ document.getElementById("nwItem").value=item; nwPrefillFromLatest(item); };
+    box.appendChild(b);
+  });
+}
+function nwLatestForItem(itemName){
+  const matches = nwEntries.filter(e=>e.item===itemName);
+  if(!matches.length) return null;
+  return matches.reduce((a,b)=> (b.date>a.date ? b : a));
+}
+function nwPrefillFromLatest(itemName){
+  const latest = nwLatestForItem(itemName);
+  if(!latest) return;
+  nwSelectCategory(latest.category);
+  document.getElementById("nwGrowth").value = latest.growthRate!=null ? latest.growthRate : "";
+}
+
+// one entry per snapshot (date+item+value), so re-logging the same item with
+// a new date builds a month-over-month history rather than overwriting it
+function nwLatestPerItem(){
+  const map = {};
+  // >= so that when two entries share the same date, the one logged more
+  // recently (later in the array) wins rather than whichever was pushed first
+  nwEntries.forEach((e,idx)=>{
+    if(!map[e.item] || e.date >= map[e.item].e.date) map[e.item] = { e, idx };
+  });
+  return Object.values(map);
+}
+
+function renderNWItemList(){
+  const box=document.getElementById("nwItemList"); box.innerHTML="";
+  const items = nwLatestPerItem().sort((a,b)=> b.e.value - a.e.value);
+  if(!items.length){ box.innerHTML='<div class="dash-empty">💎 No net worth items yet — add your first one above</div>'; return; }
+  items.forEach(({e,idx})=>{
+    const sign = isLiability(e.category) ? "-" : "";
+    const d=document.createElement("div"); d.className="entry";
+    const left=document.createElement("div");
+    left.innerHTML = `<div class="cat">${nwCatIcon(e.category)}${e.item}</div><div class="sub">${e.category} · updated ${e.date}${e.growthRate!=null?" · "+e.growthRate+"%/yr":""}</div>`;
+    const right=document.createElement("div"); right.style.display="flex"; right.style.alignItems="center";
+    const amt=document.createElement("span"); amt.className="amt"; amt.textContent=`${sign}$${Number(e.value).toFixed(2)}`;
+    const del=document.createElement("button"); del.className="del"; del.textContent="✕";
+    del.onclick=(evt)=>delNWItem(e.item,evt);
+    right.appendChild(amt); right.appendChild(del);
+    d.appendChild(left); d.appendChild(right);
+    d.onclick=()=>editNWEntry(idx);
+    box.appendChild(d);
+  });
+}
+
+function resetNWForm(){
+  nwEditIndex=null;
+  document.getElementById("nwItem").value="";
+  document.getElementById("nwValue").value="";
+  document.getElementById("nwGrowth").value="";
+  document.getElementById("nwDate").value=todayStr();
+  document.getElementById("nwCancelEditBtn").style.display="none";
+  nwSel.cat=null;
+  [...nwCatGrid.children].forEach(x=>x.classList.remove("sel"));
+  document.getElementById("nwSaveBtn").textContent="Save Net Worth Entry";
+  renderNWItemList();
+  renderNWItemChips();
+}
+
+function cancelNWEdit(){
+  resetNWForm();
+}
+
+function editNWEntry(i){
+  const e=nwEntries[i];
+  nwEditIndex=i;
+  document.getElementById("nwDate").value=e.date;
+  document.getElementById("nwItem").value=e.item;
+  document.getElementById("nwValue").value=e.value;
+  document.getElementById("nwGrowth").value=e.growthRate!=null ? e.growthRate : "";
+  nwSelectCategory(e.category);
+  document.getElementById("nwCancelEditBtn").style.display="block";
+  document.getElementById("nwSaveBtn").textContent="Update Entry";
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+async function saveNW(){
+  const val=parseFloat(document.getElementById("nwValue").value);
+  const item=document.getElementById("nwItem").value.trim();
+  if(!nwSel.cat){ toast("Pick a category","var(--red)"); return; }
+  if(!item){ toast("Enter an item name","var(--red)"); return; }
+  if(!val || val<=0){ toast("Enter a value","var(--red)"); return; }
+  const growthRaw=document.getElementById("nwGrowth").value.trim();
+  const growthRate = growthRaw ? parseFloat(growthRaw) : null;
+  const candidate = { date:document.getElementById("nwDate").value||todayStr(), category:nwSel.cat, item, value:Math.round(val*100)/100, growthRate };
+
+  const wasEdit = nwEditIndex!==null;
+  let targetId;
+  if(wasEdit){
+    targetId = nwEntries[nwEditIndex].id;
+    nwEntries[nwEditIndex] = { ...nwEntries[nwEditIndex], ...candidate };
+    persistNW();
+    toast("Updated ✓");
+  } else {
+    targetId = genId();
+    nwEntries.push({ ...candidate, id:targetId });
+    persistNW();
+    toast("Saved ✓");
+  }
+  resetNWForm();
+
+  if(cloudCfg){
+    try{
+      await nwCloudSyncMutation(remote=>{
+        const idx = remote.findIndex(e=>e.id===targetId);
+        if(idx>=0) remote[idx] = { ...remote[idx], ...candidate, id:targetId };
+        else remote.push({ ...candidate, id:targetId });
+        return remote;
+      });
+    }catch(err){
+      setCloudStatus(false, "Saved locally — cloud sync failed, tap Sync Now later");
+    }
+  }
+}
+
+// removes every snapshot for this item (i.e. "I no longer want to track this account/asset")
+async function delNWItem(itemName, evt){
+  if(evt) evt.stopPropagation();
+  const idsToDelete = nwEntries.filter(e=>e.item===itemName).map(e=>e.id);
+  nwEntries = nwEntries.filter(e=>e.item!==itemName);
+  persistNW();
+  if(nwEditIndex!==null && !nwEntries[nwEditIndex]) cancelNWEdit();
+  else { renderNWItemList(); renderNWItemChips(); }
+
+  if(cloudCfg){
+    try{
+      await nwCloudSyncMutation(remote=>remote.filter(e=>!idsToDelete.includes(e.id)));
+    }catch(err){
+      setCloudStatus(false, "Deleted locally — cloud sync failed, tap Sync Now later");
+    }
+  }
+}
+
 // ===== Cloud Sync: GitHub repo (private) acts as the shared data store =====
 const CLOUD_KEY = nsKey("iexpense_cloud_cfg");
 function loadCloudCfg(){ try{ return JSON.parse(localStorage.getItem(CLOUD_KEY)||"null"); }catch(e){ return null; } }
@@ -512,11 +724,11 @@ let cloudCfg = loadCloudCfg();
 
 function utf8ToB64(str){ return btoa(unescape(encodeURIComponent(str))); }
 function b64ToUtf8(str){ return decodeURIComponent(escape(atob(str.replace(/\n/g,"")))); }
-function cloudApiUrl(cfg){ return `https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/entries.json`; }
+function cloudApiUrl(cfg, filename){ return `https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/${filename||"entries.json"}`; }
 function mergeKey(e){ return e.id || [(e.type||"expense"),e.date,e.category,e.amount,e.store,e.note].join("|"); }
 
-async function cloudFetchRemote(cfg){
-  const res = await fetch(cloudApiUrl(cfg), { headers:{ Authorization:`Bearer ${cfg.token}`, Accept:"application/vnd.github+json" } });
+async function cloudFetchRemote(cfg, filename){
+  const res = await fetch(cloudApiUrl(cfg, filename), { headers:{ Authorization:`Bearer ${cfg.token}`, Accept:"application/vnd.github+json" } });
   if(res.status===404) return { entries:[], sha:null };
   if(!res.ok) throw new Error(`GitHub read failed (${res.status})`);
   const data = await res.json();
@@ -526,10 +738,10 @@ async function cloudFetchRemote(cfg){
   return { entries: remoteEntries, sha: data.sha };
 }
 
-async function cloudWriteRemote(cfg, newEntries, sha){
+async function cloudWriteRemote(cfg, newEntries, sha, filename){
   const body = { message:"iExpense sync", content: utf8ToB64(JSON.stringify(newEntries,null,1)) };
   if(sha) body.sha = sha;
-  const res = await fetch(cloudApiUrl(cfg), {
+  const res = await fetch(cloudApiUrl(cfg, filename), {
     method:"PUT",
     headers:{ Authorization:`Bearer ${cfg.token}`, Accept:"application/vnd.github+json", "Content-Type":"application/json" },
     body: JSON.stringify(body)
@@ -549,6 +761,25 @@ async function cloudSyncMutation(mutateFn, attempts){
       const { entries: remote, sha } = await cloudFetchRemote(cloudCfg);
       const updated = mutateFn(remote);
       await cloudWriteRemote(cloudCfg, updated, sha);
+      return updated;
+    }catch(err){
+      lastErr = err;
+      if(!err.conflict) throw err;
+    }
+  }
+  throw lastErr;
+}
+
+// same as above but for the separate networth.json file in the same connected repo
+async function nwCloudSyncMutation(mutateFn, attempts){
+  attempts = attempts || 3;
+  if(!cloudCfg) return null;
+  let lastErr;
+  for(let i=0;i<attempts;i++){
+    try{
+      const { entries: remote, sha } = await cloudFetchRemote(cloudCfg, "networth.json");
+      const updated = mutateFn(remote);
+      await cloudWriteRemote(cloudCfg, updated, sha, "networth.json");
       return updated;
     }catch(err){
       lastErr = err;
@@ -596,7 +827,19 @@ async function cloudConnect(){
   }catch(err){
     toast("Connect failed: "+err.message,"var(--red)");
     setCloudStatus(false, "Not connected — check token/repo and try again");
+    return;
   }
+  // net worth sync is best-effort — it must never undo or block the core
+  // expense/income connection that just succeeded above
+  try{
+    const { entries: nwRemote, sha: nwSha } = await cloudFetchRemote(cloudCfg, "networth.json");
+    const nwMerged = unionMerge(nwRemote, nwEntries);
+    await cloudWriteRemote(cloudCfg, nwMerged, nwSha, "networth.json");
+    nwEntries = nwMerged;
+    persistNW();
+    renderNWItemList();
+    renderNWItemChips();
+  }catch(err){ /* net worth cloud sync failed silently; core connect above already succeeded */ }
 }
 
 async function cloudSyncNow(){
@@ -610,7 +853,14 @@ async function cloudSyncNow(){
   }catch(err){
     toast("Sync failed: "+err.message,"var(--red)");
     setCloudStatus(false, "Sync failed — try again");
+    return;
   }
+  // net worth sync is best-effort and must never override the "Synced ✓"
+  // result above, which already reflects the core expense/income sync
+  try{
+    const nwMerged = await nwCloudSyncMutation(remote=>unionMerge(remote, nwEntries));
+    nwEntries = nwMerged; persistNW(); renderNWItemList(); renderNWItemChips();
+  }catch(err){ /* best-effort */ }
 }
 
 function cloudDisconnect(){
@@ -633,18 +883,41 @@ async function cloudPullOnLoad(){
     if(hadLocalOnly) cloudSyncNow();
   }catch(err){
     setCloudStatus(false, "Offline or cloud unreachable — using local copy");
+    return;
   }
+  // net worth pull is best-effort and must never override the status set above
+  try{
+    const { entries: nwRemote } = await cloudFetchRemote(cloudCfg, "networth.json");
+    const nwMerged = unionMerge(nwRemote, nwEntries);
+    nwEntries = nwMerged; persistNW(); renderNWItemList(); renderNWItemChips();
+  }catch(err){ /* best-effort */ }
+}
+
+function showNetWorth(){
+  document.getElementById("entriesView").style.display = "none";
+  document.getElementById("dashboardView").style.display = "none";
+  document.getElementById("netWorthView").style.display = "block";
+  document.getElementById("tabExpenseBtn").classList.remove("sel");
+  document.getElementById("tabIncomeBtn").classList.remove("sel");
+  document.getElementById("tabNetWorthBtn").classList.add("sel");
+  document.getElementById("tabDashboardBtn").classList.remove("sel");
+  renderNWItemList();
+  renderNWItemChips();
 }
 
 // ===== Dashboard: all data computed entirely client-side from synced entries =====
 function showMainTab(tab){
   if(tab==="dashboard"){
     document.getElementById("entriesView").style.display = "none";
+    document.getElementById("netWorthView").style.display = "none";
     document.getElementById("dashboardView").style.display = "block";
     document.getElementById("tabExpenseBtn").classList.remove("sel");
     document.getElementById("tabIncomeBtn").classList.remove("sel");
+    document.getElementById("tabNetWorthBtn").classList.remove("sel");
     document.getElementById("tabDashboardBtn").classList.add("sel");
     renderDashboard();
+  } else if(tab==="networth"){
+    showNetWorth();
   } else {
     setFormType(tab);
   }
@@ -671,20 +944,24 @@ function monthTotals(m){
 }
 
 function showDashTab(tab){
-  const isOverview = tab==="overview";
-  document.getElementById("dashOverviewView").style.display = isOverview ? "block" : "none";
-  document.getElementById("dashMonthlyView").style.display = isOverview ? "none" : "block";
-  document.getElementById("dashOverviewBtn").classList.toggle("sel", isOverview);
-  document.getElementById("dashMonthlyBtn").classList.toggle("sel", !isOverview);
-  if(isOverview) renderOverview(); else renderMonthlyDetail();
+  document.getElementById("dashOverviewView").style.display = tab==="overview" ? "block" : "none";
+  document.getElementById("dashMonthlyView").style.display = tab==="monthly" ? "block" : "none";
+  document.getElementById("dashNetWorthView").style.display = tab==="networth" ? "block" : "none";
+  document.getElementById("dashOverviewBtn").classList.toggle("sel", tab==="overview");
+  document.getElementById("dashMonthlyBtn").classList.toggle("sel", tab==="monthly");
+  document.getElementById("dashNetWorthBtn").classList.toggle("sel", tab==="networth");
+  if(tab==="overview") renderOverview();
+  else if(tab==="monthly") renderMonthlyDetail();
+  else renderDashNetWorth();
 }
 
 function renderDashboard(){
-  const overviewActive = document.getElementById("dashOverviewView").style.display !== "none";
-  if(overviewActive) renderOverview(); else renderMonthlyDetail();
+  if(document.getElementById("dashOverviewView").style.display !== "none") renderOverview();
+  else if(document.getElementById("dashMonthlyView").style.display !== "none") renderMonthlyDetail();
+  else renderDashNetWorth();
 }
 
-let charts = { bar:null, line:null, pie:null, monCat:null };
+let charts = { bar:null, line:null, pie:null, monCat:null, nwTrend:null, nwCat:null };
 const CHART_PALETTE = ["#4f8cff","#f87171","#34d399","#fbbf24","#a78bfa","#38bdf8","#fb923c","#f472b6","#22d3ee","#a3e635","#c084fc","#facc15"];
 
 function themeColor(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
@@ -861,15 +1138,121 @@ async function deleteFromDashboard(idx, evt){
   renderMonthlyDetail();
 }
 
+// ===== Net Worth dashboard: current totals, trend over time, category
+// breakdown, and simple compound-growth projections =====
+
+// every month that has a net worth entry, plus the real current month
+function nwAllMonths(){
+  const months = [...new Set(nwEntries.map(e=>e.date && e.date.slice(0,7)).filter(Boolean))];
+  const cur = todayStr().slice(0,7);
+  if(!months.includes(cur)) months.push(cur);
+  return months.sort();
+}
+
+// net worth as of the end of a given month: for each item, use its most
+// recent entry dated on or before that month (items not yet added by then
+// simply don't count yet) — this is what makes the trend line honest even
+// though you don't have to re-log every account every single month
+function nwValueAsOf(monthStr){
+  const cutoff = monthStr + "-31"; // YYYY-MM-DD strings compare lexically, so this safely covers the whole month regardless of its real length
+  const latestByItem = {};
+  nwEntries.forEach(e=>{
+    if(!e.date || e.date > cutoff) return;
+    if(!latestByItem[e.item] || e.date >= latestByItem[e.item].date) latestByItem[e.item] = e;
+  });
+  let assets=0, liabilities=0;
+  Object.values(latestByItem).forEach(e=>{
+    if(isLiability(e.category)) liabilities += Number(e.value||0);
+    else assets += Number(e.value||0);
+  });
+  return { assets, liabilities, net: assets-liabilities };
+}
+
+function renderDashNetWorth(){
+  const items = nwLatestPerItem().map(o=>o.e);
+  const totalAssets = items.filter(e=>!isLiability(e.category)).reduce((s,e)=>s+Number(e.value||0),0);
+  const totalLiabilities = items.filter(e=>isLiability(e.category)).reduce((s,e)=>s+Number(e.value||0),0);
+  const netWorth = totalAssets - totalLiabilities;
+
+  const months = nwAllMonths();
+  const trend = months.map(m=>({ m, ...nwValueAsOf(m) }));
+  const curIdx = trend.length-1;
+  const changeThisMonth = curIdx>0 ? trend[curIdx].net - trend[curIdx-1].net : null;
+
+  document.getElementById("nwCards").innerHTML = `
+    <div class="card"><div class="card-label">💎 Total Net Worth</div><div class="card-value">$${netWorth.toFixed(2)}</div><div class="card-sub">Assets − Liabilities</div></div>
+    <div class="card green"><div class="card-label">📈 Total Assets</div><div class="card-value">$${totalAssets.toFixed(2)}</div></div>
+    <div class="card orange"><div class="card-label">💳 Total Liabilities</div><div class="card-value">$${totalLiabilities.toFixed(2)}</div></div>
+    <div class="card purple"><div class="card-label">🎯 Change This Month</div><div class="card-value">${changeThisMonth==null ? "—" : (changeThisMonth>=0?"+":"") + "$" + changeThisMonth.toFixed(2)}</div></div>
+  `;
+
+  const labels = months.map(monthLabel);
+  if(typeof Chart!=="undefined"){
+    showChartCanvas("nwTrendChart");
+    const textColor = themeColor("--text");
+    const gridColor = themeColor("--border");
+
+    if(charts.nwTrend) charts.nwTrend.destroy();
+    charts.nwTrend = new Chart(document.getElementById("nwTrendChart"), {
+      type:"line",
+      data:{ labels, datasets:[{ label:"Net Worth", data:trend.map(t=>t.net), borderColor:themeColor("--accent"), backgroundColor:"rgba(79,140,255,0.15)", fill:true, tension:.3 }] },
+      options:{ responsive:true, plugins:{ legend:{ display:false } },
+        scales:{ x:{ ticks:{ color:textColor }, grid:{ color:gridColor } }, y:{ ticks:{ color:textColor }, grid:{ color:gridColor } } } }
+    });
+
+    const byCat = {};
+    items.forEach(e=>{ byCat[e.category]=(byCat[e.category]||0)+Number(e.value||0); });
+    const catEntries = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+    if(!catEntries.length){
+      showChartFallback("nwCatChart", "💎 No net worth items yet — add your first one in the Net Worth tab");
+    } else {
+      showChartCanvas("nwCatChart");
+      if(charts.nwCat) charts.nwCat.destroy();
+      charts.nwCat = new Chart(document.getElementById("nwCatChart"), {
+        type:"pie",
+        data:{ labels:catEntries.map(c=>nwCatIcon(c[0])+c[0]), datasets:[{ data:catEntries.map(c=>c[1]), backgroundColor:CHART_PALETTE }] },
+        options:{ responsive:true, plugins:{ legend:{ position:"right", labels:{ boxWidth:12, font:{ size:11 }, color:textColor } } } }
+      });
+    }
+  } else {
+    const msg = "📊 Chart couldn't load (check your connection) — see the tables below for the numbers";
+    showChartFallback("nwTrendChart", msg);
+    showChartFallback("nwCatChart", msg);
+  }
+
+  const itemsWithIdx = nwLatestPerItem();
+  document.getElementById("nwItemsTable").innerHTML = itemsWithIdx.length ? `<table><thead><tr><th>Item</th><th>Category</th><th>Value</th><th>Updated</th><th></th></tr></thead><tbody>
+    ${itemsWithIdx.map(({e,idx})=>`<tr class="entry-row" onclick="editFromNWDashboard(${idx})"><td>${e.item}</td><td>${nwCatIcon(e.category)}${e.category}</td><td>${isLiability(e.category)?"-":""}$${Number(e.value).toFixed(2)}</td><td>${e.date}</td><td><button class="row-del" onclick="deleteFromNWDashboard(${idx},event)">✕</button></td></tr>`).join("")}
+  </tbody></table>` : `<div class="dash-empty">💎 No net worth items yet — add your first one in the Net Worth tab</div>`;
+
+  const withGrowth = items.filter(e=>!isLiability(e.category) && e.growthRate!=null && !isNaN(e.growthRate));
+  document.getElementById("nwProjectionsTable").innerHTML = withGrowth.length ? `<table><thead><tr><th>Item</th><th>Current</th><th>Rate</th><th>1 yr</th><th>5 yr</th><th>10 yr</th></tr></thead><tbody>
+    ${withGrowth.map(e=>{
+      const r = e.growthRate/100;
+      const p1 = e.value*Math.pow(1+r,1), p5 = e.value*Math.pow(1+r,5), p10 = e.value*Math.pow(1+r,10);
+      return `<tr><td>${e.item}</td><td>$${Number(e.value).toFixed(2)}</td><td>${e.growthRate}%/yr</td><td>$${p1.toFixed(2)}</td><td>$${p5.toFixed(2)}</td><td>$${p10.toFixed(2)}</td></tr>`;
+    }).join("")}
+  </tbody></table>` : `<div class="dash-empty">📈 Add a growth rate to any item (Net Worth tab) to see projections here</div>`;
+}
+
+function editFromNWDashboard(idx){
+  editNWEntry(idx);
+  showNetWorth();
+}
+
+async function deleteFromNWDashboard(idx, evt){
+  if(evt) evt.stopPropagation();
+  const itemName = nwEntries[idx].item;
+  await delNWItem(itemName, evt);
+  renderDashNetWorth();
+}
+
 // ===== Light / dark theme, persisted =====
 function setTheme(theme){
   document.documentElement.setAttribute("data-theme", theme);
   document.getElementById("themeToggle").textContent = theme==="light" ? "☀️" : "🌙";
   try{ localStorage.setItem(nsKey("iexpense_theme"), theme); }catch(e){}
-  const dashVisible = document.getElementById("dashboardView").style.display !== "none";
-  const overviewVisible = document.getElementById("dashOverviewView").style.display !== "none";
-  if(dashVisible && overviewVisible) renderOverview();
-  else if(dashVisible) renderMonthlyDetail();
+  if(document.getElementById("dashboardView").style.display !== "none") renderDashboard();
 }
 function toggleTheme(){
   const current = document.documentElement.getAttribute("data-theme")==="light" ? "light" : "dark";
@@ -880,6 +1263,10 @@ renderPayRow();
 document.getElementById("fDate").value=todayStr();
 setFormType("expense");
 renderList();
+renderNWCatGrid();
+document.getElementById("nwDate").value=todayStr();
+renderNWItemList();
+renderNWItemChips();
 if(cloudCfg){
   document.getElementById("cloudSetup").style.display="none";
   document.getElementById("cloudControls").style.display="block";
