@@ -436,3 +436,72 @@ from the form right after use and never stored; production's own data is
 completely untouched by any of this; username/repo persist across reloads
 so only the token needs retyping) plus a re-run of the entire existing
 suite — 164 checks total, all passing.
+
+## Round 16 (2026-07-16, dev cleanup + full formula audit)
+
+Two things:
+
+- **Cleaned up the dev link's UI.** Now that dev has its own real Cloud
+  Sync connected to a separate `expense-data-dev` repo, the "Load
+  production data (read-only)" button from Round 15 was redundant, so it's
+  gone. "Backup" is also hidden on the dev link specifically (your real app
+  still has it, untouched) since dev's data already lives safely in its
+  own cloud copy.
+- **You asked me to double-check every dashboard calculation was correct
+  ("be the mathematician").** I wrote an independent calculator from
+  scratch in Python — not reusing any of the app's own code — against your
+  real 126-entry dataset, then compared every single number the app
+  displays against it: the header's "This Month Total," every Overview
+  card, the Monthly Comparison table, the Category Breakdown table, and
+  every month's Monthly Detail cards. All matched exactly, no errors found.
+  Separately, the "prod and dev totals looked different" issue you'd
+  flagged turned out to be two leftover test entries stuck in the dev
+  browser's local cache (from earlier connection troubleshooting), not a
+  math bug — cleared those out directly.
+
+Tested with 7 new scripted-browser checks (Backup hidden on dev only, the
+removed button/section leave zero trace, dev's DEV badge and real Cloud
+Sync stay untouched) plus a 33-check independent formula audit comparing
+every displayed number against the from-scratch Python reference
+calculation, plus a re-run of the entire existing suite — 193 checks
+total, all passing.
+
+## Round 17 (2026-07-16, Net Worth tracking)
+
+You asked for a proper way to track your net worth — not just income and
+expenses, but what you actually own and owe, updated month to month, with
+growth projections for things like your 401k. Framed as "what would a
+financial advisor track," this landed:
+
+- **A new "Net Worth" tab**, right alongside Expense/Income/Dashboard, for
+  logging accounts and assets across six categories: Cash & Bank,
+  Retirement (401k/IRA), Investments (Stocks), Real Estate, Other Assets,
+  and Liabilities/Debt (debts count against your total, not toward it).
+  Each save is a dated snapshot rather than overwriting the last one — so
+  logging "Fidelity 401k" again next month with an updated value
+  automatically builds a month-over-month history. Quick-pick chips
+  remember your accounts so re-logging one each month is just a tap +
+  typing the new number.
+- **A new Net Worth view in the Dashboard**: your total net worth (assets
+  minus liabilities), a trend chart showing it grow (or shrink) over time,
+  a breakdown by category, a full table of everything you're tracking
+  (tap to edit, ✕ to delete), and — for any item where you set an annual
+  growth rate (like 7% for a 401k) — a simple projection table showing
+  what it'd be worth in 1, 5, and 10 years at that rate.
+- **Syncs through the same Cloud Sync connection** as your expenses and
+  income, as its own separate file in your data repo, so it carries across
+  devices the same way. Built deliberately so a hiccup syncing net worth
+  data can never block or undo your regular expense/income sync — they're
+  independent, with net worth sync always the "best effort" one.
+
+Found and fixed two real bugs while building this: a tie-breaking bug
+where logging an update on the same day as a previous entry could show the
+old value instead of the new one, and a bug where a net-worth-sync hiccup
+could incorrectly cancel an otherwise-successful cloud connection — both
+fixed before shipping.
+
+Tested with 28 checks on the tab/form/edit/delete/chips behavior, 10 more
+on the month-over-month trend and the cloud sync round-trip (confirmed via
+intercepting the actual network calls), 4 confirming dev/prod data stays
+isolated for net worth too, plus a re-run of the entire existing suite —
+235 checks total, all passing.
