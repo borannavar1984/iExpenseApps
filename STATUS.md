@@ -576,3 +576,21 @@ rate combines both currencies into one total, the rate is labeled as
 yours, it persists for the rest of the day across a reload, the field is
 prefilled, and entering something invalid like 0 is rejected with a clear
 message) plus a full re-run of the whole existing suite — all green.
+
+## Round 21 (2026-07-16, lakh/crore notation for INR net worth)
+
+You asked for large rupee amounts to read the way they actually do in
+India — 3.5 crore, 10 lakh — instead of long strings of digits.
+
+- **Every rupee amount in Net Worth now uses lakh/crore notation** once it
+  crosses the threshold: ₹10,00,000 and up shows as "₹10 L", and
+  ₹1,00,00,000 and up shows as "₹3.5 Cr". This applies everywhere a net
+  worth value appears — the item list on the Net Worth tab, the Dashboard's
+  summary cards, the accounts table, and the growth projections table.
+- Dollar amounts are untouched — lakh/crore is specifically an Indian
+  rupee convention, so USD always stays as a plain number.
+
+Tested with 7 new checks (a 3.5 crore item and a 10 lakh item both format
+correctly everywhere they appear, a small USD item stays untouched,
+switching the Dashboard to view in USD drops the notation entirely) plus
+a full re-run of the whole existing suite — all green.
