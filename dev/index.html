@@ -1325,8 +1325,10 @@ async function renderDashNetWorth(){
     charts.nwTrend = new Chart(document.getElementById("nwTrendChart"), {
       type:"line",
       data:{ labels, datasets:[{ label:"Net Worth", data:trend.map(t=>t.net), borderColor:themeColor("--accent"), backgroundColor:"rgba(79,140,255,0.15)", fill:true, tension:.3 }] },
-      options:{ responsive:true, plugins:{ legend:{ display:false } },
-        scales:{ x:{ ticks:{ color:textColor }, grid:{ color:gridColor } }, y:{ ticks:{ color:textColor }, grid:{ color:gridColor } } } }
+      options:{ responsive:true, plugins:{ legend:{ display:false },
+          tooltip:{ callbacks:{ label:(ctx)=>nwFmtAmount(ctx.parsed.y, toCur) } } },
+        scales:{ x:{ ticks:{ color:textColor }, grid:{ color:gridColor } },
+          y:{ ticks:{ color:textColor, callback:(value)=>nwFmtAmount(value, toCur) }, grid:{ color:gridColor } } } }
     });
 
     const byCat = {};
@@ -1344,7 +1346,8 @@ async function renderDashNetWorth(){
       charts.nwCat = new Chart(document.getElementById("nwCatChart"), {
         type:"pie",
         data:{ labels:catEntries.map(c=>nwCatIcon(c[0])+c[0]), datasets:[{ data:catEntries.map(c=>c[1]), backgroundColor:CHART_PALETTE }] },
-        options:{ responsive:true, plugins:{ legend:{ position:"right", labels:{ boxWidth:12, font:{ size:11 }, color:textColor } } } }
+        options:{ responsive:true, plugins:{ legend:{ position:"right", labels:{ boxWidth:12, font:{ size:11 }, color:textColor } },
+          tooltip:{ callbacks:{ label:(ctx)=>`${ctx.label}: ${nwFmtAmount(ctx.parsed, toCur)}` } } } }
       });
     }
   } else {
