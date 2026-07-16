@@ -505,3 +505,33 @@ on the month-over-month trend and the cloud sync round-trip (confirmed via
 intercepting the actual network calls), 4 confirming dev/prod data stays
 isolated for net worth too, plus a re-run of the entire existing suite —
 235 checks total, all passing.
+
+## Round 18 (2026-07-16, Net Worth: US/India currency conversion + tab moved to last)
+
+Two small adjustments you asked for after trying out Net Worth: some of
+your assets are in the US, some in India, and you wanted the flexibility
+to view your total either way — plus you wanted the Net Worth tab moved
+out from the middle of the row to the end.
+
+- **Every Net Worth item can now be logged in USD or INR.** When you add
+  or edit an item, there's a currency chip (defaulting to $ USD) right
+  above the value field, so each account keeps the currency it's actually
+  held in.
+- **The Dashboard's Net Worth view has a $/₹ toggle.** Pick USD and every
+  total, chart, and table converts your INR holdings into dollars; pick
+  INR and it converts everything the other way — using the actual
+  day's market exchange rate, fetched fresh once a day and reused for the
+  rest of that day. A status line under the toggle always shows exactly
+  what rate is being used and as of when, so nothing is hidden.
+- **Never fakes a rate.** If the day's exchange rate can't be fetched (no
+  connection, API down), items in the "other" currency are clearly flagged
+  with a ⚠️ instead of being silently left out or converted with a guessed
+  number — same honesty standard as the rest of the app.
+- **Net Worth is now the last tab**, after Dashboard, instead of sitting
+  between Income and Dashboard.
+
+Tested with 9 new checks on currency entry/selection/conversion in both
+directions, 5 more confirming the honest fallback when the exchange rate
+is unreachable (no fake numbers, no NaN), and a full re-run of the entire
+existing suite (two older Net Worth tests updated to account for the new
+daily rate fetch) — all green.
