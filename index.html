@@ -1199,7 +1199,7 @@ async function getUsdInrRate(){
   const today = todayStr();
   if(cached && cached.date===today) return cached;
   try{
-    const res = await fetch("https://api.frankfurter.app/latest?from=USD&to=INR");
+    const res = await fetch("https://api.frankfurter.dev/v1/latest?from=USD&to=INR");
     if(!res.ok) throw new Error("rate unavailable");
     const data = await res.json();
     const rate = data.rates && data.rates.INR;
