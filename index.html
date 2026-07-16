@@ -308,6 +308,18 @@ function isLiability(cat){ return cat === "Liabilities/Debt"; }
 const NW_LS_KEY = nsKey("iexpense_networth_v1");
 const NW_CURRENCIES = ["USD","INR"];
 const NW_CUR_SYMBOL = { USD:"$", INR:"₹" };
+// Indian numbering (lakh = 1,00,000 / crore = 1,00,00,000) reads much
+// easier than long digit strings once amounts get large, so INR values
+// switch to "X.XX L" / "X.XX Cr" past those thresholds; USD stays as-is.
+function nwFmtNum(value, cur){
+  const abs = Math.abs(value);
+  if(cur==="INR"){
+    if(abs >= 1e7) return (value/1e7).toFixed(2).replace(/\.?0+$/,"") + " Cr";
+    if(abs >= 1e5) return (value/1e5).toFixed(2).replace(/\.?0+$/,"") + " L";
+  }
+  return value.toFixed(2);
+}
+function nwFmtAmount(value, cur){ return NW_CUR_SYMBOL[cur] + nwFmtNum(value, cur); }
 const FX_CACHE_KEY = nsKey("iexpense_fx_rate");
 const FX_MANUAL_KEY = nsKey("iexpense_fx_manual");
 
@@ -663,7 +675,7 @@ function renderNWItemList(){
     const left=document.createElement("div");
     left.innerHTML = `<div class="cat">${nwCatIcon(e.category)}${e.item}</div><div class="sub">${e.category} · updated ${e.date}${e.growthRate!=null?" · "+e.growthRate+"%/yr":""}</div>`;
     const right=document.createElement("div"); right.style.display="flex"; right.style.alignItems="center";
-    const amt=document.createElement("span"); amt.className="amt"; amt.textContent=`${sign}${NW_CUR_SYMBOL[e.currency||"USD"]}${Number(e.value).toFixed(2)}`;
+    const amt=document.createElement("span"); amt.className="amt"; amt.textContent=`${sign}${nwFmtAmount(Number(e.value), e.currency||"USD")}`;
     const del=document.createElement("button"); del.className="del"; del.textContent="✕";
     del.onclick=(evt)=>delNWItem(e.item,evt);
     right.appendChild(amt); right.appendChild(del);
@@ -1290,7 +1302,6 @@ async function renderDashNetWorth(){
     else totalAssets += converted;
   });
   const netWorth = totalAssets - totalLiabilities;
-  const sym = NW_CUR_SYMBOL[toCur];
 
   const months = nwAllMonths();
   const trend = months.map(m=>({ m, ...nwValueAsOf(m, toCur, rateInfo) }));
@@ -1298,10 +1309,10 @@ async function renderDashNetWorth(){
   const changeThisMonth = curIdx>0 ? trend[curIdx].net - trend[curIdx-1].net : null;
 
   document.getElementById("nwCards").innerHTML = `
-    <div class="card"><div class="card-label">💎 Total Net Worth${currentIncomplete?" ⚠️":""}</div><div class="card-value">${sym}${netWorth.toFixed(2)}</div><div class="card-sub">Assets − Liabilities</div></div>
-    <div class="card green"><div class="card-label">📈 Total Assets</div><div class="card-value">${sym}${totalAssets.toFixed(2)}</div></div>
-    <div class="card orange"><div class="card-label">💳 Total Liabilities</div><div class="card-value">${sym}${totalLiabilities.toFixed(2)}</div></div>
-    <div class="card purple"><div class="card-label">🎯 Change This Month</div><div class="card-value">${changeThisMonth==null ? "—" : (changeThisMonth>=0?"+":"") + sym + changeThisMonth.toFixed(2)}</div></div>
+    <div class="card"><div class="card-label">💎 Total Net Worth${currentIncomplete?" ⚠️":""}</div><div class="card-value">${nwFmtAmount(netWorth, toCur)}</div><div class="card-sub">Assets − Liabilities</div></div>
+    <div class="card green"><div class="card-label">📈 Total Assets</div><div class="card-value">${nwFmtAmount(totalAssets, toCur)}</div></div>
+    <div class="card orange"><div class="card-label">💳 Total Liabilities</div><div class="card-value">${nwFmtAmount(totalLiabilities, toCur)}</div></div>
+    <div class="card purple"><div class="card-label">🎯 Change This Month</div><div class="card-value">${changeThisMonth==null ? "—" : (changeThisMonth>=0?"+":"") + nwFmtAmount(changeThisMonth, toCur)}</div></div>
   `;
 
   const labels = months.map(monthLabel);
@@ -1346,11 +1357,11 @@ async function renderDashNetWorth(){
   document.getElementById("nwItemsTable").innerHTML = itemsWithIdx.length ? `<table><thead><tr><th>Item</th><th>Category</th><th>Value</th><th>Updated</th><th></th></tr></thead><tbody>
     ${itemsWithIdx.map(({e,idx})=>{
       const cur = e.currency||"USD";
-      const native = `${NW_CUR_SYMBOL[cur]}${Number(e.value).toFixed(2)}`;
+      const native = nwFmtAmount(Number(e.value), cur);
       let valueCell = `${isLiability(e.category)?"-":""}${native}`;
       if(cur!==toCur){
         const converted = nwConvert(Number(e.value||0), cur, toCur, rateInfo);
-        valueCell = converted==null ? `${native} (⚠️ no rate to convert)` : `${isLiability(e.category)?"-":""}${sym}${converted.toFixed(2)} <span style="color:var(--muted)">(${native})</span>`;
+        valueCell = converted==null ? `${native} (⚠️ no rate to convert)` : `${isLiability(e.category)?"-":""}${nwFmtAmount(converted, toCur)} <span style="color:var(--muted)">(${native})</span>`;
       }
       return `<tr class="entry-row" onclick="editFromNWDashboard(${idx})"><td>${e.item}</td><td>${nwCatIcon(e.category)}${e.category}</td><td>${valueCell}</td><td>${e.date}</td><td><button class="row-del" onclick="deleteFromNWDashboard(${idx},event)">✕</button></td></tr>`;
     }).join("")}
@@ -1366,7 +1377,7 @@ async function renderDashNetWorth(){
       }
       const r = e.growthRate/100;
       const p1 = baseValue*Math.pow(1+r,1), p5 = baseValue*Math.pow(1+r,5), p10 = baseValue*Math.pow(1+r,10);
-      return `<tr><td>${e.item}</td><td>${sym}${baseValue.toFixed(2)}</td><td>${e.growthRate}%/yr</td><td>${sym}${p1.toFixed(2)}</td><td>${sym}${p5.toFixed(2)}</td><td>${sym}${p10.toFixed(2)}</td></tr>`;
+      return `<tr><td>${e.item}</td><td>${nwFmtAmount(baseValue, toCur)}</td><td>${e.growthRate}%/yr</td><td>${nwFmtAmount(p1, toCur)}</td><td>${nwFmtAmount(p5, toCur)}</td><td>${nwFmtAmount(p10, toCur)}</td></tr>`;
     }).join("")}
   </tbody></table>` : `<div class="dash-empty">📈 Add a growth rate to any item (Net Worth tab) to see projections here</div>`;
 }
