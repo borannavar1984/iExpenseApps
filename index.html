@@ -57,6 +57,7 @@
   input:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent)}
   .amount-wrap{position:relative}
   .amount-wrap::before{content:"$";position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:18px}
+  #nwAmountWrap.inr::before{content:"₹"}
   .amount-wrap input{padding-left:32px;font-size:22px;font-weight:700}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:18px}
   .row2 .btn{margin-top:0}
@@ -129,8 +130,8 @@
 <div class="tabs">
   <button class="sel" id="tabExpenseBtn" onclick="showMainTab('expense')">🧾 Expense</button>
   <button id="tabIncomeBtn" onclick="showMainTab('income')">💰 Income</button>
-  <button id="tabNetWorthBtn" onclick="showMainTab('networth')">💎 Net Worth</button>
   <button id="tabDashboardBtn" onclick="showMainTab('dashboard')">📊 Dashboard</button>
+  <button id="tabNetWorthBtn" onclick="showMainTab('networth')">💎 Net Worth</button>
 </div>
 
 <div id="entriesView">
@@ -199,8 +200,11 @@
 <input type="text" id="nwItem" placeholder="e.g. Fidelity 401k" autocomplete="off">
 <div class="chip-row" id="nwItemChips" style="margin-top:8px"></div>
 
+<div class="label">Currency</div>
+<div class="chip-row" id="nwCurrencyRow"></div>
+
 <div class="label">Current Value</div>
-<div class="amount-wrap"><input type="tel" id="nwValue" inputmode="decimal" placeholder="0.00"></div>
+<div class="amount-wrap" id="nwAmountWrap"><input type="tel" id="nwValue" inputmode="decimal" placeholder="0.00"></div>
 
 <div class="label">Annual Growth Rate % (optional)</div>
 <input type="tel" id="nwGrowth" inputmode="decimal" placeholder="e.g. 7 — used for projections">
@@ -245,6 +249,10 @@
   </div>
 
   <div id="dashNetWorthView" style="display:none">
+    <div class="dash-month">
+      <div class="chip-row" id="nwDisplayCurrencyRow" style="flex:1"></div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px" id="nwRateStatus"></div>
     <div class="cards" id="nwCards"></div>
     <div class="chart-card"><h4>Net Worth Trend</h4><canvas id="nwTrendChart" height="180"></canvas><div class="dash-empty" id="nwTrendChartEmpty" style="display:none"></div></div>
     <div class="chart-card"><h4>Breakdown by Category</h4><canvas id="nwCatChart" height="220"></canvas><div class="dash-empty" id="nwCatChartEmpty" style="display:none"></div></div>
@@ -288,14 +296,18 @@ const NW_CAT_ICONS = {
 function nwCatIcon(cat){ return NW_CAT_ICONS[cat] ? NW_CAT_ICONS[cat]+" " : ""; }
 function isLiability(cat){ return cat === "Liabilities/Debt"; }
 const NW_LS_KEY = nsKey("iexpense_networth_v1");
+const NW_CURRENCIES = ["USD","INR"];
+const NW_CUR_SYMBOL = { USD:"$", INR:"₹" };
+const FX_CACHE_KEY = nsKey("iexpense_fx_rate");
 
 let sel = {cat:null, pay:null};
 let entries = load();
 let editIndex = null;
 let formType = "expense";
-let nwSel = {cat:null};
+let nwSel = {cat:null, currency:"USD"};
 let nwEntries = loadNW();
 let nwEditIndex = null;
+let nwDisplayCurrency = "USD";
 
 function load(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||"[]"); }catch(e){ return []; } }
 function genId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
@@ -342,6 +354,28 @@ function renderNWCatGrid(){
   NW_CATS.forEach(c=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=c;
     if(NW_CAT_ICONS[c]) b.dataset.icon=NW_CAT_ICONS[c];
     b.onclick=()=>nwSelectCategory(c); nwCatGrid.appendChild(b); });
+}
+
+const nwCurrencyRow=document.getElementById("nwCurrencyRow");
+function nwSelectCurrency(cur){
+  nwSel.currency=cur;
+  [...nwCurrencyRow.children].forEach(x=>x.classList.toggle("sel",x.dataset.cur===cur));
+  document.getElementById("nwAmountWrap").classList.toggle("inr", cur==="INR");
+}
+function renderNWCurrencyRow(){
+  nwCurrencyRow.innerHTML="";
+  NW_CURRENCIES.forEach(cur=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=`${NW_CUR_SYMBOL[cur]} ${cur}`; b.dataset.cur=cur;
+    b.onclick=()=>nwSelectCurrency(cur); nwCurrencyRow.appendChild(b); });
+  nwSelectCurrency("USD");
+}
+
+// which currency the Net Worth DASHBOARD totals are shown in — independent
+// of what currency any individual account was actually logged in
+function renderNWDisplayCurrencyRow(){
+  const row = document.getElementById("nwDisplayCurrencyRow"); row.innerHTML="";
+  NW_CURRENCIES.forEach(cur=>{ const b=document.createElement("button"); b.className="opt"+(cur===nwDisplayCurrency?" sel":""); b.textContent=`${NW_CUR_SYMBOL[cur]} ${cur}`;
+    b.onclick=()=>{ nwDisplayCurrency=cur; renderNWDisplayCurrencyRow(); renderDashNetWorth(); };
+    row.appendChild(b); });
 }
 
 function updateSaveBtnLabel(){
@@ -592,6 +626,7 @@ function nwPrefillFromLatest(itemName){
   const latest = nwLatestForItem(itemName);
   if(!latest) return;
   nwSelectCategory(latest.category);
+  nwSelectCurrency(latest.currency || "USD");
   document.getElementById("nwGrowth").value = latest.growthRate!=null ? latest.growthRate : "";
 }
 
@@ -617,7 +652,7 @@ function renderNWItemList(){
     const left=document.createElement("div");
     left.innerHTML = `<div class="cat">${nwCatIcon(e.category)}${e.item}</div><div class="sub">${e.category} · updated ${e.date}${e.growthRate!=null?" · "+e.growthRate+"%/yr":""}</div>`;
     const right=document.createElement("div"); right.style.display="flex"; right.style.alignItems="center";
-    const amt=document.createElement("span"); amt.className="amt"; amt.textContent=`${sign}$${Number(e.value).toFixed(2)}`;
+    const amt=document.createElement("span"); amt.className="amt"; amt.textContent=`${sign}${NW_CUR_SYMBOL[e.currency||"USD"]}${Number(e.value).toFixed(2)}`;
     const del=document.createElement("button"); del.className="del"; del.textContent="✕";
     del.onclick=(evt)=>delNWItem(e.item,evt);
     right.appendChild(amt); right.appendChild(del);
@@ -636,6 +671,7 @@ function resetNWForm(){
   document.getElementById("nwCancelEditBtn").style.display="none";
   nwSel.cat=null;
   [...nwCatGrid.children].forEach(x=>x.classList.remove("sel"));
+  nwSelectCurrency("USD");
   document.getElementById("nwSaveBtn").textContent="Save Net Worth Entry";
   renderNWItemList();
   renderNWItemChips();
@@ -653,6 +689,7 @@ function editNWEntry(i){
   document.getElementById("nwValue").value=e.value;
   document.getElementById("nwGrowth").value=e.growthRate!=null ? e.growthRate : "";
   nwSelectCategory(e.category);
+  nwSelectCurrency(e.currency || "USD");
   document.getElementById("nwCancelEditBtn").style.display="block";
   document.getElementById("nwSaveBtn").textContent="Update Entry";
   window.scrollTo({top:0,behavior:"smooth"});
@@ -666,7 +703,7 @@ async function saveNW(){
   if(!val || val<=0){ toast("Enter a value","var(--red)"); return; }
   const growthRaw=document.getElementById("nwGrowth").value.trim();
   const growthRate = growthRaw ? parseFloat(growthRaw) : null;
-  const candidate = { date:document.getElementById("nwDate").value||todayStr(), category:nwSel.cat, item, value:Math.round(val*100)/100, growthRate };
+  const candidate = { date:document.getElementById("nwDate").value||todayStr(), category:nwSel.cat, item, value:Math.round(val*100)/100, growthRate, currency:nwSel.currency||"USD" };
 
   const wasEdit = nwEditIndex!==null;
   let targetId;
@@ -1149,41 +1186,96 @@ function nwAllMonths(){
   return months.sort();
 }
 
-// net worth as of the end of a given month: for each item, use its most
-// recent entry dated on or before that month (items not yet added by then
-// simply don't count yet) — this is what makes the trend line honest even
-// though you don't have to re-log every account every single month
-function nwValueAsOf(monthStr){
+// ===== Currency conversion for net worth: your accounts can be in USD or
+// INR; the Dashboard lets you view your total in either, converting the
+// other currency's items using that day's exchange rate. The rate is
+// fetched once per day and cached; if it's ever unavailable (offline, or
+// this network blocks it), conversion is skipped honestly rather than
+// guessed — items that can't be converted are called out, never silently
+// mixed into a wrong-looking total. =====
+async function getUsdInrRate(){
+  let cached = null;
+  try{ cached = JSON.parse(localStorage.getItem(FX_CACHE_KEY)||"null"); }catch(e){}
+  const today = todayStr();
+  if(cached && cached.date===today) return cached;
+  try{
+    const res = await fetch("https://api.frankfurter.app/latest?from=USD&to=INR");
+    if(!res.ok) throw new Error("rate unavailable");
+    const data = await res.json();
+    const rate = data.rates && data.rates.INR;
+    if(!rate) throw new Error("no rate in response");
+    const fresh = { rate, date:today };
+    try{ localStorage.setItem(FX_CACHE_KEY, JSON.stringify(fresh)); }catch(e){}
+    return fresh;
+  }catch(err){
+    return cached; // stale cache is still better than nothing; null if we've never had one
+  }
+}
+function nwConvert(value, fromCur, toCur, rateInfo){
+  if(fromCur===toCur) return value;
+  if(!rateInfo) return null;
+  if(fromCur==="USD" && toCur==="INR") return value*rateInfo.rate;
+  if(fromCur==="INR" && toCur==="USD") return value/rateInfo.rate;
+  return value;
+}
+
+// net worth as of the end of a given month, converted into toCur: for each
+// item, use its most recent entry dated on or before that month (items not
+// yet added by then simply don't count yet) — this is what makes the trend
+// line honest even though you don't have to re-log every account monthly
+function nwValueAsOf(monthStr, toCur, rateInfo){
   const cutoff = monthStr + "-31"; // YYYY-MM-DD strings compare lexically, so this safely covers the whole month regardless of its real length
   const latestByItem = {};
   nwEntries.forEach(e=>{
     if(!e.date || e.date > cutoff) return;
     if(!latestByItem[e.item] || e.date >= latestByItem[e.item].date) latestByItem[e.item] = e;
   });
-  let assets=0, liabilities=0;
+  let assets=0, liabilities=0, incomplete=false;
   Object.values(latestByItem).forEach(e=>{
-    if(isLiability(e.category)) liabilities += Number(e.value||0);
-    else assets += Number(e.value||0);
+    const converted = nwConvert(Number(e.value||0), e.currency||"USD", toCur, rateInfo);
+    if(converted==null){ incomplete=true; return; }
+    if(isLiability(e.category)) liabilities += converted;
+    else assets += converted;
   });
-  return { assets, liabilities, net: assets-liabilities };
+  return { assets, liabilities, net:assets-liabilities, incomplete };
 }
 
-function renderDashNetWorth(){
+async function renderDashNetWorth(){
+  const toCur = nwDisplayCurrency;
+  const rateInfo = await getUsdInrRate();
   const items = nwLatestPerItem().map(o=>o.e);
-  const totalAssets = items.filter(e=>!isLiability(e.category)).reduce((s,e)=>s+Number(e.value||0),0);
-  const totalLiabilities = items.filter(e=>isLiability(e.category)).reduce((s,e)=>s+Number(e.value||0),0);
+  const anyForeign = items.some(e=>(e.currency||"USD")!==toCur);
+
+  if(rateInfo){
+    const otherCur = toCur==="USD" ? "INR" : "USD";
+    const rateText = toCur==="USD" ? `₹${rateInfo.rate.toFixed(2)} = $1` : `$1 = ₹${rateInfo.rate.toFixed(2)}`;
+    document.getElementById("nwRateStatus").textContent = anyForeign ? `Using ${rateText} (rate as of ${rateInfo.date})` : "";
+  } else if(anyForeign){
+    document.getElementById("nwRateStatus").textContent = "⚠️ Couldn't fetch today's exchange rate — items in a different currency are excluded from the totals below";
+  } else {
+    document.getElementById("nwRateStatus").textContent = "";
+  }
+
+  let totalAssets=0, totalLiabilities=0, currentIncomplete=false;
+  items.forEach(e=>{
+    const converted = nwConvert(Number(e.value||0), e.currency||"USD", toCur, rateInfo);
+    if(converted==null){ currentIncomplete=true; return; }
+    if(isLiability(e.category)) totalLiabilities += converted;
+    else totalAssets += converted;
+  });
   const netWorth = totalAssets - totalLiabilities;
+  const sym = NW_CUR_SYMBOL[toCur];
 
   const months = nwAllMonths();
-  const trend = months.map(m=>({ m, ...nwValueAsOf(m) }));
+  const trend = months.map(m=>({ m, ...nwValueAsOf(m, toCur, rateInfo) }));
   const curIdx = trend.length-1;
   const changeThisMonth = curIdx>0 ? trend[curIdx].net - trend[curIdx-1].net : null;
 
   document.getElementById("nwCards").innerHTML = `
-    <div class="card"><div class="card-label">💎 Total Net Worth</div><div class="card-value">$${netWorth.toFixed(2)}</div><div class="card-sub">Assets − Liabilities</div></div>
-    <div class="card green"><div class="card-label">📈 Total Assets</div><div class="card-value">$${totalAssets.toFixed(2)}</div></div>
-    <div class="card orange"><div class="card-label">💳 Total Liabilities</div><div class="card-value">$${totalLiabilities.toFixed(2)}</div></div>
-    <div class="card purple"><div class="card-label">🎯 Change This Month</div><div class="card-value">${changeThisMonth==null ? "—" : (changeThisMonth>=0?"+":"") + "$" + changeThisMonth.toFixed(2)}</div></div>
+    <div class="card"><div class="card-label">💎 Total Net Worth${currentIncomplete?" ⚠️":""}</div><div class="card-value">${sym}${netWorth.toFixed(2)}</div><div class="card-sub">Assets − Liabilities</div></div>
+    <div class="card green"><div class="card-label">📈 Total Assets</div><div class="card-value">${sym}${totalAssets.toFixed(2)}</div></div>
+    <div class="card orange"><div class="card-label">💳 Total Liabilities</div><div class="card-value">${sym}${totalLiabilities.toFixed(2)}</div></div>
+    <div class="card purple"><div class="card-label">🎯 Change This Month</div><div class="card-value">${changeThisMonth==null ? "—" : (changeThisMonth>=0?"+":"") + sym + changeThisMonth.toFixed(2)}</div></div>
   `;
 
   const labels = months.map(monthLabel);
@@ -1201,7 +1293,11 @@ function renderDashNetWorth(){
     });
 
     const byCat = {};
-    items.forEach(e=>{ byCat[e.category]=(byCat[e.category]||0)+Number(e.value||0); });
+    items.forEach(e=>{
+      const converted = nwConvert(Number(e.value||0), e.currency||"USD", toCur, rateInfo);
+      if(converted==null) return;
+      byCat[e.category]=(byCat[e.category]||0)+converted;
+    });
     const catEntries = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
     if(!catEntries.length){
       showChartFallback("nwCatChart", "💎 No net worth items yet — add your first one in the Net Worth tab");
@@ -1222,15 +1318,29 @@ function renderDashNetWorth(){
 
   const itemsWithIdx = nwLatestPerItem();
   document.getElementById("nwItemsTable").innerHTML = itemsWithIdx.length ? `<table><thead><tr><th>Item</th><th>Category</th><th>Value</th><th>Updated</th><th></th></tr></thead><tbody>
-    ${itemsWithIdx.map(({e,idx})=>`<tr class="entry-row" onclick="editFromNWDashboard(${idx})"><td>${e.item}</td><td>${nwCatIcon(e.category)}${e.category}</td><td>${isLiability(e.category)?"-":""}$${Number(e.value).toFixed(2)}</td><td>${e.date}</td><td><button class="row-del" onclick="deleteFromNWDashboard(${idx},event)">✕</button></td></tr>`).join("")}
+    ${itemsWithIdx.map(({e,idx})=>{
+      const cur = e.currency||"USD";
+      const native = `${NW_CUR_SYMBOL[cur]}${Number(e.value).toFixed(2)}`;
+      let valueCell = `${isLiability(e.category)?"-":""}${native}`;
+      if(cur!==toCur){
+        const converted = nwConvert(Number(e.value||0), cur, toCur, rateInfo);
+        valueCell = converted==null ? `${native} (⚠️ no rate to convert)` : `${isLiability(e.category)?"-":""}${sym}${converted.toFixed(2)} <span style="color:var(--muted)">(${native})</span>`;
+      }
+      return `<tr class="entry-row" onclick="editFromNWDashboard(${idx})"><td>${e.item}</td><td>${nwCatIcon(e.category)}${e.category}</td><td>${valueCell}</td><td>${e.date}</td><td><button class="row-del" onclick="deleteFromNWDashboard(${idx},event)">✕</button></td></tr>`;
+    }).join("")}
   </tbody></table>` : `<div class="dash-empty">💎 No net worth items yet — add your first one in the Net Worth tab</div>`;
 
   const withGrowth = items.filter(e=>!isLiability(e.category) && e.growthRate!=null && !isNaN(e.growthRate));
   document.getElementById("nwProjectionsTable").innerHTML = withGrowth.length ? `<table><thead><tr><th>Item</th><th>Current</th><th>Rate</th><th>1 yr</th><th>5 yr</th><th>10 yr</th></tr></thead><tbody>
     ${withGrowth.map(e=>{
+      const cur = e.currency||"USD";
+      const baseValue = nwConvert(Number(e.value||0), cur, toCur, rateInfo);
+      if(baseValue==null){
+        return `<tr><td>${e.item}</td><td colspan="5">⚠️ No exchange rate available to project this ${cur} item in ${toCur}</td></tr>`;
+      }
       const r = e.growthRate/100;
-      const p1 = e.value*Math.pow(1+r,1), p5 = e.value*Math.pow(1+r,5), p10 = e.value*Math.pow(1+r,10);
-      return `<tr><td>${e.item}</td><td>$${Number(e.value).toFixed(2)}</td><td>${e.growthRate}%/yr</td><td>$${p1.toFixed(2)}</td><td>$${p5.toFixed(2)}</td><td>$${p10.toFixed(2)}</td></tr>`;
+      const p1 = baseValue*Math.pow(1+r,1), p5 = baseValue*Math.pow(1+r,5), p10 = baseValue*Math.pow(1+r,10);
+      return `<tr><td>${e.item}</td><td>${sym}${baseValue.toFixed(2)}</td><td>${e.growthRate}%/yr</td><td>${sym}${p1.toFixed(2)}</td><td>${sym}${p5.toFixed(2)}</td><td>${sym}${p10.toFixed(2)}</td></tr>`;
     }).join("")}
   </tbody></table>` : `<div class="dash-empty">📈 Add a growth rate to any item (Net Worth tab) to see projections here</div>`;
 }
@@ -1264,6 +1374,8 @@ document.getElementById("fDate").value=todayStr();
 setFormType("expense");
 renderList();
 renderNWCatGrid();
+renderNWCurrencyRow();
+renderNWDisplayCurrencyRow();
 document.getElementById("nwDate").value=todayStr();
 renderNWItemList();
 renderNWItemChips();
