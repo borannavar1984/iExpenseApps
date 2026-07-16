@@ -550,3 +550,29 @@ Re-tested all 4 Net Worth test files against the corrected endpoint — 52
 checks, all passing. Please try it again on the dev link with the data
 you added; it should now show real converted totals instead of the
 "couldn't fetch today's exchange rate" message.
+
+## Round 20 (2026-07-16, manual exchange rate + combined total)
+
+You tried it again with real data and reported the dollar and rupee
+amounts were still showing separately instead of one combined number, and
+asked for a way to just type in today's rate yourself rather than relying
+on a live fetch.
+
+- **Added a "$1 = ₹___" field with a Set Rate button** right on the
+  Dashboard's Net Worth view. Type in today's actual rate (like the 1 = 95
+  you mentioned) and tap Set Rate — it's saved for the day and takes
+  priority over whatever the live fetch would have used, so you're never
+  stuck waiting on a network call that might not work on your connection.
+- **This is also what fixes the "shown separately" problem**: without a
+  usable rate, the app was correctly refusing to guess — but that meant
+  your USD and INR holdings never combined into one total, which is what
+  looked like "separate." With a rate in hand (live or typed in), assets in
+  either currency now always combine into a single Total Net Worth number.
+- The rate status line now says plainly whether the number in use came
+  from the live fetch or was "set by you."
+
+Tested with 6 new checks (honest ⚠️ when no rate exists yet, typing in a
+rate combines both currencies into one total, the rate is labeled as
+yours, it persists for the rest of the day across a reload, the field is
+prefilled, and entering something invalid like 0 is rejected with a clear
+message) plus a full re-run of the whole existing suite — all green.
