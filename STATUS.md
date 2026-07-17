@@ -620,3 +620,35 @@ applies to both currencies — a USD total of $383,947 now shows as
 Updated the two lakh/crore test files to expect this (they previously
 checked that USD stayed as a plain number) plus a full re-run of the
 whole existing suite — 245 checks total, all green.
+
+## Round 24 (2026-07-17, hands-off exchange rate + growth projections for everything)
+
+Three related asks:
+
+- **The "$1 = ___" rate form is now hidden by default.** The app just
+  auto-fetches the day's rate on its own and shows a plain "Using
+  ₹90.00 = $1 (rate as of ...)" line — no form to see or fill in. A
+  small **Edit** link next to it lets you override the rate yourself if
+  you ever need to (say the live fetch is having trouble) — tap it and
+  the form appears; otherwise it stays out of the way.
+- **Growth Projections now covers every account and asset you've
+  logged**, not just the ones where you typed in a growth rate. Anything
+  without a rate is simply treated as 0%/yr instead of being left out
+  of the table entirely — so your whole portfolio shows up, not a
+  filtered subset.
+- **New "Net Worth Growth Projection" chart** — instead of only seeing
+  each item's individual projection, there's now one chart showing what
+  your *total* net worth is projected to be at 1, 3, 5, 10, and 15
+  years out, combining every account's own growth rate (debts are held
+  flat, since there's no payoff-schedule concept to project them with).
+  If something can't be converted to your display currency that day,
+  the chart still shows what it can with an honest note about what's
+  missing, rather than disappearing.
+
+Tested with 13 new checks on the aggregate projection chart (hand-verified
+compounding math across all 5 horizons, the flat liability subtraction,
+tooltip formatting), 2 more confirming the honest partial-warning when a
+currency can't convert, updates to two existing tests for the new
+hide/reveal rate behavior and the "everything included, debts still
+excluded" projection logic, plus a full re-run of the whole existing
+suite — 271 checks total, all green.
