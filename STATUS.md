@@ -652,3 +652,36 @@ currency can't convert, updates to two existing tests for the new
 hide/reveal rate behavior and the "everything included, debts still
 excluded" projection logic, plus a full re-run of the whole existing
 suite — 271 checks total, all green.
+
+## Round 25 (2026-07-17, review-report fixes: formatting, sort order, duplicate chips)
+
+You ran a review pass against real data on the dev site and sent over a
+detailed list. Fixed the concrete code bugs from it:
+
+- **Comma formatting below the lakh/crore threshold.** Net worth amounts
+  under ₹1,00,000 / $100,000 were showing as raw digit strings like
+  "$25000.00" instead of "$25,000.00" — now they use the same
+  thousands-separator formatting as every other number in the app.
+- **Monthly Detail wasn't sorted.** The expense and income tables for a
+  given month showed rows in whatever order they were saved, not by
+  date. Both tables now sort chronologically.
+- **Merchant chips split on capitalization.** "US MOBILE" and "US mobile"
+  were showing up as two separate quick-pick chips instead of one — the
+  chip list now merges them case-insensitively, keeping whichever
+  casing you used most recently.
+- **"Change This Month" now explains itself.** With only one month of
+  net worth history, it showed a bare "—"; it now says "Not enough
+  history yet."
+
+Separately flagged for your input (not changed without checking first):
+whether large USD amounts should really use lakh/crore notation (you
+asked for that explicitly two rounds ago, so it's not being reverted
+without your say-so), the "Other" vs "Others" category-label mismatch
+between Income and Expense, a data typo ("Panera Bred"), a future-dated
+net worth entry, and whether payment method should be required for every
+expense. These touch real stored data or product behavior, not just
+code, so they're waiting on your call rather than being changed silently.
+
+Tested with 6 new checks covering all four fixes, updated comma-format
+assertions across 6 existing Net Worth test files, plus a full re-run of
+the whole existing suite — 293 checks total, all green.
