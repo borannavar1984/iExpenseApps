@@ -345,6 +345,7 @@ function ensureNWIds(){ nwEntries.forEach(e=>{ if(!e.id) e.id=genId(); }); }
 function persistNW(){ ensureNWIds(); try{ localStorage.setItem(NW_LS_KEY, JSON.stringify(nwEntries)); }catch(e){} }
 persistNW();
 function todayStr(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function fmtUSD(value){ return "$" + value.toLocaleString("en-US", { minimumFractionDigits:2, maximumFractionDigits:2 }); }
 function toast(msg,color){
   const t=document.getElementById("toast");
   const icon = color==="var(--red)" ? "⚠️ " : color==="var(--amber)" ? "ℹ️ " : "✅ ";
@@ -494,14 +495,14 @@ function renderList(){
     const d=document.createElement("div"); d.className="entry"+(isIncome?" income":"")+(idx===editIndex?" editing":"");
     const sign = isIncome ? "+" : "";
     d.innerHTML=`<div><div class="cat">${catIcon(e.category)}${e.category}</div><div class="sub">${e.date} · ${e.store||"—"}${!isIncome && e.payment?" · "+e.payment:""}${e.note?" · "+e.note:""}</div></div>
-      <div style="display:flex;align-items:center"><span class="amt">${sign}$${Number(e.amount).toFixed(2)}</span><button class="del" onclick="delEntry(${idx},event)">✕</button></div>`;
+      <div style="display:flex;align-items:center"><span class="amt">${sign}${fmtUSD(Number(e.amount))}</span><button class="del" onclick="delEntry(${idx},event)">✕</button></div>`;
     d.onclick=()=>editEntry(idx);
     box.appendChild(d);
   });
   if(!todays.length){ box.innerHTML='<div class="dash-empty">📭 Nothing logged today yet</div>'; }
   const monthPrefix = today.slice(0,7);
   const monthSum = entries.filter(e=>(e.type||"expense")==="expense" && e.date && e.date.slice(0,7)===monthPrefix).reduce((s,e)=>s+Number(e.amount||0),0);
-  document.getElementById("monthTotal").textContent = "$"+monthSum.toFixed(2);
+  document.getElementById("monthTotal").textContent = fmtUSD(monthSum);
   renderStoreChips();
 }
 
@@ -511,11 +512,14 @@ function isDuplicate(candidate, skipIdx){
 }
 
 async function saveEntry(){
-  const amt=parseFloat(document.getElementById("fAmount").value);
+  const rawAmt = document.getElementById("fAmount").value;
+  const amt=parseFloat(rawAmt);
   if(!sel.cat){ toast("Pick a category","var(--red)"); return; }
   if(!amt || amt<=0){ toast("Enter an amount","var(--red)"); return; }
+  if(/\.\d{3,}/.test(rawAmt)){ toast("Amounts can have at most 2 decimal places","var(--red)"); return; }
   const candidate = { date:document.getElementById("fDate").value||todayStr(), type:formType, category:sel.cat, amount:Math.round(amt*100)/100,
     store:document.getElementById("fStore").value.trim(), payment:formType==="expense" ? (sel.pay||"") : "", note:document.getElementById("fNote").value.trim() };
+  if(candidate.date > todayStr()){ toast("Date can't be in the future","var(--red)"); return; }
 
   const dupMsg = formType==="income"
     ? "Possible duplicate: same date, category, amount and source already logged. Save anyway?"
@@ -597,7 +601,7 @@ function editEntry(i){
 }
 
 function cancelEdit(){
-  document.getElementById("fDate").value=todayStr();
+  document.getElementById("fDate").value=todayStr(); document.getElementById("fDate").max=todayStr();
   resetForm();
 }
 
@@ -696,7 +700,7 @@ function resetNWForm(){
   document.getElementById("nwItem").value="";
   document.getElementById("nwValue").value="";
   document.getElementById("nwGrowth").value="";
-  document.getElementById("nwDate").value=todayStr();
+  document.getElementById("nwDate").value=todayStr(); document.getElementById("nwDate").max=todayStr();
   document.getElementById("nwCancelEditBtn").style.display="none";
   nwSel.cat=null;
   [...nwCatGrid.children].forEach(x=>x.classList.remove("sel"));
@@ -725,14 +729,17 @@ function editNWEntry(i){
 }
 
 async function saveNW(){
-  const val=parseFloat(document.getElementById("nwValue").value);
+  const rawVal = document.getElementById("nwValue").value;
+  const val=parseFloat(rawVal);
   const item=document.getElementById("nwItem").value.trim();
   if(!nwSel.cat){ toast("Pick a category","var(--red)"); return; }
   if(!item){ toast("Enter an item name","var(--red)"); return; }
   if(!val || val<=0){ toast("Enter a value","var(--red)"); return; }
+  if(/\.\d{3,}/.test(rawVal)){ toast("Amounts can have at most 2 decimal places","var(--red)"); return; }
   const growthRaw=document.getElementById("nwGrowth").value.trim();
   const growthRate = growthRaw ? parseFloat(growthRaw) : null;
   const candidate = { date:document.getElementById("nwDate").value||todayStr(), category:nwSel.cat, item, value:Math.round(val*100)/100, growthRate, currency:nwSel.currency||"USD" };
+  if(candidate.date > todayStr()){ toast("Date can't be in the future","var(--red)"); return; }
 
   const wasEdit = nwEditIndex!==null;
   let targetId;
@@ -1051,9 +1058,9 @@ function renderOverview(){
   const rate = totalIncome>0 ? netSavings/totalIncome : 0;
 
   document.getElementById("ovCards").innerHTML = `
-    <div class="card"><div class="card-label">💰 Total Income</div><div class="card-value">$${totalIncome.toFixed(2)}</div><div class="card-sub">All months</div></div>
-    <div class="card orange"><div class="card-label">💸 Total Expenses</div><div class="card-value">$${totalExpenses.toFixed(2)}</div><div class="card-sub">All months</div></div>
-    <div class="card green"><div class="card-label">🏦 Net Savings</div><div class="card-value">$${netSavings.toFixed(2)}</div><div class="card-sub">Income − Expenses</div></div>
+    <div class="card"><div class="card-label">💰 Total Income</div><div class="card-value">${fmtUSD(totalIncome)}</div><div class="card-sub">All months</div></div>
+    <div class="card orange"><div class="card-label">💸 Total Expenses</div><div class="card-value">${fmtUSD(totalExpenses)}</div><div class="card-sub">All months</div></div>
+    <div class="card green"><div class="card-label">🏦 Net Savings</div><div class="card-value">${fmtUSD(netSavings)}</div><div class="card-sub">Income − Expenses</div></div>
     <div class="card purple"><div class="card-label">🎯 Savings Rate</div><div class="card-value">${(rate*100).toFixed(1)}%</div><div class="card-sub">Net / Income</div></div>
   `;
 
@@ -1100,7 +1107,7 @@ function renderOverview(){
   }
 
   document.getElementById("ovMonthlyTable").innerHTML = `<table><thead><tr><th>Month</th><th>Income</th><th>Expenses</th><th>Net</th><th>Rate</th></tr></thead><tbody>
-    ${totals.map(t=>`<tr><td>${monthLabel(t.m)}</td><td>$${t.income.toFixed(2)}</td><td>$${t.expenses.toFixed(2)}</td><td>$${t.net.toFixed(2)}</td><td>${(t.rate*100).toFixed(1)}%</td></tr>`).join("")}
+    ${totals.map(t=>`<tr><td>${monthLabel(t.m)}</td><td>${fmtUSD(t.income)}</td><td>${fmtUSD(t.expenses)}</td><td>${fmtUSD(t.net)}</td><td>${(t.rate*100).toFixed(1)}%</td></tr>`).join("")}
   </tbody></table>`;
 
   const allCats = [...new Set(entries.filter(e=>(e.type||"expense")==="expense").map(e=>e.category))];
@@ -1111,7 +1118,7 @@ function renderOverview(){
   }).sort((a,b)=>b.total-a.total);
   const grandTotal = catRows.reduce((s,r)=>s+r.total,0) || 1;
   document.getElementById("ovCategoryTable").innerHTML = catRows.length ? `<table><thead><tr><th>Category</th>${months.map(m=>`<th>${monthLabel(m)}</th>`).join("")}<th>Total</th><th>% of Spend</th></tr></thead><tbody>
-    ${catRows.map(r=>`<tr><td><b>${catIcon(r.cat)}${r.cat}</b></td>${r.perMonth.map(v=>`<td>$${v.toFixed(2)}</td>`).join("")}<td><b>$${r.total.toFixed(2)}</b></td><td>${(r.total/grandTotal*100).toFixed(1)}%</td></tr>`).join("")}
+    ${catRows.map(r=>`<tr><td><b>${catIcon(r.cat)}${r.cat}</b></td>${r.perMonth.map(v=>`<td>${fmtUSD(v)}</td>`).join("")}<td><b>${fmtUSD(r.total)}</b></td><td>${(r.total/grandTotal*100).toFixed(1)}%</td></tr>`).join("")}
   </tbody></table>` : `<div class="dash-empty">📊 No expenses logged yet</div>`;
 }
 
@@ -1138,9 +1145,9 @@ function renderMonthlyDetail(){
   const rate = totalIncome>0 ? net/totalIncome : 0;
 
   document.getElementById("monCards").innerHTML = `
-    <div class="card"><div class="card-label">💰 Income</div><div class="card-value">$${totalIncome.toFixed(2)}</div></div>
-    <div class="card orange"><div class="card-label">💸 Expenses</div><div class="card-value">$${totalExpenses.toFixed(2)}</div></div>
-    <div class="card ${net>=0?"green":"orange"}"><div class="card-label">🏦 Net Savings</div><div class="card-value">$${net.toFixed(2)}</div></div>
+    <div class="card"><div class="card-label">💰 Income</div><div class="card-value">${fmtUSD(totalIncome)}</div></div>
+    <div class="card orange"><div class="card-label">💸 Expenses</div><div class="card-value">${fmtUSD(totalExpenses)}</div></div>
+    <div class="card ${net>=0?"green":"orange"}"><div class="card-label">🏦 Net Savings</div><div class="card-value">${fmtUSD(net)}</div></div>
     <div class="card purple"><div class="card-label">🎯 Savings Rate</div><div class="card-value">${(rate*100).toFixed(1)}%</div></div>
   `;
 
@@ -1186,12 +1193,12 @@ function renderMonthlyDetail(){
 
   document.getElementById("monIncomeHead").textContent = `Income — ${monthLabel(month)} (${income.length}) — tap a row to edit`;
   document.getElementById("monIncomeTable").innerHTML = income.length ? `<table><thead><tr><th>Source</th><th>Category</th><th>Amount</th><th></th></tr></thead><tbody>
-    ${income.map(o=>`<tr class="entry-row" onclick="editFromDashboard(${o.idx})"><td>${o.e.store||"—"}</td><td>${catIcon(o.e.category)}${o.e.category}</td><td>$${Number(o.e.amount).toFixed(2)}</td><td><button class="row-del" onclick="deleteFromDashboard(${o.idx},event)">✕</button></td></tr>`).join("")}
+    ${income.map(o=>`<tr class="entry-row" onclick="editFromDashboard(${o.idx})"><td>${o.e.store||"—"}</td><td>${catIcon(o.e.category)}${o.e.category}</td><td>${fmtUSD(Number(o.e.amount))}</td><td><button class="row-del" onclick="deleteFromDashboard(${o.idx},event)">✕</button></td></tr>`).join("")}
   </tbody></table>` : `<div class="dash-empty">💰 No income logged for this month</div>`;
 
   document.getElementById("monExpenseHead").textContent = `Expenses — ${monthLabel(month)} (${expenses.length}) — tap a row to edit`;
   document.getElementById("monExpenseTable").innerHTML = expenses.length ? `<table><thead><tr><th>Date</th><th>Item / Merchant</th><th>Category</th><th>Amount</th><th></th></tr></thead><tbody>
-    ${expenses.map(o=>`<tr class="entry-row" onclick="editFromDashboard(${o.idx})"><td>${o.e.date}</td><td>${o.e.store||"—"}</td><td>${catIcon(o.e.category)}${o.e.category}</td><td>$${Number(o.e.amount).toFixed(2)}</td><td><button class="row-del" onclick="deleteFromDashboard(${o.idx},event)">✕</button></td></tr>`).join("")}
+    ${expenses.map(o=>`<tr class="entry-row" onclick="editFromDashboard(${o.idx})"><td>${o.e.date}</td><td>${o.e.store||"—"}</td><td>${catIcon(o.e.category)}${o.e.category}</td><td>${fmtUSD(Number(o.e.amount))}</td><td><button class="row-del" onclick="deleteFromDashboard(${o.idx},event)">✕</button></td></tr>`).join("")}
   </tbody></table>` : `<div class="dash-empty">💸 No expenses logged for this month</div>`;
 }
 
@@ -1330,7 +1337,7 @@ async function renderDashNetWorth(){
     <div class="card"><div class="card-label">💎 Total Net Worth${currentIncomplete?" ⚠️":""}</div><div class="card-value">${nwFmtAmount(netWorth, toCur)}</div><div class="card-sub">Assets − Liabilities</div></div>
     <div class="card green"><div class="card-label">📈 Total Assets</div><div class="card-value">${nwFmtAmount(totalAssets, toCur)}</div></div>
     <div class="card orange"><div class="card-label">💳 Total Liabilities</div><div class="card-value">${nwFmtAmount(totalLiabilities, toCur)}</div></div>
-    <div class="card purple"><div class="card-label">🎯 Change This Month</div><div class="card-value">${changeThisMonth==null ? "—" : (changeThisMonth>=0?"+":"") + nwFmtAmount(changeThisMonth, toCur)}</div>${changeThisMonth==null ? '<div class="card-sub">Not enough history yet</div>' : ""}</div>
+    <div class="card purple"><div class="card-label">🎯 Change This Month</div><div class="card-value">${changeThisMonth==null ? "N/A" : (changeThisMonth>=0?"+":"") + nwFmtAmount(changeThisMonth, toCur)}</div>${changeThisMonth==null ? '<div class="card-sub">Not enough history yet</div>' : ""}</div>
   `;
 
   const labels = months.map(monthLabel);
@@ -1460,13 +1467,13 @@ function toggleTheme(){
 }
 
 renderPayRow();
-document.getElementById("fDate").value=todayStr();
+document.getElementById("fDate").value=todayStr(); document.getElementById("fDate").max=todayStr();
 setFormType("expense");
 renderList();
 renderNWCatGrid();
 renderNWCurrencyRow();
 renderNWDisplayCurrencyRow();
-document.getElementById("nwDate").value=todayStr();
+document.getElementById("nwDate").value=todayStr(); document.getElementById("nwDate").max=todayStr();
 renderNWItemList();
 renderNWItemChips();
 if(cloudCfg){
