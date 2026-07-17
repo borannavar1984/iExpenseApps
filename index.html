@@ -317,7 +317,7 @@ function nwFmtNum(value, cur){
   const abs = Math.abs(value);
   if(abs >= 1e7) return (value/1e7).toFixed(2).replace(/\.?0+$/,"") + " Cr";
   if(abs >= 1e5) return (value/1e5).toFixed(2).replace(/\.?0+$/,"") + " L";
-  return value.toFixed(2);
+  return value.toLocaleString("en-US", { minimumFractionDigits:2, maximumFractionDigits:2 });
 }
 function nwFmtAmount(value, cur){ return NW_CUR_SYMBOL[cur] + nwFmtNum(value, cur); }
 const FX_CACHE_KEY = nsKey("iexpense_fx_rate");
@@ -463,8 +463,11 @@ function unhideChip(storeName){
 function renderStoreChips(){
   const box=document.getElementById("storeChips"); box.innerHTML="";
   const hidden=loadHiddenChips();
-  const seen=[]; [...entries].reverse().forEach(e=>{ if((e.type||"expense")===formType && e.store && !seen.includes(e.store)) seen.push(e.store); });
-  if(formType==="expense") DEFAULT_STORES.forEach(s=>{ if(!seen.includes(s)) seen.push(s); });
+  const seen=[]; const seenLower=new Set();
+  [...entries].reverse().forEach(e=>{
+    if((e.type||"expense")===formType && e.store && !seenLower.has(e.store.toLowerCase())){ seenLower.add(e.store.toLowerCase()); seen.push(e.store); }
+  });
+  if(formType==="expense") DEFAULT_STORES.forEach(s=>{ if(!seenLower.has(s.toLowerCase())){ seenLower.add(s.toLowerCase()); seen.push(s); } });
   seen.filter(s=>!hidden.includes(s)).slice(0,8).forEach(s=>{
     const wrap=document.createElement("div"); wrap.className="chip-wrap";
     const b=document.createElement("button"); b.className="opt"; b.textContent=s;
@@ -1123,8 +1126,9 @@ function renderMonthlyDetail(){
   // into editing, and the delete button works — this table is now the actual
   // history browser, not just a read-only summary
   const me = entries.map((e,idx)=>({e,idx})).filter(o=>o.e.date && o.e.date.slice(0,7)===month);
-  const income = me.filter(o=>o.e.type==="income");
-  const expenses = me.filter(o=>(o.e.type||"expense")==="expense");
+  const byDate = (a,b)=>a.e.date.localeCompare(b.e.date);
+  const income = me.filter(o=>o.e.type==="income").sort(byDate);
+  const expenses = me.filter(o=>(o.e.type||"expense")==="expense").sort(byDate);
   const totalIncome = income.reduce((s,o)=>s+Number(o.e.amount||0),0);
   const totalExpenses = expenses.reduce((s,o)=>s+Number(o.e.amount||0),0);
   const net = totalIncome-totalExpenses;
@@ -1323,7 +1327,7 @@ async function renderDashNetWorth(){
     <div class="card"><div class="card-label">💎 Total Net Worth${currentIncomplete?" ⚠️":""}</div><div class="card-value">${nwFmtAmount(netWorth, toCur)}</div><div class="card-sub">Assets − Liabilities</div></div>
     <div class="card green"><div class="card-label">📈 Total Assets</div><div class="card-value">${nwFmtAmount(totalAssets, toCur)}</div></div>
     <div class="card orange"><div class="card-label">💳 Total Liabilities</div><div class="card-value">${nwFmtAmount(totalLiabilities, toCur)}</div></div>
-    <div class="card purple"><div class="card-label">🎯 Change This Month</div><div class="card-value">${changeThisMonth==null ? "—" : (changeThisMonth>=0?"+":"") + nwFmtAmount(changeThisMonth, toCur)}</div></div>
+    <div class="card purple"><div class="card-label">🎯 Change This Month</div><div class="card-value">${changeThisMonth==null ? "—" : (changeThisMonth>=0?"+":"") + nwFmtAmount(changeThisMonth, toCur)}</div>${changeThisMonth==null ? '<div class="card-sub">Not enough history yet</div>' : ""}</div>
   `;
 
   const labels = months.map(monthLabel);
