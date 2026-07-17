@@ -697,3 +697,30 @@ since it's specifically an Indian numbering convention.
 
 Updated the two lakh/crore test files to match, plus a full re-run of the
 whole existing suite — 294 checks total, all green.
+
+## Round 27 (2026-07-17, Dashboard comma formatting + validation fixes)
+
+Another review pass found a few more real gaps:
+
+- **Dashboard USD amounts weren't getting the comma formatting** that Net
+  Worth got a couple rounds ago — Overview and Monthly Detail were still
+  showing "$28731.17" instead of "$28,731.17," so the exact same number
+  read two different ways depending on which screen you were looking at.
+  Fixed everywhere on both screens.
+- **Future dates are now rejected everywhere**, not just Net Worth —
+  expense, income, and net worth entries can no longer be dated
+  tomorrow or later; you'll get a clear message instead.
+- **Amounts with 3+ decimal places are now rejected** instead of being
+  silently rounded — typing "10.999" used to quietly become "$11.00";
+  now it tells you to keep it to 2 decimal places.
+- **"Change This Month" no longer shows a bare dash** as its headline —
+  it reads "N/A" now, with the "Not enough history yet" explanation
+  still underneath.
+- One item from the review didn't hold up: negative/zero amounts
+  already showed a clear "Enter an amount" message when tested directly
+  — added a test to lock that in, but no code was actually broken there.
+
+Tested with 18 new checks covering all of the above, updated 4 existing
+test files for the new formatting and a test fixture that now correctly
+lands on the new future-date rule, plus a full re-run of the whole
+existing suite — 312 checks total, all green.
