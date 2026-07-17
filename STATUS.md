@@ -685,3 +685,15 @@ code, so they're waiting on your call rather than being changed silently.
 Tested with 6 new checks covering all four fixes, updated comma-format
 assertions across 6 existing Net Worth test files, plus a full re-run of
 the whole existing suite — 293 checks total, all green.
+
+## Round 26 (2026-07-17, USD back to standard comma grouping)
+
+Confirmed your call on the one open question from the review: lakh/crore
+notation is reverted for dollar amounts (it had briefly applied to both
+currencies since Round 23). USD net worth values now always use standard
+comma grouping — e.g. "$170,000.00" instead of "$1.7 L" — no matter how
+large. Lakh/crore stays exactly where it belongs: rupee amounts only,
+since it's specifically an Indian numbering convention.
+
+Updated the two lakh/crore test files to match, plus a full re-run of the
+whole existing suite — 294 checks total, all green.
