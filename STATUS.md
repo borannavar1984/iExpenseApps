@@ -609,3 +609,14 @@ Tested with 4 new checks confirming the chart's actual axis and tooltip
 formatting functions produce "₹3.5 Cr" for a large value (and plain
 numbers when viewing in USD) plus a full re-run of the whole existing
 suite — all green.
+
+## Round 23 (2026-07-17, lakh/crore for USD too)
+
+One more adjustment: you wanted large dollar totals to group the same
+way once they get big, not just rupee ones. Lakh/crore notation now
+applies to both currencies — a USD total of $383,947 now shows as
+"$3.84 L," the same threshold rule (100,000+ / 1,00,00,000+) as INR.
+
+Updated the two lakh/crore test files to expect this (they previously
+checked that USD stayed as a plain number) plus a full re-run of the
+whole existing suite — 245 checks total, all green.
