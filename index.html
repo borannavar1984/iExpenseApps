@@ -311,12 +311,15 @@ const NW_LS_KEY = nsKey("iexpense_networth_v1");
 const NW_CURRENCIES = ["USD","INR"];
 const NW_CUR_SYMBOL = { USD:"$", INR:"₹" };
 // Lakh/crore grouping (1,00,000 / 1,00,00,000) reads much easier than long
-// digit strings once net worth amounts get large, so both USD and INR
-// switch to "X.XX L" / "X.XX Cr" past those thresholds.
+// digit strings once rupee amounts get large, so INR switches to
+// "X.XX L" / "X.XX Cr" past those thresholds — this is specifically an
+// Indian numbering convention, so USD always uses standard grouping.
 function nwFmtNum(value, cur){
   const abs = Math.abs(value);
-  if(abs >= 1e7) return (value/1e7).toFixed(2).replace(/\.?0+$/,"") + " Cr";
-  if(abs >= 1e5) return (value/1e5).toFixed(2).replace(/\.?0+$/,"") + " L";
+  if(cur==="INR"){
+    if(abs >= 1e7) return (value/1e7).toFixed(2).replace(/\.?0+$/,"") + " Cr";
+    if(abs >= 1e5) return (value/1e5).toFixed(2).replace(/\.?0+$/,"") + " L";
+  }
   return value.toLocaleString("en-US", { minimumFractionDigits:2, maximumFractionDigits:2 });
 }
 function nwFmtAmount(value, cur){ return NW_CUR_SYMBOL[cur] + nwFmtNum(value, cur); }
