@@ -1,0 +1,50 @@
+name: Deploy dev preview
+
+# Publishes whatever is on the develop branch to a separate /dev/ link on
+# the live site, so it can be tried out without touching production. This
+# workflow only ever writes to the dev/ subfolder of main — it never
+# touches the real app files at the site root.
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy-dev-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout develop branch (source of the preview)
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+          path: develop
+
+      - name: Checkout main branch (where the live site + /dev preview folder live)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main
+
+      - name: Copy develop's app files into main's /dev preview folder
+        run: |
+          mkdir -p main/dev
+          cp develop/index.html main/dev/index.html
+          cp develop/icon-180.png main/dev/icon-180.png 2>/dev/null || true
+          cp develop/icon-512.png main/dev/icon-512.png 2>/dev/null || true
+
+      - name: Commit and push the updated preview (only if something changed)
+        run: |
+          cd main
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add dev
+          if git diff --cached --quiet; then
+            echo "No changes to the dev preview — nothing to deploy."
+          else
+            git commit -m "Update dev preview from develop branch"
+            git push origin main
+          fi

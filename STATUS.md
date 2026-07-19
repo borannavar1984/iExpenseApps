@@ -408,3 +408,319 @@ theme, or any other data even when opened in the very same browser at the
 very same time — plus a re-run of the entire existing suite against the
 real app to confirm it behaves exactly as before. 153 checks total, all
 passing.
+
+## Round 15 (2026-07-16, develop-first workflow + pull real data into dev)
+
+Two related changes, both about how testing works from here on:
+
+- **New workflow going forward:** every new feature now gets built and
+  pushed to the `develop` branch first — never straight to your real app.
+  You try it at the dev link, and only once you say you're happy does it get
+  merged into `main` and go live. `develop` and `main` stay in lock-step
+  otherwise; nothing drifts between rounds.
+- **New "Dev Testing" section on the dev link only** — a button, "📥 Load
+  production data (read-only)," that pulls a fresh copy of your real
+  entries into the dev link so you're testing against real numbers instead
+  of an empty app. It's genuinely one-way and safe: it only ever reads from
+  your production data repo, never writes to it, and the access token you
+  type in isn't saved anywhere — only the username/repo are remembered so
+  you don't have to retype those each time. Each pull fully replaces
+  whatever test data was already in dev with a fresh snapshot, so you're
+  always testing against current real numbers. This section doesn't exist
+  at all on your real app — only on the dev link.
+
+Tested with 11 new scripted-browser checks (the button only appears on the
+dev link, never on production; pulling data never calls GitHub's write
+endpoint — confirmed by intercepting the network call; the token is wiped
+from the form right after use and never stored; production's own data is
+completely untouched by any of this; username/repo persist across reloads
+so only the token needs retyping) plus a re-run of the entire existing
+suite — 164 checks total, all passing.
+
+## Round 16 (2026-07-16, dev cleanup + full formula audit)
+
+Two things:
+
+- **Cleaned up the dev link's UI.** Now that dev has its own real Cloud
+  Sync connected to a separate `expense-data-dev` repo, the "Load
+  production data (read-only)" button from Round 15 was redundant, so it's
+  gone. "Backup" is also hidden on the dev link specifically (your real app
+  still has it, untouched) since dev's data already lives safely in its
+  own cloud copy.
+- **You asked me to double-check every dashboard calculation was correct
+  ("be the mathematician").** I wrote an independent calculator from
+  scratch in Python — not reusing any of the app's own code — against your
+  real 126-entry dataset, then compared every single number the app
+  displays against it: the header's "This Month Total," every Overview
+  card, the Monthly Comparison table, the Category Breakdown table, and
+  every month's Monthly Detail cards. All matched exactly, no errors found.
+  Separately, the "prod and dev totals looked different" issue you'd
+  flagged turned out to be two leftover test entries stuck in the dev
+  browser's local cache (from earlier connection troubleshooting), not a
+  math bug — cleared those out directly.
+
+Tested with 7 new scripted-browser checks (Backup hidden on dev only, the
+removed button/section leave zero trace, dev's DEV badge and real Cloud
+Sync stay untouched) plus a 33-check independent formula audit comparing
+every displayed number against the from-scratch Python reference
+calculation, plus a re-run of the entire existing suite — 193 checks
+total, all passing.
+
+## Round 17 (2026-07-16, Net Worth tracking)
+
+You asked for a proper way to track your net worth — not just income and
+expenses, but what you actually own and owe, updated month to month, with
+growth projections for things like your 401k. Framed as "what would a
+financial advisor track," this landed:
+
+- **A new "Net Worth" tab**, right alongside Expense/Income/Dashboard, for
+  logging accounts and assets across six categories: Cash & Bank,
+  Retirement (401k/IRA), Investments (Stocks), Real Estate, Other Assets,
+  and Liabilities/Debt (debts count against your total, not toward it).
+  Each save is a dated snapshot rather than overwriting the last one — so
+  logging "Fidelity 401k" again next month with an updated value
+  automatically builds a month-over-month history. Quick-pick chips
+  remember your accounts so re-logging one each month is just a tap +
+  typing the new number.
+- **A new Net Worth view in the Dashboard**: your total net worth (assets
+  minus liabilities), a trend chart showing it grow (or shrink) over time,
+  a breakdown by category, a full table of everything you're tracking
+  (tap to edit, ✕ to delete), and — for any item where you set an annual
+  growth rate (like 7% for a 401k) — a simple projection table showing
+  what it'd be worth in 1, 5, and 10 years at that rate.
+- **Syncs through the same Cloud Sync connection** as your expenses and
+  income, as its own separate file in your data repo, so it carries across
+  devices the same way. Built deliberately so a hiccup syncing net worth
+  data can never block or undo your regular expense/income sync — they're
+  independent, with net worth sync always the "best effort" one.
+
+Found and fixed two real bugs while building this: a tie-breaking bug
+where logging an update on the same day as a previous entry could show the
+old value instead of the new one, and a bug where a net-worth-sync hiccup
+could incorrectly cancel an otherwise-successful cloud connection — both
+fixed before shipping.
+
+Tested with 28 checks on the tab/form/edit/delete/chips behavior, 10 more
+on the month-over-month trend and the cloud sync round-trip (confirmed via
+intercepting the actual network calls), 4 confirming dev/prod data stays
+isolated for net worth too, plus a re-run of the entire existing suite —
+235 checks total, all passing.
+
+## Round 18 (2026-07-16, Net Worth: US/India currency conversion + tab moved to last)
+
+Two small adjustments you asked for after trying out Net Worth: some of
+your assets are in the US, some in India, and you wanted the flexibility
+to view your total either way — plus you wanted the Net Worth tab moved
+out from the middle of the row to the end.
+
+- **Every Net Worth item can now be logged in USD or INR.** When you add
+  or edit an item, there's a currency chip (defaulting to $ USD) right
+  above the value field, so each account keeps the currency it's actually
+  held in.
+- **The Dashboard's Net Worth view has a $/₹ toggle.** Pick USD and every
+  total, chart, and table converts your INR holdings into dollars; pick
+  INR and it converts everything the other way — using the actual
+  day's market exchange rate, fetched fresh once a day and reused for the
+  rest of that day. A status line under the toggle always shows exactly
+  what rate is being used and as of when, so nothing is hidden.
+- **Never fakes a rate.** If the day's exchange rate can't be fetched (no
+  connection, API down), items in the "other" currency are clearly flagged
+  with a ⚠️ instead of being silently left out or converted with a guessed
+  number — same honesty standard as the rest of the app.
+- **Net Worth is now the last tab**, after Dashboard, instead of sitting
+  between Income and Dashboard.
+
+Tested with 9 new checks on currency entry/selection/conversion in both
+directions, 5 more confirming the honest fallback when the exchange rate
+is unreachable (no fake numbers, no NaN), and a full re-run of the entire
+existing suite (two older Net Worth tests updated to account for the new
+daily rate fetch) — all green.
+
+## Round 19 (2026-07-16, fix: currency conversion wasn't actually fetching a rate)
+
+You tried the new USD/INR conversion on the dev link with real data and it
+wasn't working. Found the cause: the exchange-rate service the app was
+calling (Frankfurter) moved its API to a new address a while back — the
+app was still pointed at the old one, which no longer answers requests.
+Switched it over to the current address; nothing else about how it works
+changed (same daily-fetch-and-cache behavior, same honest ⚠️ fallback if a
+rate genuinely can't be fetched).
+
+Re-tested all 4 Net Worth test files against the corrected endpoint — 52
+checks, all passing. Please try it again on the dev link with the data
+you added; it should now show real converted totals instead of the
+"couldn't fetch today's exchange rate" message.
+
+## Round 20 (2026-07-16, manual exchange rate + combined total)
+
+You tried it again with real data and reported the dollar and rupee
+amounts were still showing separately instead of one combined number, and
+asked for a way to just type in today's rate yourself rather than relying
+on a live fetch.
+
+- **Added a "$1 = ₹___" field with a Set Rate button** right on the
+  Dashboard's Net Worth view. Type in today's actual rate (like the 1 = 95
+  you mentioned) and tap Set Rate — it's saved for the day and takes
+  priority over whatever the live fetch would have used, so you're never
+  stuck waiting on a network call that might not work on your connection.
+- **This is also what fixes the "shown separately" problem**: without a
+  usable rate, the app was correctly refusing to guess — but that meant
+  your USD and INR holdings never combined into one total, which is what
+  looked like "separate." With a rate in hand (live or typed in), assets in
+  either currency now always combine into a single Total Net Worth number.
+- The rate status line now says plainly whether the number in use came
+  from the live fetch or was "set by you."
+
+Tested with 6 new checks (honest ⚠️ when no rate exists yet, typing in a
+rate combines both currencies into one total, the rate is labeled as
+yours, it persists for the rest of the day across a reload, the field is
+prefilled, and entering something invalid like 0 is rejected with a clear
+message) plus a full re-run of the whole existing suite — all green.
+
+## Round 21 (2026-07-16, lakh/crore notation for INR net worth)
+
+You asked for large rupee amounts to read the way they actually do in
+India — 3.5 crore, 10 lakh — instead of long strings of digits.
+
+- **Every rupee amount in Net Worth now uses lakh/crore notation** once it
+  crosses the threshold: ₹10,00,000 and up shows as "₹10 L", and
+  ₹1,00,00,000 and up shows as "₹3.5 Cr". This applies everywhere a net
+  worth value appears — the item list on the Net Worth tab, the Dashboard's
+  summary cards, the accounts table, and the growth projections table.
+- Dollar amounts are untouched — lakh/crore is specifically an Indian
+  rupee convention, so USD always stays as a plain number.
+
+Tested with 7 new checks (a 3.5 crore item and a 10 lakh item both format
+correctly everywhere they appear, a small USD item stays untouched,
+switching the Dashboard to view in USD drops the notation entirely) plus
+a full re-run of the whole existing suite — all green.
+
+## Round 22 (2026-07-16, fix: lakh/crore missing from the charts)
+
+You reported the lakh/crore formatting still wasn't showing, even in a
+private browser tab (which rules out a stuck cache). You were right —
+Round 21 covered the cards and tables, but missed the Net Worth Trend
+chart's numbers and both charts' tap/hover tooltips, which is exactly
+where your screenshot showed a long raw number. Fixed: both the trend
+chart's scale and the category breakdown chart's tooltip now use the same
+lakh/crore formatting as everywhere else.
+
+Tested with 4 new checks confirming the chart's actual axis and tooltip
+formatting functions produce "₹3.5 Cr" for a large value (and plain
+numbers when viewing in USD) plus a full re-run of the whole existing
+suite — all green.
+
+## Round 23 (2026-07-17, lakh/crore for USD too)
+
+One more adjustment: you wanted large dollar totals to group the same
+way once they get big, not just rupee ones. Lakh/crore notation now
+applies to both currencies — a USD total of $383,947 now shows as
+"$3.84 L," the same threshold rule (100,000+ / 1,00,00,000+) as INR.
+
+Updated the two lakh/crore test files to expect this (they previously
+checked that USD stayed as a plain number) plus a full re-run of the
+whole existing suite — 245 checks total, all green.
+
+## Round 24 (2026-07-17, hands-off exchange rate + growth projections for everything)
+
+Three related asks:
+
+- **The "$1 = ___" rate form is now hidden by default.** The app just
+  auto-fetches the day's rate on its own and shows a plain "Using
+  ₹90.00 = $1 (rate as of ...)" line — no form to see or fill in. A
+  small **Edit** link next to it lets you override the rate yourself if
+  you ever need to (say the live fetch is having trouble) — tap it and
+  the form appears; otherwise it stays out of the way.
+- **Growth Projections now covers every account and asset you've
+  logged**, not just the ones where you typed in a growth rate. Anything
+  without a rate is simply treated as 0%/yr instead of being left out
+  of the table entirely — so your whole portfolio shows up, not a
+  filtered subset.
+- **New "Net Worth Growth Projection" chart** — instead of only seeing
+  each item's individual projection, there's now one chart showing what
+  your *total* net worth is projected to be at 1, 3, 5, 10, and 15
+  years out, combining every account's own growth rate (debts are held
+  flat, since there's no payoff-schedule concept to project them with).
+  If something can't be converted to your display currency that day,
+  the chart still shows what it can with an honest note about what's
+  missing, rather than disappearing.
+
+Tested with 13 new checks on the aggregate projection chart (hand-verified
+compounding math across all 5 horizons, the flat liability subtraction,
+tooltip formatting), 2 more confirming the honest partial-warning when a
+currency can't convert, updates to two existing tests for the new
+hide/reveal rate behavior and the "everything included, debts still
+excluded" projection logic, plus a full re-run of the whole existing
+suite — 271 checks total, all green.
+
+## Round 25 (2026-07-17, review-report fixes: formatting, sort order, duplicate chips)
+
+You ran a review pass against real data on the dev site and sent over a
+detailed list. Fixed the concrete code bugs from it:
+
+- **Comma formatting below the lakh/crore threshold.** Net worth amounts
+  under ₹1,00,000 / $100,000 were showing as raw digit strings like
+  "$25000.00" instead of "$25,000.00" — now they use the same
+  thousands-separator formatting as every other number in the app.
+- **Monthly Detail wasn't sorted.** The expense and income tables for a
+  given month showed rows in whatever order they were saved, not by
+  date. Both tables now sort chronologically.
+- **Merchant chips split on capitalization.** "US MOBILE" and "US mobile"
+  were showing up as two separate quick-pick chips instead of one — the
+  chip list now merges them case-insensitively, keeping whichever
+  casing you used most recently.
+- **"Change This Month" now explains itself.** With only one month of
+  net worth history, it showed a bare "—"; it now says "Not enough
+  history yet."
+
+Separately flagged for your input (not changed without checking first):
+whether large USD amounts should really use lakh/crore notation (you
+asked for that explicitly two rounds ago, so it's not being reverted
+without your say-so), the "Other" vs "Others" category-label mismatch
+between Income and Expense, a data typo ("Panera Bred"), a future-dated
+net worth entry, and whether payment method should be required for every
+expense. These touch real stored data or product behavior, not just
+code, so they're waiting on your call rather than being changed silently.
+
+Tested with 6 new checks covering all four fixes, updated comma-format
+assertions across 6 existing Net Worth test files, plus a full re-run of
+the whole existing suite — 293 checks total, all green.
+
+## Round 26 (2026-07-17, USD back to standard comma grouping)
+
+Confirmed your call on the one open question from the review: lakh/crore
+notation is reverted for dollar amounts (it had briefly applied to both
+currencies since Round 23). USD net worth values now always use standard
+comma grouping — e.g. "$170,000.00" instead of "$1.7 L" — no matter how
+large. Lakh/crore stays exactly where it belongs: rupee amounts only,
+since it's specifically an Indian numbering convention.
+
+Updated the two lakh/crore test files to match, plus a full re-run of the
+whole existing suite — 294 checks total, all green.
+
+## Round 27 (2026-07-17, Dashboard comma formatting + validation fixes)
+
+Another review pass found a few more real gaps:
+
+- **Dashboard USD amounts weren't getting the comma formatting** that Net
+  Worth got a couple rounds ago — Overview and Monthly Detail were still
+  showing "$28731.17" instead of "$28,731.17," so the exact same number
+  read two different ways depending on which screen you were looking at.
+  Fixed everywhere on both screens.
+- **Future dates are now rejected everywhere**, not just Net Worth —
+  expense, income, and net worth entries can no longer be dated
+  tomorrow or later; you'll get a clear message instead.
+- **Amounts with 3+ decimal places are now rejected** instead of being
+  silently rounded — typing "10.999" used to quietly become "$11.00";
+  now it tells you to keep it to 2 decimal places.
+- **"Change This Month" no longer shows a bare dash** as its headline —
+  it reads "N/A" now, with the "Not enough history yet" explanation
+  still underneath.
+- One item from the review didn't hold up: negative/zero amounts
+  already showed a clear "Enter an amount" message when tested directly
+  — added a test to lock that in, but no code was actually broken there.
+
+Tested with 18 new checks covering all of the above, updated 4 existing
+test files for the new formatting and a test fixture that now correctly
+lands on the new future-date rule, plus a full re-run of the whole
+existing suite — 312 checks total, all green.
