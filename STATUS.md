@@ -774,3 +774,20 @@ above — 313 checks total, all green.
 Go ahead and open the real app — it should already show your Net Worth
 tab with all your accounts, and Cloud Sync will pick up the reconciled
 data automatically the next time it syncs.
+
+## Round 29 (2026-07-19, category filter on the Dashboard)
+
+Added a category filter to both Overview and Monthly Detail — a
+dropdown, defaulting to "All Categories," that narrows every expense
+figure, chart, and table down to just one category at a time. Pick
+"Groceries" and Total Expenses, the Category Breakdown table, the
+Spend by Category chart, and Monthly Detail's expense table all
+recompute to show only Groceries — income stays shown in full
+throughout, since income categories are separate from expense ones.
+Pick a category on one screen and it stays applied when you switch to
+the other, so you don't have to re-select it.
+
+Tested with 14 new checks (filtering math on both screens, the
+selection staying in sync between them in both directions, resetting
+back to "All Categories" restores full totals) plus a full re-run of
+the whole existing suite — 327 checks total, all green.
