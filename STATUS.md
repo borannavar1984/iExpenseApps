@@ -724,3 +724,53 @@ Tested with 18 new checks covering all of the above, updated 4 existing
 test files for the new formatting and a test fixture that now correctly
 lands on the new future-date rule, plus a full re-run of the whole
 existing suite — 312 checks total, all green.
+
+## Round 28 (2026-07-19, 🚀 Net Worth goes live in production)
+
+The big one: everything built on `develop` over the last several weeks —
+Net Worth tracking end to end, multi-currency support, lakh/crore
+formatting, and every fix from the last handful of review rounds — is
+now live in production. Here's exactly what happened, in order:
+
+1. **Reconciled expense/income data first.** You'd logged some entries
+   directly in the real production app that the dev copy didn't have
+   yet — a haircut, a groceries run, a salary entry, a phone plan
+   purchase, two dinners out (8 entries in total). Pulled those into
+   the dev data repo and confirmed dev matched production exactly
+   before touching anything else.
+2. **Synced data in both directions before the code went anywhere.**
+   One entry ("Employer Payroll" income) existed only in the dev data
+   repo — pushed that into production too, so both sides now agree on
+   the same 135 expense/income entries. Also copied your real Net
+   Worth data (17 accounts and assets you've already reviewed in dev)
+   into a brand-new `networth.json` file in the production data repo,
+   so the feature has real numbers the moment it's live — no empty
+   dashboard, no test data anywhere.
+3. **Merged `develop` into `main` as a real merge** (not a squash or a
+   force-push) — checked first, in an isolated throwaway copy, that
+   this wouldn't conflict with or delete the `dev/` preview folder that
+   lives only on `main` (it doesn't touch anything `develop` doesn't
+   already own, confirmed with a dry run before doing it for real).
+4. **Tested twice, like you asked.** Once against the reconciled data
+   using the *old* pre-merge production code (to confirm the data sync
+   alone didn't break anything), and again against the *new* merged
+   code with your real production data flowing through the same cloud
+   sync path your phone actually uses — confirming Net Worth totals,
+   currency conversion, growth projections, and every chart all come
+   up correctly with zero errors.
+5. Along the way, two of this session's own test fixtures had gone
+   stale simply because real time had moved forward since they were
+   written (a hardcoded "today" and a hardcoded "future" date that
+   quietly stopped being in the future) — recalculated and fixed those
+   so the test suite reflects reality, not a bug in the app itself.
+
+Your production app now has: expense/income tracking (135 entries,
+data-verified), the full Net Worth feature with your real 17 accounts,
+USD/INR conversion, and every fix shipped across the last 11 rounds —
+all confirmed working together against your actual data before anything
+went live. Re-ran the entire test suite one final time after all of the
+above — 313 checks total, all green.
+
+Go ahead and open the real app — it should already show your Net Worth
+tab with all your accounts, and Cloud Sync will pick up the reconciled
+data automatically the next time it syncs.
