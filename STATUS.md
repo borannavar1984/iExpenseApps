@@ -824,3 +824,32 @@ updated one existing chart-count test to account for the new 4th
 chart on Overview, and re-ran the full remaining suite — over 400
 checks total, all green. Verified visually with screenshots of the
 compact grid and the new bottom-of-page trend section.
+
+## Round 31 (2026-07-20, Overview's Spend by Category becomes a multi-line trend)
+
+Follow-up to Round 30's Category Filter/Trend restructure, based on
+feedback that the trend chart's default view (a single summed line)
+wasn't the most useful way to see it, and that the filter had ended up
+too far down the page.
+
+- **"Spend by Category" on Overview is now a line chart, not a pie.**
+  With "All Categories" selected, every category gets its own line, so
+  you can directly compare trends — e.g. see Travel's spend every
+  month right alongside Groceries' and Remittance's, instead of only
+  a single all-time snapshot. Picking one category still narrows it
+  down to just that one line, as before. The old all-time pie chart is
+  gone — this one chart now covers both jobs.
+- **Filter moved back up.** The category filter and this chart now sit
+  directly under "Net Savings Trend," above the Monthly Comparison and
+  Category Breakdown tables — not all the way at the bottom of the
+  page anymore.
+- Monthly Detail's own Category Trend section (added last round)
+  wasn't touched — it stays at the bottom, and "All Categories" there
+  still shows one summed line, matching what it did before.
+
+Updated the filter test suite to check the new multi-line behavior
+(each category's own totals, not a combined sum) and re-ran the full
+suite — over 400 checks, all green. Verified visually with screenshots
+showing both the multi-line "All Categories" view and a filtered
+single-category view, confirming the new position under Net Savings
+Trend.
