@@ -903,3 +903,35 @@ Assets" and "🇮🇳 India Assets" as "IN India Assets." Dropped the emoji
 entirely: the dashboard tabs now just read "US Assets" / "IN Assets,"
 and the entry form's region chips read "US Asset ($)" / "IN Asset
 (₹)." Re-ran the full Net Worth test suite — all pass.
+
+## Round 34 (2026-07-20, responsive layout for tablet/desktop)
+
+You asked for the app to still be a web app, mobile-friendly as
+before, but to look intentional on a desktop or laptop browser too —
+today it's a single fixed 520px-wide column, so on a wide screen it
+just floats as a narrow phone-width strip in a sea of blank space.
+
+Added a CSS-only responsive pass — no restructuring of the HTML or the
+JS logic, so this carries zero risk to how the app behaves:
+
+- **Below 700px (phones)**: completely unchanged. Same single-column
+  layout, same button sizes, same everything.
+- **Tablet (≥700px)**: the app widens to 680px and the category grid
+  goes from 3 to 4 columns per row.
+- **Desktop (≥1024px)**: the app widens to 1100px and gets a framed
+  look — a border, rounded corners, and a soft shadow — sitting on a
+  slightly darker page background, so it reads as an intentional
+  desktop layout instead of a stretched phone screen. The category
+  grid goes to 6 columns, the summary cards spread across the extra
+  width automatically, and on the Overview, Monthly Detail, and Net
+  Worth dashboards the charts pair up two side-by-side instead of
+  stacking one under the other — while the cards, filter dropdowns,
+  and tables still span the full width so they don't get squeezed.
+
+Verified nothing broke on mobile: every one of the 500+ checks across
+29 test files runs at a narrow phone viewport and all still pass
+unmodified, since the new rules only kick in above 700px. Verified the
+desktop look visually with screenshots of Overview, Monthly Detail,
+both Net Worth region tabs, and the expense entry form at 1440px wide,
+alongside the same mobile screenshots to confirm they're pixel-
+identical to before.
