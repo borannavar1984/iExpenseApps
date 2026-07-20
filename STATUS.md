@@ -892,3 +892,14 @@ needed beyond a couple of test selectors that referenced the old
 button labels. Full regression suite — 450+ checks across 29 files —
 all green. Verified visually with screenshots of the entry form and
 all three dashboard tabs.
+
+## Round 33 (2026-07-20, fix flag emoji rendering on Net Worth tabs)
+
+Quick follow-up: the 🇺🇸/🇮🇳 flag emoji used on the new Net Worth region
+tabs and entry-form labels don't render as flags on every device — on
+systems without color-emoji flag support, they fall back to their
+literal two-letter codes, so "🇺🇸 US Assets" was showing up as "US US
+Assets" and "🇮🇳 India Assets" as "IN India Assets." Dropped the emoji
+entirely: the dashboard tabs now just read "US Assets" / "IN Assets,"
+and the entry form's region chips read "US Asset ($)" / "IN Asset
+(₹)." Re-ran the full Net Worth test suite — all pass.
