@@ -262,8 +262,8 @@
 
   <div id="dashNetWorthView" style="display:none">
     <div class="dash-tabs" style="margin-bottom:14px">
-      <button id="nwRegionUSBtn" onclick="showNWRegion('US')">🇺🇸 US Assets</button>
-      <button id="nwRegionINBtn" onclick="showNWRegion('IN')">🇮🇳 India Assets</button>
+      <button id="nwRegionUSBtn" onclick="showNWRegion('US')">US Assets</button>
+      <button id="nwRegionINBtn" onclick="showNWRegion('IN')">IN Assets</button>
       <button class="sel" id="nwRegionTotalBtn" onclick="showNWRegion('total')">🌐 Total</button>
     </div>
 
@@ -431,7 +431,7 @@ function nwSelectCurrency(cur){
 // with only two currencies supported, region and currency are the same
 // underlying value (USD ⇔ US Asset, INR ⇔ India Asset), so no new field is
 // needed, just a clearer label than a raw currency code
-const NW_REGION_LABEL = { USD:"🇺🇸 US Asset ($)", INR:"🇮🇳 India Asset (₹)" };
+const NW_REGION_LABEL = { USD:"US Asset ($)", INR:"IN Asset (₹)" };
 function renderNWCurrencyRow(){
   nwCurrencyRow.innerHTML="";
   NW_CURRENCIES.forEach(cur=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=NW_REGION_LABEL[cur]; b.dataset.cur=cur;
