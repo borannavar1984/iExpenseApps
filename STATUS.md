@@ -791,3 +791,36 @@ Tested with 14 new checks (filtering math on both screens, the
 selection staying in sync between them in both directions, resetting
 back to "All Categories" restores full totals) plus a full re-run of
 the whole existing suite — 327 checks total, all green.
+
+## Round 30 (2026-07-20, Remittance category, compact grid, Category Trend restructure)
+
+Three changes, all shipped to `develop`:
+
+1. **New "Remittance" expense category** (💱), for tracking money sent
+   to India — logged the same way as any other expense, its own icon
+   and its own slice in every category breakdown and chart.
+2. **Smaller category buttons.** The category grid (now 13 buttons for
+   expenses) was taking up too much screen space — shrunk the padding,
+   icon size, and line height so more of the app is visible above the
+   fold without scrolling.
+3. **Reworked how the category filter behaves**, based on your
+   feedback that filtering was affecting things it shouldn't (income
+   showing up, totals changing everywhere). The filter dropdown moved
+   from the top of Overview/Monthly Detail down to the very bottom of
+   each page. All of the existing cards, charts, and tables above it
+   — Total Income/Expenses, the monthly comparison table, the category
+   breakdown, the spend-by-category chart — now always show full,
+   unfiltered totals, exactly like before Round 29. Below the
+   relocated filter on both pages sits a brand-new **Category Trend**
+   chart: pick a category and see its expense total for every month as
+   a line chart, or leave it on "All Categories" to see every
+   category's expenses combined, month by month. The selection still
+   stays in sync between Overview and Monthly Detail.
+
+Tested with a rewritten filter test suite (17 checks, covering the new
+"cards stay full, only the trend chart filters" behavior) plus a new
+3-check test for the Remittance category and the smaller buttons,
+updated one existing chart-count test to account for the new 4th
+chart on Overview, and re-ran the full remaining suite — over 400
+checks total, all green. Verified visually with screenshots of the
+compact grid and the new bottom-of-page trend section.
