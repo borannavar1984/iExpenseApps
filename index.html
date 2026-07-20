@@ -121,6 +121,39 @@
   .entry-row{cursor:pointer}
   .entry-row:hover td{background:var(--card2)}
   .row-del{color:var(--red);background:none;border:none;font-size:15px;padding:2px 6px;cursor:pointer}
+
+  /* ===== Tablet/desktop layout — the app is mobile-first by default; these
+     rules only add extra room and reflow at wider viewports. Pure CSS, no
+     HTML/JS restructuring, so touch targets and the mobile layout itself
+     are completely unchanged below 700px. ===== */
+  @media (min-width:700px){
+    body{max-width:680px}
+    .grid{grid-template-columns:repeat(4,1fr)}
+  }
+  @media (min-width:1024px){
+    html{background:var(--card2)}
+    body{
+      max-width:1100px;
+      margin:24px auto;
+      border:1px solid var(--border);
+      border-radius:20px;
+      box-shadow:0 12px 48px rgba(0,0,0,.18);
+    }
+    .grid{grid-template-columns:repeat(6,1fr)}
+
+    /* chart-cards pair up two-per-row on wide screens; everything else in a
+       dashboard view (summary cards, filter selects, tables) still spans
+       the full width so it doesn't get squeezed into a half column */
+    #dashOverviewView, #dashMonthlyView, #nwRegionUSView, #nwRegionINView, #nwRegionTotalView{
+      display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start;
+    }
+    #dashOverviewView > *, #dashMonthlyView > *, #nwRegionUSView > *, #nwRegionINView > *, #nwRegionTotalView > *{
+      grid-column:1 / -1;
+    }
+    #dashOverviewView > .chart-card, #dashMonthlyView > .chart-card, #nwRegionUSView > .chart-card, #nwRegionINView > .chart-card, #nwRegionTotalView > .chart-card{
+      grid-column:span 1;
+    }
+  }
 </style>
 </head>
 <body>
@@ -1130,8 +1163,10 @@ function renderCatTrend(prefix){
 }
 
 function showDashTab(tab){
-  document.getElementById("dashOverviewView").style.display = tab==="overview" ? "block" : "none";
-  document.getElementById("dashMonthlyView").style.display = tab==="monthly" ? "block" : "none";
+  // "" (not "block") when shown, so the desktop media query's display:grid
+  // isn't clobbered by a higher-specificity inline style
+  document.getElementById("dashOverviewView").style.display = tab==="overview" ? "" : "none";
+  document.getElementById("dashMonthlyView").style.display = tab==="monthly" ? "" : "none";
   document.getElementById("dashNetWorthView").style.display = tab==="networth" ? "block" : "none";
   document.getElementById("dashOverviewBtn").classList.toggle("sel", tab==="overview");
   document.getElementById("dashMonthlyBtn").classList.toggle("sel", tab==="monthly");
@@ -1143,9 +1178,11 @@ function showDashTab(tab){
 
 function showNWRegion(region){
   nwActiveRegion = region;
-  document.getElementById("nwRegionUSView").style.display = region==="US" ? "block" : "none";
-  document.getElementById("nwRegionINView").style.display = region==="IN" ? "block" : "none";
-  document.getElementById("nwRegionTotalView").style.display = region==="total" ? "block" : "none";
+  // "" (not "block") when shown, so the desktop media query's display:grid
+  // isn't clobbered by a higher-specificity inline style
+  document.getElementById("nwRegionUSView").style.display = region==="US" ? "" : "none";
+  document.getElementById("nwRegionINView").style.display = region==="IN" ? "" : "none";
+  document.getElementById("nwRegionTotalView").style.display = region==="total" ? "" : "none";
   document.getElementById("nwRegionUSBtn").classList.toggle("sel", region==="US");
   document.getElementById("nwRegionINBtn").classList.toggle("sel", region==="IN");
   document.getElementById("nwRegionTotalBtn").classList.toggle("sel", region==="total");
