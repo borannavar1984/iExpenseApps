@@ -853,3 +853,42 @@ suite — over 400 checks, all green. Verified visually with screenshots
 showing both the multi-line "All Categories" view and a filtered
 single-category view, confirming the new position under Net Savings
 Trend.
+
+## Round 32 (2026-07-20, Net Worth split into US / India / Total tabs)
+
+You asked for a way to see US assets and India assets separately,
+rather than everything always converted into one currency — converting
+your whole net worth into a single number hides the actual USD balance
+of your US accounts and the actual INR balance of your India accounts
+behind an exchange rate.
+
+- **Net Worth entry form**: the "Currency" selector is now "Asset
+  Region," with clearer buttons — "🇺🇸 US Asset ($)" / "🇮🇳 India Asset
+  (₹)" — instead of a raw currency code. Nothing about your existing
+  data changed; USD items are automatically your US assets and INR
+  items are automatically your India assets, since those are the only
+  two currencies this app has ever supported.
+- **Dashboard → Net Worth now has 3 tabs**:
+  - **US Assets** — only your USD-denominated accounts, shown purely
+    in dollars, with no currency conversion involved at all.
+  - **India Assets** — only your INR-denominated accounts, shown
+    purely in rupees (lakh/crore formatting included), no conversion.
+  - **Total** — exactly what you had before: your combined net worth
+    with the option to view it in USD or INR, converting the other
+    currency's items using the day's exchange rate. This stays the
+    default tab, so nothing changes unless you tap into a region.
+- All three tabs show the full picture — net worth cards, trend chart,
+  category breakdown, growth projections, and the accounts table —
+  computed independently for whichever tab you're on.
+
+Verified the math end-to-end, not just visually: US total ($60,000)
+plus India total (₹92.4L, which is $105,000 at the day's rate) equals
+the Total tab's figure ($165,000), checked with an automated test
+rather than eyeballed. Added 23 new checks for the region split and
+re-ran the entire existing Net Worth suite (currency toggle, lakh/crore
+formatting, manual FX rate entry, growth projections, FX fallback,
+cloud sync) — all passed against the refactored code with no changes
+needed beyond a couple of test selectors that referenced the old
+button labels. Full regression suite — 450+ checks across 29 files —
+all green. Verified visually with screenshots of the entry form and
+all three dashboard tabs.
