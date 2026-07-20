@@ -234,13 +234,12 @@
     <div class="cards" id="ovCards"></div>
     <div class="chart-card"><h4>Income vs Expenses by Month</h4><canvas id="barChart" height="180"></canvas><div class="dash-empty" id="barChartEmpty" style="display:none"></div></div>
     <div class="chart-card"><h4>Net Savings Trend</h4><canvas id="lineChart" height="180"></canvas><div class="dash-empty" id="lineChartEmpty" style="display:none"></div></div>
-    <div class="chart-card"><h4>Spend by Category (All Time)</h4><canvas id="pieChart" height="220"></canvas><div class="dash-empty" id="pieChartEmpty" style="display:none"></div></div>
-    <div class="dtable-wrap"><div class="tw-head">Monthly Comparison</div><div id="ovMonthlyTable"></div></div>
-    <div class="dtable-wrap"><div class="tw-head">Category Breakdown — All Months</div><div id="ovCategoryTable"></div></div>
     <div class="dash-month">
       <select id="ovCategoryFilter" onchange="setDashCategoryFilter(this.value)"></select>
     </div>
-    <div class="chart-card"><h4 id="ovCatTrendTitle">Category Trend — Month by Month</h4><canvas id="ovCatTrendChart" height="200"></canvas><div class="dash-empty" id="ovCatTrendChartEmpty" style="display:none"></div></div>
+    <div class="chart-card"><h4 id="ovCatTrendTitle">Spend by Category — Month by Month</h4><canvas id="ovCatTrendChart" height="220"></canvas><div class="dash-empty" id="ovCatTrendChartEmpty" style="display:none"></div></div>
+    <div class="dtable-wrap"><div class="tw-head">Monthly Comparison</div><div id="ovMonthlyTable"></div></div>
+    <div class="dtable-wrap"><div class="tw-head">Category Breakdown — All Months</div><div id="ovCategoryTable"></div></div>
   </div>
 
   <div id="dashMonthlyView" style="display:none">
@@ -1047,15 +1046,32 @@ function setDashCategoryFilter(val){
 function renderCatTrend(prefix){
   document.getElementById(prefix+"CategoryFilter").value = dashCategoryFilter;
   const label = dashCategoryFilter==="all" ? "All Categories" : catIcon(dashCategoryFilter)+dashCategoryFilter;
-  document.getElementById(prefix+"CatTrendTitle").textContent = `Category Trend — ${label} — Month by Month`;
+  const titlePrefix = prefix==="ov" ? "Spend by Category" : "Category Trend";
+  document.getElementById(prefix+"CatTrendTitle").textContent = `${titlePrefix} — ${label} — Month by Month`;
 
   const months = allMonths();
-  const data = months.map(m=>entries.filter(e=>e.date && e.date.slice(0,7)===m && (e.type||"expense")==="expense" &&
-    (dashCategoryFilter==="all" || e.category===dashCategoryFilter)).reduce((s,e)=>s+Number(e.amount||0),0));
   const canvasId = prefix+"CatTrendChart";
   const chartKey = prefix+"CatTrend";
+  // Overview, with no single category picked, plots every category as its own
+  // line so trends can be compared side by side; a specific category (on
+  // either view) collapses back down to one line.
+  const multiLine = prefix==="ov" && dashCategoryFilter==="all";
 
-  if(!data.some(v=>v>0)){
+  let datasets;
+  if(multiLine){
+    const catsWithData = EXP_CATS.filter(cat=>entries.some(e=>(e.type||"expense")==="expense" && e.category===cat));
+    datasets = catsWithData.map((cat,i)=>({
+      label:cat,
+      data: months.map(m=>entries.filter(e=>e.date && e.date.slice(0,7)===m && (e.type||"expense")==="expense" && e.category===cat).reduce((s,e)=>s+Number(e.amount||0),0)),
+      borderColor: CHART_PALETTE[i % CHART_PALETTE.length], backgroundColor:"transparent", fill:false, tension:.3
+    }));
+  } else {
+    const data = months.map(m=>entries.filter(e=>e.date && e.date.slice(0,7)===m && (e.type||"expense")==="expense" &&
+      (dashCategoryFilter==="all" || e.category===dashCategoryFilter)).reduce((s,e)=>s+Number(e.amount||0),0));
+    datasets = [{ label, data, borderColor:themeColor("--accent"), backgroundColor:"rgba(79,140,255,0.15)", fill:true, tension:.3 }];
+  }
+
+  if(!datasets.some(ds=>ds.data.some(v=>v>0))){
     showChartFallback(canvasId, dashCategoryFilter==="all" ? "📊 No expenses logged yet" : `📊 No ${dashCategoryFilter} expenses logged yet`);
     return;
   }
@@ -1069,9 +1085,9 @@ function renderCatTrend(prefix){
   if(charts[chartKey]) charts[chartKey].destroy();
   charts[chartKey] = new Chart(document.getElementById(canvasId), {
     type:"line",
-    data:{ labels: months.map(monthLabel), datasets:[{ label:label, data, borderColor:themeColor("--accent"), backgroundColor:"rgba(79,140,255,0.15)", fill:true, tension:.3 }] },
-    options:{ responsive:true, plugins:{ legend:{ display:false },
-        tooltip:{ callbacks:{ label:(ctx)=>fmtUSD(ctx.parsed.y) } } },
+    data:{ labels: months.map(monthLabel), datasets },
+    options:{ responsive:true, plugins:{ legend:{ display:multiLine, position:"bottom", labels:{ color:textColor, boxWidth:12, font:{ size:11 } } },
+        tooltip:{ callbacks:{ label:(ctx)=>(multiLine ? ctx.dataset.label+": " : "")+fmtUSD(ctx.parsed.y) } } },
       scales:{ x:{ ticks:{ color:textColor }, grid:{ color:gridColor } },
         y:{ ticks:{ color:textColor, callback:(v)=>fmtUSD(v) }, grid:{ color:gridColor } } } }
   });
@@ -1095,7 +1111,7 @@ function renderDashboard(){
   else renderDashNetWorth();
 }
 
-let charts = { bar:null, line:null, pie:null, monCat:null, nwTrend:null, nwCat:null, nwProjection:null, ovCatTrend:null, monCatTrend:null };
+let charts = { bar:null, line:null, monCat:null, nwTrend:null, nwCat:null, nwProjection:null, ovCatTrend:null, monCatTrend:null };
 const CHART_PALETTE = ["#4f8cff","#f87171","#34d399","#fbbf24","#a78bfa","#38bdf8","#fb923c","#f472b6","#22d3ee","#a3e635","#c084fc","#facc15"];
 
 function themeColor(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
@@ -1129,7 +1145,7 @@ function renderOverview(){
   const labels = months.map(monthLabel);
 
   if(typeof Chart!=="undefined"){
-    showChartCanvas("barChart"); showChartCanvas("lineChart"); showChartCanvas("pieChart");
+    showChartCanvas("barChart"); showChartCanvas("lineChart");
     const textColor = themeColor("--text");
     const gridColor = themeColor("--border");
 
@@ -1151,21 +1167,10 @@ function renderOverview(){
       options:{ responsive:true, plugins:{ legend:{ display:false } },
         scales:{ x:{ ticks:{ color:textColor }, grid:{ color:gridColor } }, y:{ ticks:{ color:textColor }, grid:{ color:gridColor } } } }
     });
-
-    const byCat = {};
-    entries.filter(e=>(e.type||"expense")==="expense").forEach(e=>{ byCat[e.category]=(byCat[e.category]||0)+Number(e.amount||0); });
-    const catEntries = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
-    if(charts.pie) charts.pie.destroy();
-    charts.pie = new Chart(document.getElementById("pieChart"), {
-      type:"pie",
-      data:{ labels:catEntries.map(c=>c[0]), datasets:[{ data:catEntries.map(c=>c[1]), backgroundColor:CHART_PALETTE }] },
-      options:{ responsive:true, plugins:{ legend:{ position:"right", labels:{ boxWidth:12, font:{ size:11 }, color:textColor } } } }
-    });
   } else {
     const msg = "📊 Chart couldn't load (check your connection) — see the tables below for the numbers";
     showChartFallback("barChart", msg);
     showChartFallback("lineChart", msg);
-    showChartFallback("pieChart", msg);
   }
 
   document.getElementById("ovMonthlyTable").innerHTML = `<table><thead><tr><th>Month</th><th>Income</th><th>Expenses</th><th>Net</th><th>Rate</th></tr></thead><tbody>
