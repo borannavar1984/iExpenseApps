@@ -51,8 +51,8 @@
   button.opt.sel{background:var(--accent2);border-color:var(--accent);color:#fff;font-weight:700}
   button.opt:active{transform:scale(.95)}
   .chip-row button.opt{padding:10px 14px;border-radius:20px;flex:0 0 auto}
-  .grid button.opt{position:relative;padding:16px 6px 10px;display:flex;flex-direction:column;align-items:center;gap:5px;line-height:1.15}
-  .grid button.opt[data-icon]::before{content:attr(data-icon);font-size:18px}
+  .grid button.opt{position:relative;padding:10px 5px 7px;display:flex;flex-direction:column;align-items:center;gap:3px;line-height:1.1;font-size:12px}
+  .grid button.opt[data-icon]::before{content:attr(data-icon);font-size:15px}
   input[type=text],input[type=date],input[type=tel]{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:13px 14px;font-size:16px;outline:none;transition:border-color .12s,box-shadow .12s}
   input:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent)}
   .amount-wrap{position:relative}
@@ -231,21 +231,21 @@
   </div>
 
   <div id="dashOverviewView">
-    <div class="dash-month">
-      <select id="ovCategoryFilter" onchange="setDashCategoryFilter(this.value)"></select>
-    </div>
     <div class="cards" id="ovCards"></div>
     <div class="chart-card"><h4>Income vs Expenses by Month</h4><canvas id="barChart" height="180"></canvas><div class="dash-empty" id="barChartEmpty" style="display:none"></div></div>
     <div class="chart-card"><h4>Net Savings Trend</h4><canvas id="lineChart" height="180"></canvas><div class="dash-empty" id="lineChartEmpty" style="display:none"></div></div>
     <div class="chart-card"><h4>Spend by Category (All Time)</h4><canvas id="pieChart" height="220"></canvas><div class="dash-empty" id="pieChartEmpty" style="display:none"></div></div>
     <div class="dtable-wrap"><div class="tw-head">Monthly Comparison</div><div id="ovMonthlyTable"></div></div>
     <div class="dtable-wrap"><div class="tw-head">Category Breakdown — All Months</div><div id="ovCategoryTable"></div></div>
+    <div class="dash-month">
+      <select id="ovCategoryFilter" onchange="setDashCategoryFilter(this.value)"></select>
+    </div>
+    <div class="chart-card"><h4 id="ovCatTrendTitle">Category Trend — Month by Month</h4><canvas id="ovCatTrendChart" height="200"></canvas><div class="dash-empty" id="ovCatTrendChartEmpty" style="display:none"></div></div>
   </div>
 
   <div id="dashMonthlyView" style="display:none">
     <div class="dash-month">
       <select id="dashMonthSel" onchange="renderMonthlyDetail()"></select>
-      <select id="monCategoryFilter" onchange="setDashCategoryFilter(this.value)"></select>
     </div>
     <div class="cards" id="monCards"></div>
     <div class="chart-card">
@@ -255,6 +255,10 @@
     </div>
     <div class="dtable-wrap"><div class="tw-head" id="monIncomeHead">Income</div><div id="monIncomeTable"></div></div>
     <div class="dtable-wrap"><div class="tw-head" id="monExpenseHead">Expenses</div><div id="monExpenseTable"></div></div>
+    <div class="dash-month">
+      <select id="monCategoryFilter" onchange="setDashCategoryFilter(this.value)"></select>
+    </div>
+    <div class="chart-card"><h4 id="monCatTrendTitle">Category Trend — Month by Month</h4><canvas id="monCatTrendChart" height="200"></canvas><div class="dash-empty" id="monCatTrendChartEmpty" style="display:none"></div></div>
   </div>
 
   <div id="dashNetWorthView" style="display:none">
@@ -291,11 +295,11 @@ if(IS_DEV_PREVIEW){
   document.querySelector("header h1").insertAdjacentHTML("beforeend",
     ' <span style="font-size:11px;background:var(--amber);color:#3a2a00;padding:2px 8px;border-radius:10px;vertical-align:middle;font-weight:800;">DEV</span>');
 }
-const EXP_CATS = ["Rent","Travel","Gas","Groceries","Kids/Activities","Shopping","Health","Utilities/Phone","Subscriptions","Entertainment","Dining Out","Others"];
+const EXP_CATS = ["Rent","Travel","Gas","Groceries","Kids/Activities","Shopping","Health","Utilities/Phone","Subscriptions","Entertainment","Dining Out","Remittance","Others"];
 const INC_CATS = ["Salary","Dividends","Bonus","Interest","Gift","Other"];
 const CAT_ICONS = {
   Rent:"🏠", Travel:"✈️", Gas:"⛽", Groceries:"🛒", "Kids/Activities":"🧸", Shopping:"🛍️",
-  Health:"💊", "Utilities/Phone":"💡", Subscriptions:"🔁", Entertainment:"🎬", "Dining Out":"🍽️", Others:"📦",
+  Health:"💊", "Utilities/Phone":"💡", Subscriptions:"🔁", Entertainment:"🎬", "Dining Out":"🍽️", Remittance:"💱", Others:"📦",
   Salary:"💼", Dividends:"📈", Bonus:"🎁", Interest:"🏦", Gift:"🎀", Other:"❔"
 };
 function catIcon(cat){ return CAT_ICONS[cat] ? CAT_ICONS[cat]+" " : ""; }
@@ -1020,9 +1024,11 @@ function monthTotals(m, catFilter){
   return { income, expenses, net: income-expenses, rate: income>0 ? (income-expenses)/income : 0 };
 }
 
-// ===== Category filter, shared between Overview and Monthly Detail — narrows
-// every expense figure/chart/table down to one category (income is always
-// shown in full, since income has its own separate category list) =====
+// ===== Category Trend: a dedicated bottom-of-page section on both Overview
+// and Monthly Detail — pick a category (or "All") and see its expense total
+// for every month, as its own trend chart. Shared filter state between both
+// views, but doesn't touch any of the other cards/charts/tables above it —
+// those always show full, unfiltered totals. =====
 let dashCategoryFilter = "all";
 function renderCategoryFilterOptions(){
   [document.getElementById("ovCategoryFilter"), document.getElementById("monCategoryFilter")].forEach(sel=>{
@@ -1035,8 +1041,40 @@ function setDashCategoryFilter(val){
   dashCategoryFilter = val;
   document.getElementById("ovCategoryFilter").value = val;
   document.getElementById("monCategoryFilter").value = val;
-  renderOverview();
-  renderMonthlyDetail();
+  renderCatTrend("ov");
+  renderCatTrend("mon");
+}
+function renderCatTrend(prefix){
+  document.getElementById(prefix+"CategoryFilter").value = dashCategoryFilter;
+  const label = dashCategoryFilter==="all" ? "All Categories" : catIcon(dashCategoryFilter)+dashCategoryFilter;
+  document.getElementById(prefix+"CatTrendTitle").textContent = `Category Trend — ${label} — Month by Month`;
+
+  const months = allMonths();
+  const data = months.map(m=>entries.filter(e=>e.date && e.date.slice(0,7)===m && (e.type||"expense")==="expense" &&
+    (dashCategoryFilter==="all" || e.category===dashCategoryFilter)).reduce((s,e)=>s+Number(e.amount||0),0));
+  const canvasId = prefix+"CatTrendChart";
+  const chartKey = prefix+"CatTrend";
+
+  if(!data.some(v=>v>0)){
+    showChartFallback(canvasId, dashCategoryFilter==="all" ? "📊 No expenses logged yet" : `📊 No ${dashCategoryFilter} expenses logged yet`);
+    return;
+  }
+  if(typeof Chart==="undefined"){
+    showChartFallback(canvasId, "📊 Chart couldn't load (check your connection)");
+    return;
+  }
+  showChartCanvas(canvasId);
+  const textColor = themeColor("--text");
+  const gridColor = themeColor("--border");
+  if(charts[chartKey]) charts[chartKey].destroy();
+  charts[chartKey] = new Chart(document.getElementById(canvasId), {
+    type:"line",
+    data:{ labels: months.map(monthLabel), datasets:[{ label:label, data, borderColor:themeColor("--accent"), backgroundColor:"rgba(79,140,255,0.15)", fill:true, tension:.3 }] },
+    options:{ responsive:true, plugins:{ legend:{ display:false },
+        tooltip:{ callbacks:{ label:(ctx)=>fmtUSD(ctx.parsed.y) } } },
+      scales:{ x:{ ticks:{ color:textColor }, grid:{ color:gridColor } },
+        y:{ ticks:{ color:textColor, callback:(v)=>fmtUSD(v) }, grid:{ color:gridColor } } } }
+  });
 }
 
 function showDashTab(tab){
@@ -1057,7 +1095,7 @@ function renderDashboard(){
   else renderDashNetWorth();
 }
 
-let charts = { bar:null, line:null, pie:null, monCat:null, nwTrend:null, nwCat:null, nwProjection:null };
+let charts = { bar:null, line:null, pie:null, monCat:null, nwTrend:null, nwCat:null, nwProjection:null, ovCatTrend:null, monCatTrend:null };
 const CHART_PALETTE = ["#4f8cff","#f87171","#34d399","#fbbf24","#a78bfa","#38bdf8","#fb923c","#f472b6","#22d3ee","#a3e635","#c084fc","#facc15"];
 
 function themeColor(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
@@ -1073,9 +1111,9 @@ function showChartCanvas(canvasId){
 }
 
 function renderOverview(){
-  document.getElementById("ovCategoryFilter").value = dashCategoryFilter;
+  renderCatTrend("ov");
   const months = allMonths();
-  const totals = months.map(m=>({ m, ...monthTotals(m, dashCategoryFilter) }));
+  const totals = months.map(m=>({ m, ...monthTotals(m) }));
   const totalIncome = totals.reduce((s,t)=>s+t.income,0);
   const totalExpenses = totals.reduce((s,t)=>s+t.expenses,0);
   const netSavings = totalIncome-totalExpenses;
@@ -1115,7 +1153,7 @@ function renderOverview(){
     });
 
     const byCat = {};
-    entries.filter(e=>(e.type||"expense")==="expense" && (dashCategoryFilter==="all" || e.category===dashCategoryFilter)).forEach(e=>{ byCat[e.category]=(byCat[e.category]||0)+Number(e.amount||0); });
+    entries.filter(e=>(e.type||"expense")==="expense").forEach(e=>{ byCat[e.category]=(byCat[e.category]||0)+Number(e.amount||0); });
     const catEntries = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
     if(charts.pie) charts.pie.destroy();
     charts.pie = new Chart(document.getElementById("pieChart"), {
@@ -1134,7 +1172,7 @@ function renderOverview(){
     ${totals.map(t=>`<tr><td>${monthLabel(t.m)}</td><td>${fmtUSD(t.income)}</td><td>${fmtUSD(t.expenses)}</td><td>${fmtUSD(t.net)}</td><td>${(t.rate*100).toFixed(1)}%</td></tr>`).join("")}
   </tbody></table>`;
 
-  const allCats = [...new Set(entries.filter(e=>(e.type||"expense")==="expense" && (dashCategoryFilter==="all" || e.category===dashCategoryFilter)).map(e=>e.category))];
+  const allCats = [...new Set(entries.filter(e=>(e.type||"expense")==="expense").map(e=>e.category))];
   const catRows = allCats.map(cat=>{
     const perMonth = months.map(m=>entries.filter(e=>(e.type||"expense")==="expense" && e.category===cat && e.date.slice(0,7)===m).reduce((s,e)=>s+Number(e.amount||0),0));
     const total = perMonth.reduce((a,b)=>a+b,0);
@@ -1147,6 +1185,7 @@ function renderOverview(){
 }
 
 function renderMonthlyDetail(){
+  renderCatTrend("mon");
   const months = allMonths();
   const sel = document.getElementById("dashMonthSel");
   const prevVal = sel.value;
@@ -1154,7 +1193,6 @@ function renderMonthlyDetail(){
   months.slice().reverse().forEach(m=>{ const opt=document.createElement("option"); opt.value=m; opt.textContent=monthLabel(m); sel.appendChild(opt); });
   const mostRecent = months[months.length-1];
   sel.value = months.includes(prevVal) ? prevVal : mostRecent;
-  document.getElementById("monCategoryFilter").value = dashCategoryFilter;
 
   const month = sel.value;
   // keep each row's real index into `entries` so tapping it can jump straight
@@ -1163,7 +1201,7 @@ function renderMonthlyDetail(){
   const me = entries.map((e,idx)=>({e,idx})).filter(o=>o.e.date && o.e.date.slice(0,7)===month);
   const byDate = (a,b)=>a.e.date.localeCompare(b.e.date);
   const income = me.filter(o=>o.e.type==="income").sort(byDate);
-  const expenses = me.filter(o=>(o.e.type||"expense")==="expense" && (dashCategoryFilter==="all" || o.e.category===dashCategoryFilter)).sort(byDate);
+  const expenses = me.filter(o=>(o.e.type||"expense")==="expense").sort(byDate);
   const totalIncome = income.reduce((s,o)=>s+Number(o.e.amount||0),0);
   const totalExpenses = expenses.reduce((s,o)=>s+Number(o.e.amount||0),0);
   const net = totalIncome-totalExpenses;
@@ -1221,8 +1259,7 @@ function renderMonthlyDetail(){
     ${income.map(o=>`<tr class="entry-row" onclick="editFromDashboard(${o.idx})"><td>${o.e.store||"—"}</td><td>${catIcon(o.e.category)}${o.e.category}</td><td>${fmtUSD(Number(o.e.amount))}</td><td><button class="row-del" onclick="deleteFromDashboard(${o.idx},event)">✕</button></td></tr>`).join("")}
   </tbody></table>` : `<div class="dash-empty">💰 No income logged for this month</div>`;
 
-  const catSuffix = dashCategoryFilter==="all" ? "" : ` · ${dashCategoryFilter} only`;
-  document.getElementById("monExpenseHead").textContent = `Expenses — ${monthLabel(month)}${catSuffix} (${expenses.length}) — tap a row to edit`;
+  document.getElementById("monExpenseHead").textContent = `Expenses — ${monthLabel(month)} (${expenses.length}) — tap a row to edit`;
   document.getElementById("monExpenseTable").innerHTML = expenses.length ? `<table><thead><tr><th>Date</th><th>Item / Merchant</th><th>Category</th><th>Amount</th><th></th></tr></thead><tbody>
     ${expenses.map(o=>`<tr class="entry-row" onclick="editFromDashboard(${o.idx})"><td>${o.e.date}</td><td>${o.e.store||"—"}</td><td>${catIcon(o.e.category)}${o.e.category}</td><td>${fmtUSD(Number(o.e.amount))}</td><td><button class="row-del" onclick="deleteFromDashboard(${o.idx},event)">✕</button></td></tr>`).join("")}
   </tbody></table>` : `<div class="dash-empty">💸 No expenses logged for this month</div>`;
