@@ -774,3 +774,164 @@ above — 313 checks total, all green.
 Go ahead and open the real app — it should already show your Net Worth
 tab with all your accounts, and Cloud Sync will pick up the reconciled
 data automatically the next time it syncs.
+
+## Round 29 (2026-07-19, category filter on the Dashboard)
+
+Added a category filter to both Overview and Monthly Detail — a
+dropdown, defaulting to "All Categories," that narrows every expense
+figure, chart, and table down to just one category at a time. Pick
+"Groceries" and Total Expenses, the Category Breakdown table, the
+Spend by Category chart, and Monthly Detail's expense table all
+recompute to show only Groceries — income stays shown in full
+throughout, since income categories are separate from expense ones.
+Pick a category on one screen and it stays applied when you switch to
+the other, so you don't have to re-select it.
+
+Tested with 14 new checks (filtering math on both screens, the
+selection staying in sync between them in both directions, resetting
+back to "All Categories" restores full totals) plus a full re-run of
+the whole existing suite — 327 checks total, all green.
+
+## Round 30 (2026-07-20, Remittance category, compact grid, Category Trend restructure)
+
+Three changes, all shipped to `develop`:
+
+1. **New "Remittance" expense category** (💱), for tracking money sent
+   to India — logged the same way as any other expense, its own icon
+   and its own slice in every category breakdown and chart.
+2. **Smaller category buttons.** The category grid (now 13 buttons for
+   expenses) was taking up too much screen space — shrunk the padding,
+   icon size, and line height so more of the app is visible above the
+   fold without scrolling.
+3. **Reworked how the category filter behaves**, based on your
+   feedback that filtering was affecting things it shouldn't (income
+   showing up, totals changing everywhere). The filter dropdown moved
+   from the top of Overview/Monthly Detail down to the very bottom of
+   each page. All of the existing cards, charts, and tables above it
+   — Total Income/Expenses, the monthly comparison table, the category
+   breakdown, the spend-by-category chart — now always show full,
+   unfiltered totals, exactly like before Round 29. Below the
+   relocated filter on both pages sits a brand-new **Category Trend**
+   chart: pick a category and see its expense total for every month as
+   a line chart, or leave it on "All Categories" to see every
+   category's expenses combined, month by month. The selection still
+   stays in sync between Overview and Monthly Detail.
+
+Tested with a rewritten filter test suite (17 checks, covering the new
+"cards stay full, only the trend chart filters" behavior) plus a new
+3-check test for the Remittance category and the smaller buttons,
+updated one existing chart-count test to account for the new 4th
+chart on Overview, and re-ran the full remaining suite — over 400
+checks total, all green. Verified visually with screenshots of the
+compact grid and the new bottom-of-page trend section.
+
+## Round 31 (2026-07-20, Overview's Spend by Category becomes a multi-line trend)
+
+Follow-up to Round 30's Category Filter/Trend restructure, based on
+feedback that the trend chart's default view (a single summed line)
+wasn't the most useful way to see it, and that the filter had ended up
+too far down the page.
+
+- **"Spend by Category" on Overview is now a line chart, not a pie.**
+  With "All Categories" selected, every category gets its own line, so
+  you can directly compare trends — e.g. see Travel's spend every
+  month right alongside Groceries' and Remittance's, instead of only
+  a single all-time snapshot. Picking one category still narrows it
+  down to just that one line, as before. The old all-time pie chart is
+  gone — this one chart now covers both jobs.
+- **Filter moved back up.** The category filter and this chart now sit
+  directly under "Net Savings Trend," above the Monthly Comparison and
+  Category Breakdown tables — not all the way at the bottom of the
+  page anymore.
+- Monthly Detail's own Category Trend section (added last round)
+  wasn't touched — it stays at the bottom, and "All Categories" there
+  still shows one summed line, matching what it did before.
+
+Updated the filter test suite to check the new multi-line behavior
+(each category's own totals, not a combined sum) and re-ran the full
+suite — over 400 checks, all green. Verified visually with screenshots
+showing both the multi-line "All Categories" view and a filtered
+single-category view, confirming the new position under Net Savings
+Trend.
+
+## Round 32 (2026-07-20, Net Worth split into US / India / Total tabs)
+
+You asked for a way to see US assets and India assets separately,
+rather than everything always converted into one currency — converting
+your whole net worth into a single number hides the actual USD balance
+of your US accounts and the actual INR balance of your India accounts
+behind an exchange rate.
+
+- **Net Worth entry form**: the "Currency" selector is now "Asset
+  Region," with clearer buttons — "🇺🇸 US Asset ($)" / "🇮🇳 India Asset
+  (₹)" — instead of a raw currency code. Nothing about your existing
+  data changed; USD items are automatically your US assets and INR
+  items are automatically your India assets, since those are the only
+  two currencies this app has ever supported.
+- **Dashboard → Net Worth now has 3 tabs**:
+  - **US Assets** — only your USD-denominated accounts, shown purely
+    in dollars, with no currency conversion involved at all.
+  - **India Assets** — only your INR-denominated accounts, shown
+    purely in rupees (lakh/crore formatting included), no conversion.
+  - **Total** — exactly what you had before: your combined net worth
+    with the option to view it in USD or INR, converting the other
+    currency's items using the day's exchange rate. This stays the
+    default tab, so nothing changes unless you tap into a region.
+- All three tabs show the full picture — net worth cards, trend chart,
+  category breakdown, growth projections, and the accounts table —
+  computed independently for whichever tab you're on.
+
+Verified the math end-to-end, not just visually: US total ($60,000)
+plus India total (₹92.4L, which is $105,000 at the day's rate) equals
+the Total tab's figure ($165,000), checked with an automated test
+rather than eyeballed. Added 23 new checks for the region split and
+re-ran the entire existing Net Worth suite (currency toggle, lakh/crore
+formatting, manual FX rate entry, growth projections, FX fallback,
+cloud sync) — all passed against the refactored code with no changes
+needed beyond a couple of test selectors that referenced the old
+button labels. Full regression suite — 450+ checks across 29 files —
+all green. Verified visually with screenshots of the entry form and
+all three dashboard tabs.
+
+## Round 33 (2026-07-20, fix flag emoji rendering on Net Worth tabs)
+
+Quick follow-up: the 🇺🇸/🇮🇳 flag emoji used on the new Net Worth region
+tabs and entry-form labels don't render as flags on every device — on
+systems without color-emoji flag support, they fall back to their
+literal two-letter codes, so "🇺🇸 US Assets" was showing up as "US US
+Assets" and "🇮🇳 India Assets" as "IN India Assets." Dropped the emoji
+entirely: the dashboard tabs now just read "US Assets" / "IN Assets,"
+and the entry form's region chips read "US Asset ($)" / "IN Asset
+(₹)." Re-ran the full Net Worth test suite — all pass.
+
+## Round 34 (2026-07-20, responsive layout for tablet/desktop)
+
+You asked for the app to still be a web app, mobile-friendly as
+before, but to look intentional on a desktop or laptop browser too —
+today it's a single fixed 520px-wide column, so on a wide screen it
+just floats as a narrow phone-width strip in a sea of blank space.
+
+Added a CSS-only responsive pass — no restructuring of the HTML or the
+JS logic, so this carries zero risk to how the app behaves:
+
+- **Below 700px (phones)**: completely unchanged. Same single-column
+  layout, same button sizes, same everything.
+- **Tablet (≥700px)**: the app widens to 680px and the category grid
+  goes from 3 to 4 columns per row.
+- **Desktop (≥1024px)**: the app widens to 1100px and gets a framed
+  look — a border, rounded corners, and a soft shadow — sitting on a
+  slightly darker page background, so it reads as an intentional
+  desktop layout instead of a stretched phone screen. The category
+  grid goes to 6 columns, the summary cards spread across the extra
+  width automatically, and on the Overview, Monthly Detail, and Net
+  Worth dashboards the charts pair up two side-by-side instead of
+  stacking one under the other — while the cards, filter dropdowns,
+  and tables still span the full width so they don't get squeezed.
+
+Verified nothing broke on mobile: every one of the 500+ checks across
+29 test files runs at a narrow phone viewport and all still pass
+unmodified, since the new rules only kick in above 700px. Verified the
+desktop look visually with screenshots of Overview, Monthly Detail,
+both Net Worth region tabs, and the expense entry form at 1440px wide,
+alongside the same mobile screenshots to confirm they're pixel-
+identical to before.
