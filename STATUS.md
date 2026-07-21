@@ -935,3 +935,54 @@ desktop look visually with screenshots of Overview, Monthly Detail,
 both Net Worth region tabs, and the expense entry form at 1440px wide,
 alongside the same mobile screenshots to confirm they're pixel-
 identical to before.
+
+## Round 35 (2026-07-20, sync production data + promote today's releases to production)
+
+Two things, as requested: reconcile the data between dev and production,
+then promote everything shipped to `develop` today (Rounds 29-34) into
+production.
+
+**Data sync:**
+- Production had 5 expense entries dev didn't have yet — all logged
+  directly in the real app today (Starlink, gas, Ross clothing,
+  groceries, US Mobile). Copied those into dev so both sides match.
+- Found a genuine conflict in the net worth data: the same $15,000
+  entry ("To Adil") had been logged separately in both places with
+  different details — production had it as "Other Assets" at 4%
+  growth, dev had it as "Cash & Bank" at 4.1% growth with a typo'd
+  item name (double space). Flagged this rather than guessing, and
+  you confirmed production's version was correct — dev's copy now
+  matches production exactly, so this doesn't get double-counted
+  anywhere.
+- Both `entries.json` (139 entries) and `networth.json` (18 entries)
+  now have identical ID sets on both sides, verified with an automated
+  test that loads the reconciled dev data through the app itself and
+  checks the totals — not just diffed the files.
+
+**Promoted to production** (Rounds 29 through 34, all in one release):
+category filter on the Dashboard, the Remittance category, the
+compact category grid, the Category Filter/Trend restructure (moved
+to the bottom, then back up under Net Savings Trend), the multi-line
+Spend by Category trend chart, the Net Worth US/India/Total region
+split, the flag-emoji label fix, and the new tablet/desktop responsive
+layout.
+
+Merged `develop` into `main` as a real merge (matching how the Net
+Worth release went out before) — checked first, in an isolated
+throwaway clone, that this wouldn't conflict with the `dev/` preview
+folder that only exists on `main` (it doesn't, confirmed with a dry
+run). The only real conflict was in `STATUS.md` itself, from rounds
+being logged independently on each branch — resolved by keeping
+`develop`'s full history, since it's the complete, correct one.
+
+Tested twice against the real, reconciled production data before and
+after pushing: connected through the actual Cloud Sync path (not a
+local file), confirmed all 139 entries and 18 net worth entries load
+correctly, no NaN or undefined anywhere, the Remittance category
+shows up, and the US/India/Total region tabs all compute the right
+numbers against your real accounts (US: $423,259 in assets, $1,500 in
+liabilities; India: ₹2.75 Cr in assets, no liabilities). Also caught
+and fixed one stale test fixture (a reference-values file that still
+expected the old 135-entry dataset) before re-running the full
+regression suite — every check passes against the reconciled data,
+in both dev and now production.
