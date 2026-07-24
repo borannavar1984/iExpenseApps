@@ -986,3 +986,9 @@ and fixed one stale test fixture (a reference-values file that still
 expected the old 135-entry dataset) before re-running the full
 regression suite — every check passes against the reconciled data,
 in both dev and now production.
+
+## Round 36 (2026-07-24, reorder the top nav)
+
+Small tweak: moved the Dashboard tab to the end of the top nav, so the
+order is now Expense / Income / Net Worth / Dashboard instead of
+Expense / Income / Dashboard / Net Worth.
