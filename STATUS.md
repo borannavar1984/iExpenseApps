@@ -986,3 +986,41 @@ and fixed one stale test fixture (a reference-values file that still
 expected the old 135-entry dataset) before re-running the full
 regression suite — every check passes against the reconciled data,
 in both dev and now production.
+
+## Round 36 (2026-07-24, reorder the top nav)
+
+Small tweak: moved the Dashboard tab to the end of the top nav, so the
+order is now Expense / Income / Net Worth / Dashboard instead of
+Expense / Income / Dashboard / Net Worth.
+
+## Round 37 (2026-07-24, warm rounded redesign inspired by a reference site)
+
+You shared a screenshot of a site whose look you liked — warm palette,
+pill-shaped buttons, rounded cards with soft shadows, a friendly
+rounded typeface — and asked for something similar in both dark and
+light mode, without losing any functionality.
+
+Re-skinned the app through its existing theme-variable system, so both
+modes picked it up automatically:
+- Backgrounds shifted from cool blue/gray to a warm near-black (dark)
+  and a soft cream (light), instead of the previous navy-tinted tones.
+- The main action buttons (Save, Sync, Connect) now use a vibrant
+  lime-green with dark text — the same kind of standout primary color
+  the reference site uses for its main call-to-action — while selected
+  tabs and pills use a deep forest green with white text.
+- Cards, charts, tables, and entries got bigger rounded corners and a
+  soft drop shadow, so they read as floating cards rather than flat
+  bordered boxes.
+- Every button (Save, Sync, tabs, category/store chips) is now fully
+  pill-shaped, and each category icon sits inside a soft circular
+  badge, echoing the reference's rounded icon badges.
+- Added a rounded, friendly typeface (Poppins), with the same system
+  font as a fallback if it ever can't load.
+
+This only touches the visual layer — no HTML structure or JS logic
+changed, so every feature works exactly as before. Full regression
+suite (26 files, 500+ checks) re-run and all green; caught one visual
+regression along the way (the new icon badges made the category grid
+taller than the compact size from an earlier round) and fixed it
+before shipping. Verified both themes visually with screenshots of the
+entry form, dashboard, and Net Worth form.
