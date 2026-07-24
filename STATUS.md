@@ -1024,3 +1024,31 @@ regression along the way (the new icon badges made the category grid
 taller than the compact size from an earlier round) and fixed it
 before shipping. Verified both themes visually with screenshots of the
 entry form, dashboard, and Net Worth form.
+
+## Round 38 (2026-07-24, promote today's releases to production + nightly data sync)
+
+Promoted everything shipped to `develop` today into production:
+- Moving the Dashboard tab to the end of the top nav (Round 36)
+- The warm, rounded redesign — new palette, pill buttons, rounded
+  cards with soft shadows, the Poppins typeface (Round 37)
+
+Merged `develop` into `main` as a real merge, same safe process as
+before — dry-run verified in an isolated clone first, only conflict
+was the expected one in STATUS.md itself (resolved by keeping
+`develop`'s full history). Tested against the real, current
+production data (147 entries, 18 net worth entries — production had
+grown since the last release) through the actual Cloud Sync path
+before pushing: no NaN/undefined anywhere, Remittance category
+present, and the Net Worth region tabs compute correctly against the
+current real numbers (US: $421,947 assets / $1,500 liabilities;
+India: ₹2.7 Cr assets, no liabilities). Also caught and fixed a stale
+test fixture (reference values still expected the old 139-entry
+dataset) before re-running the full suite — every check passes.
+
+Also set up a **nightly data sync**: a scheduled routine now runs
+every night at 12:00 AM Eastern (4:00 AM UTC) that pulls any new
+production entries into the dev data repo automatically — additive
+only, never deletes or overwrites anything already in dev, and stops
+to ask rather than guess if it ever finds a genuine conflict (like the
+"To Adil" duplicate from Round 35, which reappeared once and was
+resolved the same way).
