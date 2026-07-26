@@ -273,7 +273,11 @@
 <input type="date" id="nwDate">
 
 <div class="label">Category</div>
-<div class="grid" id="nwCatGrid"></div>
+<button type="button" class="cat-field" id="nwCatFieldBtn" onclick="openNWCatPicker()">
+  <span class="cpr-icon" id="nwCatFieldIcon"></span>
+  <span class="cat-field-label cat-field-placeholder" id="nwCatFieldLabel">Select category</span>
+  <span class="cat-field-chevron">›</span>
+</button>
 
 <div class="label">Item Name</div>
 <input type="text" id="nwItem" placeholder="e.g. Fidelity 401k" autocomplete="off">
@@ -299,24 +303,12 @@
 
 <div id="dashboardView" style="display:none">
   <div class="dash-tabs">
-    <button class="sel" id="dashOverviewBtn" onclick="showDashTab('overview')">Overview</button>
-    <button id="dashMonthlyBtn" onclick="showDashTab('monthly')">Monthly Detail</button>
+    <button class="sel" id="dashMonthlyBtn" onclick="showDashTab('monthly')">Monthly Detail</button>
+    <button id="dashOverviewBtn" onclick="showDashTab('overview')">Summary</button>
     <button id="dashNetWorthBtn" onclick="showDashTab('networth')">Net Worth</button>
   </div>
 
-  <div id="dashOverviewView">
-    <div class="cards" id="ovCards"></div>
-    <div class="chart-card"><h4>Income vs Expenses by Month</h4><canvas id="barChart" height="180"></canvas><div class="dash-empty" id="barChartEmpty" style="display:none"></div></div>
-    <div class="chart-card"><h4>Net Savings Trend</h4><canvas id="lineChart" height="180"></canvas><div class="dash-empty" id="lineChartEmpty" style="display:none"></div></div>
-    <div class="dash-month">
-      <select id="ovCategoryFilter" onchange="setDashCategoryFilter(this.value)"></select>
-    </div>
-    <div class="chart-card"><h4 id="ovCatTrendTitle">Spend by Category — Month by Month</h4><canvas id="ovCatTrendChart" height="220"></canvas><div class="dash-empty" id="ovCatTrendChartEmpty" style="display:none"></div></div>
-    <div class="dtable-wrap"><div class="tw-head">Monthly Comparison</div><div id="ovMonthlyTable"></div></div>
-    <div class="dtable-wrap"><div class="tw-head">Category Breakdown — All Months</div><div id="ovCategoryTable"></div></div>
-  </div>
-
-  <div id="dashMonthlyView" style="display:none">
+  <div id="dashMonthlyView">
     <div class="dash-month">
       <select id="dashMonthSel" onchange="renderMonthlyDetail()"></select>
     </div>
@@ -332,6 +324,18 @@
       <select id="monCategoryFilter" onchange="setDashCategoryFilter(this.value)"></select>
     </div>
     <div class="chart-card"><h4 id="monCatTrendTitle">Category Trend — Month by Month</h4><canvas id="monCatTrendChart" height="200"></canvas><div class="dash-empty" id="monCatTrendChartEmpty" style="display:none"></div></div>
+  </div>
+
+  <div id="dashOverviewView" style="display:none">
+    <div class="cards" id="ovCards"></div>
+    <div class="chart-card"><h4>Income vs Expenses by Month</h4><canvas id="barChart" height="180"></canvas><div class="dash-empty" id="barChartEmpty" style="display:none"></div></div>
+    <div class="chart-card"><h4>Net Savings Trend</h4><canvas id="lineChart" height="180"></canvas><div class="dash-empty" id="lineChartEmpty" style="display:none"></div></div>
+    <div class="dash-month">
+      <select id="ovCategoryFilter" onchange="setDashCategoryFilter(this.value)"></select>
+    </div>
+    <div class="chart-card"><h4 id="ovCatTrendTitle">Spend by Category — Month by Month</h4><canvas id="ovCatTrendChart" height="220"></canvas><div class="dash-empty" id="ovCatTrendChartEmpty" style="display:none"></div></div>
+    <div class="dtable-wrap"><div class="tw-head">Monthly Comparison</div><div id="ovMonthlyTable"></div></div>
+    <div class="dtable-wrap"><div class="tw-head">Category Breakdown — All Months</div><div id="ovCategoryTable"></div></div>
   </div>
 
   <div id="dashNetWorthView" style="display:none">
@@ -393,9 +397,11 @@
 
 <div id="backupSection">
 <div class="label" style="margin-top:22px">💾 Backup</div>
+<div id="jsonBackupSection">
 <button class="btn btn-ghost" onclick="backupData()">Backup all data (.json)</button>
 <button class="btn btn-ghost" onclick="document.getElementById('restoreFile').click()">Restore from backup</button>
 <input type="file" id="restoreFile" accept="application/json" style="display:none" onchange="restoreData(event)">
+</div>
 <button class="btn btn-ghost" onclick="exportExcel()" style="margin-top:8px">📊 Export Excel report (.xlsx)</button>
 <div style="margin-top:6px;color:var(--muted);font-size:12.5px">Monthly summary, category breakdown, all entries &amp; net worth — build your own charts/pivot tables in Excel</div>
 </div>
@@ -424,6 +430,18 @@
     <div style="width:36px"></div>
   </div>
   <div class="cat-picker-list" id="catPickerList"></div>
+</div>
+
+<div class="cat-picker-overlay" id="nwCatPickerOverlay" style="display:none">
+  <div class="cat-picker-header">
+    <button type="button" class="cat-picker-back" onclick="closeNWCatPicker()">‹</button>
+    <div class="cat-picker-title">Category</div>
+    <div style="width:36px"></div>
+  </div>
+  <div style="padding:10px 14px 0">
+    <input type="text" id="nwCatSearch" placeholder="Search categories..." autocomplete="off" oninput="renderNWCatPickerList()">
+  </div>
+  <div class="cat-picker-list" id="nwCatPickerList"></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -569,16 +587,50 @@ function renderPayRow(){
     b.onclick=()=>{ sel.pay=p; [...payRow.children].forEach(x=>x.classList.toggle("sel",x.textContent===p)); }; payRow.appendChild(b); });
 }
 
-const nwCatGrid=document.getElementById("nwCatGrid");
+const nwCatFieldIcon=document.getElementById("nwCatFieldIcon");
+const nwCatFieldLabel=document.getElementById("nwCatFieldLabel");
 function nwSelectCategory(cat){
   nwSel.cat=cat;
-  [...nwCatGrid.children].forEach(x=>x.classList.toggle("sel",x.textContent===cat));
+  nwCatFieldIcon.textContent = NW_CAT_ICONS[cat] || "";
+  nwCatFieldLabel.textContent = cat;
+  nwCatFieldLabel.classList.remove("cat-field-placeholder");
+  closeNWCatPicker();
 }
+// resets the field to its "nothing picked yet" placeholder state — kept the
+// name from when this rendered a button grid, since it's still called from
+// the same reset/init call sites
 function renderNWCatGrid(){
-  nwCatGrid.innerHTML="";
-  NW_CATS.forEach(c=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=c;
-    if(NW_CAT_ICONS[c]) b.dataset.icon=NW_CAT_ICONS[c];
-    b.onclick=()=>nwSelectCategory(c); nwCatGrid.appendChild(b); });
+  nwSel.cat = null;
+  nwCatFieldIcon.textContent = "";
+  nwCatFieldLabel.textContent = "Select category";
+  nwCatFieldLabel.classList.add("cat-field-placeholder");
+}
+// full-screen picker with a live search box — prefix match first, then
+// substring match, same filtering rule as the merchant autocomplete
+function renderNWCatPickerList(){
+  const query = document.getElementById("nwCatSearch").value.trim().toLowerCase();
+  let matches = NW_CATS;
+  if(query){
+    const starts = NW_CATS.filter(c=>c.toLowerCase().startsWith(query));
+    const contains = NW_CATS.filter(c=>!c.toLowerCase().startsWith(query) && c.toLowerCase().includes(query));
+    matches = [...starts, ...contains];
+  }
+  const list = document.getElementById("nwCatPickerList");
+  list.innerHTML = matches.map(c=>`
+    <div class="cat-picker-row" data-cat="${c}">
+      <span class="cpr-icon">${NW_CAT_ICONS[c]||""}</span>
+      <span class="cpr-label">${c}</span>
+      <span class="cpr-check">${nwSel.cat===c ? "✓" : ""}</span>
+    </div>`).join("");
+  [...list.children].forEach(row=>row.onclick=()=>nwSelectCategory(row.dataset.cat));
+}
+function openNWCatPicker(){
+  document.getElementById("nwCatSearch").value = "";
+  renderNWCatPickerList();
+  document.getElementById("nwCatPickerOverlay").style.display="flex";
+}
+function closeNWCatPicker(){
+  document.getElementById("nwCatPickerOverlay").style.display="none";
 }
 
 const nwCurrencyRow=document.getElementById("nwCurrencyRow");
@@ -984,8 +1036,7 @@ function resetNWForm(){
   document.getElementById("nwGrowth").value="";
   document.getElementById("nwDate").value=todayStr(); document.getElementById("nwDate").max=todayStr();
   document.getElementById("nwCancelEditBtn").style.display="none";
-  nwSel.cat=null;
-  [...nwCatGrid.children].forEach(x=>x.classList.remove("sel"));
+  renderNWCatGrid();
   nwSelectCurrency("USD");
   document.getElementById("nwSaveBtn").textContent="Save Net Worth Entry";
   renderNWItemList();
@@ -1876,7 +1927,10 @@ if(cloudCfg){
   setCloudStatus(false);
 }
 if(IS_DEV_PREVIEW){
-  document.getElementById("backupSection").style.display = "none";
+  // dev already has its own Cloud Sync connected to expense-data-dev, so the
+  // JSON Backup/Restore flow is redundant there — but Excel export is a real
+  // reporting feature, not just a backup mechanism, so it always stays visible
+  document.getElementById("jsonBackupSection").style.display = "none";
 }
 (function initTheme(){
   let saved="dark";
