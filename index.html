@@ -136,6 +136,25 @@
   .entry-row:hover td{background:var(--card2)}
   .row-del{color:var(--red);background:none;border:none;font-size:15px;padding:2px 6px;cursor:pointer}
 
+  /* ===== Category field + full-screen picker (tap the field, pick from a
+     list with a checkmark on the current selection), instead of an always-
+     visible grid of buttons — frees up screen space for a field you only
+     touch once per entry. ===== */
+  .cat-field{width:100%;display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:13px 14px;font-size:16px;color:var(--text);cursor:pointer;text-align:left;font-family:inherit}
+  .cat-field-label{flex:1}
+  .cat-field-placeholder{color:var(--muted)}
+  .cat-field-chevron{color:var(--muted);font-size:20px;line-height:1}
+  .cat-picker-overlay{position:fixed;inset:0;background:var(--bg);z-index:200;display:flex;flex-direction:column}
+  .cat-picker-header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:calc(14px + env(safe-area-inset-top)) 14px 12px;border-bottom:1px solid var(--border);background:var(--bg)}
+  .cat-picker-back{background:var(--card2);border:1px solid var(--border);color:var(--text);width:36px;height:36px;min-width:36px;border-radius:50%;font-size:20px;cursor:pointer;line-height:1}
+  .cat-picker-title{font-weight:700;font-size:17px}
+  .cat-picker-list{overflow-y:auto;flex:1;padding:8px 14px calc(24px + env(safe-area-inset-bottom))}
+  .cat-picker-row{display:flex;align-items:center;gap:14px;padding:14px 4px;border-bottom:1px solid var(--card2);cursor:pointer}
+  .cat-picker-row:active{background:var(--card2)}
+  .cat-picker-row .cpr-icon{font-size:19px;width:24px;text-align:center;flex:none}
+  .cat-picker-row .cpr-label{flex:1;font-size:16px}
+  .cat-picker-row .cpr-check{color:var(--accent);font-size:18px;font-weight:700;width:20px;text-align:center}
+
   /* ===== Tablet/desktop layout — the app is mobile-first by default; these
      rules only add extra room and reflow at wider viewports. Pure CSS, no
      HTML/JS restructuring, so touch targets and the mobile layout itself
@@ -207,7 +226,11 @@
 <input type="text" id="fNote" placeholder="">
 
 <div class="label">Category</div>
-<div class="grid" id="catGrid"></div>
+<button type="button" class="cat-field" id="catFieldBtn" onclick="openCatPicker()">
+  <span class="cpr-icon" id="catFieldIcon"></span>
+  <span class="cat-field-label cat-field-placeholder" id="catFieldLabel">Select category</span>
+  <span class="cat-field-chevron">›</span>
+</button>
 
 <div class="row2">
   <button class="btn btn-save" id="saveBtn" onclick="saveEntry()">Save Expense</button>
@@ -353,6 +376,15 @@
   </div>
 </div>
 
+<div class="cat-picker-overlay" id="catPickerOverlay" style="display:none">
+  <div class="cat-picker-header">
+    <button type="button" class="cat-picker-back" onclick="closeCatPicker()">‹</button>
+    <div class="cat-picker-title">Category</div>
+    <div style="width:36px"></div>
+  </div>
+  <div class="cat-picker-list" id="catPickerList"></div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -437,16 +469,36 @@ function toast(msg,color){
   t.textContent=icon+msg; t.style.background=color||"var(--green)"; t.style.display="block"; setTimeout(()=>t.style.display="none",2200);
 }
 
-const catGrid=document.getElementById("catGrid");
+const catFieldIcon=document.getElementById("catFieldIcon");
+const catFieldLabel=document.getElementById("catFieldLabel");
+let catPickerList = EXP_CATS; // whichever list (expense/income categories) is active right now
 function selectCategory(cat){
   sel.cat=cat;
-  [...catGrid.children].forEach(x=>x.classList.toggle("sel",x.textContent===cat));
+  catFieldIcon.textContent = CAT_ICONS[cat] || "";
+  catFieldLabel.textContent = cat;
+  catFieldLabel.classList.remove("cat-field-placeholder");
+  closeCatPicker();
 }
 function renderCatGrid(type){
-  catGrid.innerHTML="";
-  (type==="income" ? INC_CATS : EXP_CATS).forEach(c=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=c;
-    if(CAT_ICONS[c]) b.dataset.icon=CAT_ICONS[c];
-    b.onclick=()=>selectCategory(c); catGrid.appendChild(b); });
+  catPickerList = type==="income" ? INC_CATS : EXP_CATS;
+  sel.cat = null;
+  catFieldIcon.textContent = "";
+  catFieldLabel.textContent = "Select category";
+  catFieldLabel.classList.add("cat-field-placeholder");
+}
+function openCatPicker(){
+  const list = document.getElementById("catPickerList");
+  list.innerHTML = catPickerList.map(c=>`
+    <div class="cat-picker-row" data-cat="${c}">
+      <span class="cpr-icon">${CAT_ICONS[c]||""}</span>
+      <span class="cpr-label">${c}</span>
+      <span class="cpr-check">${sel.cat===c ? "✓" : ""}</span>
+    </div>`).join("");
+  [...list.children].forEach(row=>row.onclick=()=>selectCategory(row.dataset.cat));
+  document.getElementById("catPickerOverlay").style.display="flex";
+}
+function closeCatPicker(){
+  document.getElementById("catPickerOverlay").style.display="none";
 }
 
 const payRow=document.getElementById("payRow");
@@ -681,8 +733,8 @@ function editEntry(i){
   document.getElementById("fAmount").value=e.amount;
   document.getElementById("fStore").value=e.store||"";
   document.getElementById("fNote").value=e.note||"";
-  sel.cat=e.category; sel.pay=e.payment||null;
-  [...catGrid.children].forEach(x=>x.classList.toggle("sel",x.textContent===e.category));
+  sel.pay=e.payment||null;
+  selectCategory(e.category);
   [...payRow.children].forEach(x=>x.classList.toggle("sel",x.textContent===e.payment));
   document.getElementById("cancelEditBtn").style.display="block";
   updateSaveBtnLabel();
