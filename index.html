@@ -14,6 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   /* Warm, rounded theme — a vibrant lime primary accent + deep forest-green
      secondary, on a soft cream (light) / warm near-black (dark) surface,
@@ -259,6 +260,8 @@
 <button class="btn btn-ghost" onclick="backupData()">Backup all data (.json)</button>
 <button class="btn btn-ghost" onclick="document.getElementById('restoreFile').click()">Restore from backup</button>
 <input type="file" id="restoreFile" accept="application/json" style="display:none" onchange="restoreData(event)">
+<button class="btn btn-ghost" onclick="exportExcel()" style="margin-top:8px">📊 Export Excel report (.xlsx)</button>
+<div style="margin-top:6px;color:var(--muted);font-size:12.5px">Monthly summary, category breakdown, all entries &amp; net worth — build your own charts/pivot tables in Excel</div>
 </div>
 
 </div>
@@ -779,6 +782,57 @@ function restoreData(evt){
     toast(added ? `Restored ${added} entr${added===1?"y":"ies"}` : "Nothing new to restore");
   };
   reader.readAsText(file);
+}
+
+// ===== Excel report export: a multi-sheet .xlsx alongside the JSON backup.
+// SheetJS is a lightweight data-only library — it can't draw native Excel
+// charts, so instead of faking that, each sheet is clean tabular data the
+// user can pivot/chart themselves in Excel. =====
+function exportExcel(){
+  if(typeof XLSX==="undefined"){ toast("Excel library couldn't load — check your connection","var(--red)"); return; }
+
+  const months = allMonths();
+  const monthRows = months.map(m=>({ m, ...monthTotals(m) }));
+  const summarySheet = XLSX.utils.aoa_to_sheet([
+    ["Month","Income","Expenses","Net Savings","Savings Rate"],
+    ...monthRows.map(t=>[monthLabel(t.m), Number(t.income.toFixed(2)), Number(t.expenses.toFixed(2)), Number(t.net.toFixed(2)), Number((t.rate*100).toFixed(1))+"%"])
+  ]);
+
+  const allCats = [...new Set(entries.filter(e=>(e.type||"expense")==="expense").map(e=>e.category))];
+  const catRows = allCats.map(cat=>{
+    const perMonth = months.map(m=>entries.filter(e=>(e.type||"expense")==="expense" && e.category===cat && e.date.slice(0,7)===m).reduce((s,e)=>s+Number(e.amount||0),0));
+    const total = perMonth.reduce((a,b)=>a+b,0);
+    return { cat, perMonth, total };
+  }).sort((a,b)=>b.total-a.total);
+  const categorySheet = XLSX.utils.aoa_to_sheet([
+    ["Category", ...months.map(monthLabel), "Total"],
+    ...catRows.map(r=>[r.cat, ...r.perMonth.map(v=>Number(v.toFixed(2))), Number(r.total.toFixed(2))])
+  ]);
+
+  const entriesSheet = XLSX.utils.json_to_sheet([...entries].sort((a,b)=>(a.date||"")<(b.date||"")?-1:1).map(e=>({
+    Date:e.date, Type:e.type||"expense", Category:e.category, Amount:Number(e.amount||0),
+    Store:e.store||"", Payment:e.payment||"", Note:e.note||""
+  })));
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, summarySheet, "Monthly Summary");
+  XLSX.utils.book_append_sheet(wb, categorySheet, "Category Breakdown");
+  XLSX.utils.book_append_sheet(wb, entriesSheet, "All Entries");
+
+  if(nwEntries.length){
+    const nwCurrentSheet = XLSX.utils.json_to_sheet(nwLatestPerItem().map(({e})=>({
+      Item:e.item, Category:e.category, Value:Number(e.value||0), Currency:e.currency||"USD",
+      "Last Updated":e.date, "Growth Rate (%/yr)": e.growthRate!=null ? e.growthRate : ""
+    })));
+    const nwHistorySheet = XLSX.utils.json_to_sheet([...nwEntries].sort((a,b)=>(a.date||"")<(b.date||"")?-1:1).map(e=>({
+      Date:e.date, Item:e.item, Category:e.category, Value:Number(e.value||0), Currency:e.currency||"USD"
+    })));
+    XLSX.utils.book_append_sheet(wb, nwCurrentSheet, "Net Worth (Current)");
+    XLSX.utils.book_append_sheet(wb, nwHistorySheet, "Net Worth History");
+  }
+
+  XLSX.writeFile(wb, `iexpense_report_${todayStr().replace(/-/g,"")}.xlsx`);
+  toast("Excel report downloaded");
 }
 
 // ===== Net Worth: quick-pick chips for previously-used item names, so logging
