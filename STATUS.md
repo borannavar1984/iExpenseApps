@@ -1072,3 +1072,27 @@ Pure reorder, same fields and save logic — full regression suite (15
 files covering save/edit/validation) passed unmodified since none of
 it depends on DOM order. Verified visually in both themes and in
 Income mode, plus a full save-flow sanity check.
+
+## Round 40 (2026-07-26, category picker: collapsed field + full-screen list)
+
+Another screenshot, this time of the Category picker in that same
+reference app — a clean full-screen list with an icon next to each
+category and a checkmark on whichever one is currently selected.
+
+Replaced the always-visible 13-button category grid with a single
+collapsed field showing your current pick (icon + name), or "Select
+category" if nothing's chosen yet. Tapping it opens a full-screen
+picker matching the reference: icon + label rows, a checkmark on your
+current selection, a back button to close. This frees up a large
+chunk of vertical space on the entry form — you only see the full
+category list when you actually need to pick one.
+
+Nothing about how categories work changed under the hood — same
+categories, same icons, same auto-suggest-from-store behavior. Updated
+10 test files that used to click category buttons directly to open
+the picker first instead, plus a couple that read the old grid's
+selected-button styling to read the new field's label. Also caught an
+unrelated stale test fixture along the way and refreshed it. Full
+regression suite (26 files, 450+ checks) all green; verified visually
+in both themes, including the checkmark showing correctly when
+reopening the picker on an already-chosen category.
