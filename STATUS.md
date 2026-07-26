@@ -1125,3 +1125,67 @@ fields, net worth values — and that the file downloads with a dated
 filename, plus a full re-run of the existing regression suite (30+
 files) — all green. Verified visually with a screenshot of the new
 button's placement in the Backup section.
+
+## Round 42 (2026-07-26, Add-button redesign + merchant autocomplete + new categories)
+
+Another SpendCheck screenshot (the removable Store/Merchant chip row)
+plus a voice note asking for three more changes, all in one go. Planned
+each piece first, then built, tested, and regression-tested one module
+at a time before touching the next:
+
+- **Merchant/Store is now a type-ahead field, not a wall of buttons.**
+  Type a couple of letters and matching past merchants filter in
+  live — prefix match first ("cos" → Costco), falling back to a
+  substring match — instead of always showing every quick-pick chip at
+  once. Each suggestion still has a small × to hide it from future
+  suggestions, same as before, and a brand-new merchant you type just
+  saves as free text and shows up as a suggestion next time.
+- **Entry form reordered** to Amount → Category → Merchant → Date →
+  Payment Method → Note (optional, always last) — per your explicit
+  ask, with Date and Payment Method keeping their relative order since
+  you didn't call those out specifically.
+- **The flat Expense/Income/Net Worth/Dashboard tab bar is gone.**
+  Dashboard is now the app's permanent home screen (its Overview /
+  Monthly Detail / Net Worth views are unchanged). A single floating
+  "+" button — modeled directly on the reference app's own FAB — is
+  always there on top of Dashboard. Tapping it opens a small picker:
+  🧾 Add Expense, 💰 Add Income, 💎 Update Net Worth. Picking one shows
+  the existing entry form full-screen; Save, Update, or the back arrow
+  all return you to Dashboard, refreshed. Editing an entry from
+  Dashboard's Monthly Detail table works exactly as before, just
+  reached the same way. This also resolves your earlier open question
+  about combining the Net Worth entry tab with Dashboard's Net Worth
+  view — Dashboard is now the one place you look, the + button is the
+  one place you log.
+  - Since Cloud Sync setup and Backup (including last round's Excel
+    export) aren't really part of "logging an expense," they moved
+    from the entry form onto Dashboard itself, so they stay one tap
+    away instead of getting buried behind the new + button.
+- **6 categories added** that your reference app has and yours didn't:
+  Home, Transport, Automotive, Education, Personal, Gifts & Donations.
+  Categories you already had an equivalent for (Food & Drink≈Dining
+  Out, Bills & Utilities≈Utilities/Phone, etc.) weren't duplicated
+  under a new name, since renaming an existing category would silently
+  reclassify your past entries under it.
+
+Also confirmed, since you weren't seeing them: last round's Excel
+export and the category-picker redesign from two rounds ago were both
+already live on the dev link the whole time (verified via the
+successful "Deploy dev preview" GitHub Actions run) — likely a
+browser/CDN cache on your phone, same class of issue as the home-screen
+icon caching problem from way back.
+
+Tested with 3 new dedicated test files (18 checks for the new
+categories, 19 for the merchant autocomplete, 25 for the full Add-button
+flow — FAB, picker, all three destinations, cancel, back-arrow,
+editing from Dashboard) plus a full migration of the existing ~35-file
+regression suite from tab-clicks to the new navigation (the same
+mechanical, one-file-at-a-time style as the category-picker migration
+two rounds ago) — every file re-run and green, including catching and
+fixing a couple of real gaps the redesign surfaced along the way (a
+"scroll down" hint in the Sync Now toast that no longer made sense once
+Cloud Sync moved to Dashboard, and a stale test file from several
+rounds back that still referenced the old always-visible category
+grid). Verified visually with screenshots of the new Dashboard home
+screen, the Add picker, the reordered form with live merchant
+suggestions, and the category picker showing all 6 new categories.
