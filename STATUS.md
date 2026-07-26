@@ -1052,3 +1052,23 @@ only, never deletes or overwrites anything already in dev, and stops
 to ask rather than guess if it ever finds a genuine conflict (like the
 "To Adil" duplicate from Round 35, which reappeared once and was
 resolved the same way).
+
+## Round 39 (2026-07-26, reorder entry form: Amount first)
+
+You shared screenshots of another expense-tracker app (SpendCheck) and
+liked how it puts the amount entry front and center, with everything
+else compact underneath. Reordered the Expense/Income form to match:
+Amount is now the first, hero field (auto-focused) at the top,
+followed by Store/Merchant, Date, Payment Method, Note, and Category
+at the bottom — instead of the previous Date → Category → Amount →
+Store order.
+
+Bonus: since typing a recognized store name already auto-fills its
+category from history, by the time you scroll down to Category it's
+often already correctly picked for you — so logging a repeat expense
+can be as quick as Amount + Store + Save.
+
+Pure reorder, same fields and save logic — full regression suite (15
+files covering save/edit/validation) passed unmodified since none of
+it depends on DOM order. Verified visually in both themes and in
+Income mode, plus a full save-flow sanity check.
