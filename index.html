@@ -57,6 +57,13 @@
   .chip-wrap{position:relative;display:inline-flex}
   .chip-remove{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;border:2px solid var(--bg);font-size:12px;line-height:1;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;z-index:1}
   .chip-remove:active{transform:scale(.9)}
+  .store-field-wrap{position:relative}
+  .store-suggest{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:50;max-height:260px;overflow-y:auto}
+  .store-suggest-row{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;border-bottom:1px solid var(--card2)}
+  .store-suggest-row:last-child{border-bottom:none}
+  .store-suggest-row:active{background:var(--card2)}
+  .store-suggest-row .ssr-label{flex:1;font-size:15px}
+  .store-suggest-row .ssr-remove{background:var(--red);color:#fff;border:none;width:22px;height:22px;border-radius:50%;font-size:13px;line-height:1;cursor:pointer;flex:none;font-weight:700;padding:0}
   button.opt{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:16px;padding:12px 6px;font-size:13.5px;font-weight:500;cursor:pointer;transition:transform .1s ease,background .12s,border-color .12s}
   button.opt.sel{background:var(--accent2);border-color:var(--accent2);color:#fff;font-weight:700}
   button.opt:active{transform:scale(.95)}
@@ -149,6 +156,9 @@
   .cat-picker-header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:calc(14px + env(safe-area-inset-top)) 14px 12px;border-bottom:1px solid var(--border);background:var(--bg)}
   .cat-picker-back{background:var(--card2);border:1px solid var(--border);color:var(--text);width:36px;height:36px;min-width:36px;border-radius:50%;font-size:20px;cursor:pointer;line-height:1}
   .cat-picker-title{font-weight:700;font-size:17px}
+  .add-form-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .fab-add{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom));width:60px;height:60px;border-radius:50%;background:var(--accent);color:var(--ctatext);font-size:30px;line-height:1;border:none;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer;z-index:150;display:none;align-items:center;justify-content:center;padding:0}
+  .fab-add:active{transform:translateX(-50%) scale(.93)}
   .cat-picker-list{overflow-y:auto;flex:1;padding:8px 14px calc(24px + env(safe-area-inset-bottom))}
   .cat-picker-row{display:flex;align-items:center;gap:14px;padding:14px 4px;border-bottom:1px solid var(--card2);cursor:pointer}
   .cat-picker-row:active{background:var(--card2)}
@@ -199,7 +209,7 @@
   </div>
 </header>
 
-<div class="tabs">
+<div class="tabs" style="display:none">
   <button class="sel" id="tabExpenseBtn" onclick="showMainTab('expense')">🧾 Expense</button>
   <button id="tabIncomeBtn" onclick="showMainTab('income')">💰 Income</button>
   <button id="tabNetWorthBtn" onclick="showMainTab('networth')">💎 Net Worth</button>
@@ -208,12 +218,26 @@
 
 <div id="entriesView">
 
+<div class="add-form-header">
+  <button type="button" class="cat-picker-back" onclick="closeAddForm()">‹</button>
+  <div class="cat-picker-title" id="entriesFormTitle">Add Expense</div>
+</div>
+
 <div class="label">Amount</div>
 <div class="amount-wrap"><input type="tel" id="fAmount" inputmode="decimal" placeholder="0.00" autofocus></div>
 
+<div class="label">Category</div>
+<button type="button" class="cat-field" id="catFieldBtn" onclick="openCatPicker()">
+  <span class="cpr-icon" id="catFieldIcon"></span>
+  <span class="cat-field-label cat-field-placeholder" id="catFieldLabel">Select category</span>
+  <span class="cat-field-chevron">›</span>
+</button>
+
 <div class="label" id="storeLabel">Store / Merchant</div>
-<input type="text" id="fStore" placeholder="e.g. Costco" autocomplete="off">
-<div class="chip-row" id="storeChips" style="margin-top:8px"></div>
+<div class="store-field-wrap">
+  <input type="text" id="fStore" placeholder="e.g. Costco" autocomplete="off">
+  <div class="store-suggest" id="storeSuggest" style="display:none"></div>
+</div>
 
 <div class="label">Date</div>
 <input type="date" id="fDate">
@@ -226,47 +250,24 @@
 <div class="label">Note (optional)</div>
 <input type="text" id="fNote" placeholder="">
 
-<div class="label">Category</div>
-<button type="button" class="cat-field" id="catFieldBtn" onclick="openCatPicker()">
-  <span class="cpr-icon" id="catFieldIcon"></span>
-  <span class="cat-field-label cat-field-placeholder" id="catFieldLabel">Select category</span>
-  <span class="cat-field-chevron">›</span>
-</button>
-
 <div class="row2">
   <button class="btn btn-save" id="saveBtn" onclick="saveEntry()">Save Expense</button>
   <button class="btn btn-export" id="syncNowTopBtn" onclick="cloudSyncNow()">Sync Now</button>
 </div>
-<button class="btn btn-ghost" id="cancelEditBtn" style="display:none" onclick="cancelEdit()">Cancel edit</button>
+<button class="btn btn-ghost" id="cancelEditBtn" style="display:none" onclick="closeAddForm()">Cancel edit</button>
 
 <div class="label" style="margin-top:22px">📝 Today's Entries</div>
 <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Tap an entry to edit it. Past days live in Dashboard → Monthly Detail.</div>
 <div id="entryList"></div>
 
-<div class="label" style="margin-top:22px">☁️ Cloud Sync</div>
-<div class="cloud-status" id="cloudStatus">Not connected — saving on this device only</div>
-<div id="cloudSetup">
-  <input type="text" id="cloudOwner" placeholder="GitHub username" autocomplete="off">
-  <input type="text" id="cloudRepo" placeholder="Private data repo name (e.g. iExpense-data)" autocomplete="off" style="margin-top:8px">
-  <input type="password" id="cloudToken" placeholder="Personal access token" autocomplete="off" style="margin-top:8px">
-  <button class="btn btn-export" onclick="cloudConnect()">Connect &amp; Sync</button>
-</div>
-<div id="cloudControls" style="display:none">
-  <button class="btn btn-ghost" onclick="cloudDisconnect()">Disconnect</button>
-</div>
-
-<div id="backupSection">
-<div class="label" style="margin-top:22px">💾 Backup</div>
-<button class="btn btn-ghost" onclick="backupData()">Backup all data (.json)</button>
-<button class="btn btn-ghost" onclick="document.getElementById('restoreFile').click()">Restore from backup</button>
-<input type="file" id="restoreFile" accept="application/json" style="display:none" onchange="restoreData(event)">
-<button class="btn btn-ghost" onclick="exportExcel()" style="margin-top:8px">📊 Export Excel report (.xlsx)</button>
-<div style="margin-top:6px;color:var(--muted);font-size:12.5px">Monthly summary, category breakdown, all entries &amp; net worth — build your own charts/pivot tables in Excel</div>
-</div>
-
 </div>
 
 <div id="netWorthView" style="display:none">
+
+<div class="add-form-header">
+  <button type="button" class="cat-picker-back" onclick="closeAddForm()">‹</button>
+  <div class="cat-picker-title">Update Net Worth</div>
+</div>
 
 <div class="label">Date</div>
 <input type="date" id="nwDate">
@@ -288,7 +289,7 @@
 <input type="tel" id="nwGrowth" inputmode="decimal" placeholder="e.g. 7 — used for projections">
 
 <button class="btn btn-save" id="nwSaveBtn" onclick="saveNW()">Save Net Worth Entry</button>
-<button class="btn btn-ghost" id="nwCancelEditBtn" style="display:none" onclick="cancelNWEdit()">Cancel edit</button>
+<button class="btn btn-ghost" id="nwCancelEditBtn" style="display:none" onclick="closeAddForm()">Cancel edit</button>
 
 <div class="label" style="margin-top:22px">📋 Your Items</div>
 <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Shows the latest value for each item. Log a fresh entry each month (same item name, new value) to track its growth over time.</div>
@@ -377,6 +378,43 @@
       <div class="dtable-wrap"><div class="tw-head">Growth Projections</div><div id="nwProjectionsTable"></div></div>
     </div>
   </div>
+
+<div class="label" style="margin-top:22px">☁️ Cloud Sync</div>
+<div class="cloud-status" id="cloudStatus">Not connected — saving on this device only</div>
+<div id="cloudSetup">
+  <input type="text" id="cloudOwner" placeholder="GitHub username" autocomplete="off">
+  <input type="text" id="cloudRepo" placeholder="Private data repo name (e.g. iExpense-data)" autocomplete="off" style="margin-top:8px">
+  <input type="password" id="cloudToken" placeholder="Personal access token" autocomplete="off" style="margin-top:8px">
+  <button class="btn btn-export" onclick="cloudConnect()">Connect &amp; Sync</button>
+</div>
+<div id="cloudControls" style="display:none">
+  <button class="btn btn-ghost" onclick="cloudDisconnect()">Disconnect</button>
+</div>
+
+<div id="backupSection">
+<div class="label" style="margin-top:22px">💾 Backup</div>
+<button class="btn btn-ghost" onclick="backupData()">Backup all data (.json)</button>
+<button class="btn btn-ghost" onclick="document.getElementById('restoreFile').click()">Restore from backup</button>
+<input type="file" id="restoreFile" accept="application/json" style="display:none" onchange="restoreData(event)">
+<button class="btn btn-ghost" onclick="exportExcel()" style="margin-top:8px">📊 Export Excel report (.xlsx)</button>
+<div style="margin-top:6px;color:var(--muted);font-size:12.5px">Monthly summary, category breakdown, all entries &amp; net worth — build your own charts/pivot tables in Excel</div>
+</div>
+
+</div>
+
+<button type="button" class="fab-add" id="fabAddBtn" onclick="openAddPicker()">+</button>
+
+<div class="cat-picker-overlay" id="addPickerOverlay" style="display:none">
+  <div class="cat-picker-header">
+    <button type="button" class="cat-picker-back" onclick="closeAddPicker()">‹</button>
+    <div class="cat-picker-title">Add</div>
+    <div style="width:36px"></div>
+  </div>
+  <div class="cat-picker-list">
+    <div class="cat-picker-row" onclick="chooseAdd('expense')"><span class="cpr-icon">🧾</span><span class="cpr-label">Add Expense</span></div>
+    <div class="cat-picker-row" onclick="chooseAdd('income')"><span class="cpr-icon">💰</span><span class="cpr-label">Add Income</span></div>
+    <div class="cat-picker-row" onclick="chooseAdd('networth')"><span class="cpr-icon">💎</span><span class="cpr-label">Update Net Worth</span></div>
+  </div>
 </div>
 
 <div class="cat-picker-overlay" id="catPickerOverlay" style="display:none">
@@ -402,11 +440,11 @@ if(IS_DEV_PREVIEW){
   document.querySelector("header h1").insertAdjacentHTML("beforeend",
     ' <span style="font-size:11px;background:var(--amber);color:#3a2a00;padding:2px 8px;border-radius:10px;vertical-align:middle;font-weight:800;">DEV</span>');
 }
-const EXP_CATS = ["Rent","Travel","Gas","Groceries","Kids/Activities","Shopping","Health","Utilities/Phone","Subscriptions","Entertainment","Dining Out","Remittance","Others"];
+const EXP_CATS = ["Rent","Home","Travel","Gas","Transport","Automotive","Groceries","Kids/Activities","Shopping","Gifts & Donations","Health","Education","Personal","Utilities/Phone","Subscriptions","Entertainment","Dining Out","Remittance","Others"];
 const INC_CATS = ["Salary","Dividends","Bonus","Interest","Gift","Other"];
 const CAT_ICONS = {
-  Rent:"🏠", Travel:"✈️", Gas:"⛽", Groceries:"🛒", "Kids/Activities":"🧸", Shopping:"🛍️",
-  Health:"💊", "Utilities/Phone":"💡", Subscriptions:"🔁", Entertainment:"🎬", "Dining Out":"🍽️", Remittance:"💱", Others:"📦",
+  Rent:"🏠", Home:"🏡", Travel:"✈️", Gas:"⛽", Transport:"🚕", Automotive:"🔧", Groceries:"🛒", "Kids/Activities":"🧸", Shopping:"🛍️", "Gifts & Donations":"🎁",
+  Health:"💊", Education:"🎓", Personal:"🧑", "Utilities/Phone":"💡", Subscriptions:"🔁", Entertainment:"🎬", "Dining Out":"🍽️", Remittance:"💱", Others:"📦",
   Salary:"💼", Dividends:"📈", Bonus:"🎁", Interest:"🏦", Gift:"🎀", Other:"❔"
 };
 function catIcon(cat){ return CAT_ICONS[cat] ? CAT_ICONS[cat]+" " : ""; }
@@ -504,6 +542,26 @@ function closeCatPicker(){
   document.getElementById("catPickerOverlay").style.display="none";
 }
 
+// ===== Add (+) entry point: Dashboard is the app's home screen; tapping the
+// floating + button is the only way to reach the Expense/Income/Net Worth
+// forms, which open as a full-screen view on top of Dashboard and return to
+// it on Save, Update, or Cancel =====
+function openAddPicker(){
+  document.getElementById("addPickerOverlay").style.display="flex";
+}
+function closeAddPicker(){
+  document.getElementById("addPickerOverlay").style.display="none";
+}
+function chooseAdd(kind){
+  closeAddPicker();
+  showMainTab(kind);
+}
+function closeAddForm(){
+  if(document.getElementById("netWorthView").style.display !== "none") cancelNWEdit();
+  else cancelEdit();
+  showMainTab("dashboard");
+}
+
 const payRow=document.getElementById("payRow");
 function renderPayRow(){
   payRow.innerHTML="";
@@ -568,11 +626,13 @@ function setFormType(type){
   document.getElementById("storeLabel").textContent = type==="expense" ? "Store / Merchant" : "Source";
   document.getElementById("fStore").placeholder = type==="expense" ? "e.g. Costco" : "e.g. Salary";
   document.getElementById("paymentSection").style.display = type==="expense" ? "block" : "none";
+  document.getElementById("entriesFormTitle").textContent = (editIndex!=null ? "Edit " : "Add ") + (type==="expense" ? "Expense" : "Income");
+  document.getElementById("fabAddBtn").style.display = "none";
   sel.cat=null; sel.pay = type==="expense" ? "Credit" : null;
   renderCatGrid(type);
   [...payRow.children].forEach(x=>x.classList.toggle("sel", x.textContent===sel.pay));
   updateSaveBtnLabel();
-  renderStoreChips();
+  hideStoreSuggestions();
 }
 
 // remembers which category was last used for a given store/source, so typing
@@ -592,7 +652,10 @@ function applyStoreCategory(storeName){
   const guess=guessCategoryForStore(storeName);
   if(guess) selectCategory(guess);
 }
-document.getElementById("fStore").addEventListener("input",(e)=>applyStoreCategory(e.target.value));
+document.getElementById("fStore").addEventListener("input",(e)=>{ applyStoreCategory(e.target.value); renderStoreSuggestions(); });
+document.getElementById("fStore").addEventListener("focus",()=>renderStoreSuggestions());
+document.getElementById("fStore").addEventListener("blur",()=>hideStoreSuggestions());
+document.getElementById("fStore").addEventListener("keydown",(e)=>{ if(e.key==="Escape") hideStoreSuggestions(); });
 
 // recent-store quick picks, scoped to the current expense/income mode
 const HIDDEN_CHIPS_KEY = nsKey("iexpense_hidden_chips_v1");
@@ -602,31 +665,53 @@ function hideChip(storeName){
   const hidden = loadHiddenChips();
   if(!hidden.includes(storeName)) hidden.push(storeName);
   saveHiddenChips(hidden);
-  renderStoreChips();
+  renderStoreSuggestions();
 }
 function unhideChip(storeName){
   const hidden = loadHiddenChips();
   const idx = hidden.indexOf(storeName);
   if(idx>=0){ hidden.splice(idx,1); saveHiddenChips(hidden); }
 }
-function renderStoreChips(){
-  const box=document.getElementById("storeChips"); box.innerHTML="";
+// ordered, hidden-filtered store history: real usage (most recent first) then
+// the default seeds — same source the old always-visible chip row used
+function storeHistoryList(){
   const hidden=loadHiddenChips();
   const seen=[]; const seenLower=new Set();
   [...entries].reverse().forEach(e=>{
     if((e.type||"expense")===formType && e.store && !seenLower.has(e.store.toLowerCase())){ seenLower.add(e.store.toLowerCase()); seen.push(e.store); }
   });
   if(formType==="expense") DEFAULT_STORES.forEach(s=>{ if(!seenLower.has(s.toLowerCase())){ seenLower.add(s.toLowerCase()); seen.push(s); } });
-  seen.filter(s=>!hidden.includes(s)).slice(0,8).forEach(s=>{
-    const wrap=document.createElement("div"); wrap.className="chip-wrap";
-    const b=document.createElement("button"); b.className="opt"; b.textContent=s;
-    b.onclick=()=>{ document.getElementById("fStore").value=s; applyStoreCategory(s); };
-    const x=document.createElement("button"); x.type="button"; x.className="chip-remove"; x.textContent="×";
-    x.setAttribute("aria-label","Remove "+s+" from quick picks");
-    x.onclick=(ev)=>{ ev.stopPropagation(); hideChip(s); };
-    wrap.appendChild(b); wrap.appendChild(x); box.appendChild(wrap);
-  });
+  return seen.filter(s=>!hidden.includes(s));
 }
+// type-ahead dropdown under Store/Merchant: prefix matches first, then
+// substring matches, so typing a couple of letters surfaces the right
+// merchant without ever showing an always-visible wall of buttons
+function renderStoreSuggestions(){
+  const box=document.getElementById("storeSuggest");
+  const query=document.getElementById("fStore").value.trim().toLowerCase();
+  const source=storeHistoryList();
+  let matches;
+  if(!query){ matches=source; }
+  else{
+    const starts=source.filter(s=>s.toLowerCase().startsWith(query));
+    const contains=source.filter(s=>!s.toLowerCase().startsWith(query) && s.toLowerCase().includes(query));
+    matches=[...starts,...contains];
+  }
+  matches=matches.slice(0,6);
+  if(!matches.length){ box.style.display="none"; box.innerHTML=""; return; }
+  box.innerHTML = matches.map(s=>`<div class="store-suggest-row" data-store="${s.replace(/"/g,"&quot;")}">
+    <span class="ssr-label">${s}</span>
+    <button type="button" class="ssr-remove" aria-label="Remove ${s} from suggestions">×</button>
+  </div>`).join("");
+  [...box.children].forEach(row=>{
+    row.addEventListener("mousedown",e=>e.preventDefault()); // keep #fStore focused so tapping a row never blurs (and hides) the dropdown first
+    const s=row.dataset.store;
+    row.querySelector(".ssr-label").onclick=()=>{ document.getElementById("fStore").value=s; applyStoreCategory(s); hideStoreSuggestions(); };
+    row.querySelector(".ssr-remove").onclick=(ev)=>{ ev.stopPropagation(); hideChip(s); };
+  });
+  box.style.display="block";
+}
+function hideStoreSuggestions(){ document.getElementById("storeSuggest").style.display="none"; }
 
 // the home page only ever shows TODAY's entries, so it stays a short, bounded
 // list no matter how much history piles up; everything else lives in
@@ -648,7 +733,7 @@ function renderList(){
   const monthPrefix = today.slice(0,7);
   const monthSum = entries.filter(e=>(e.type||"expense")==="expense" && e.date && e.date.slice(0,7)===monthPrefix).reduce((s,e)=>s+Number(e.amount||0),0);
   document.getElementById("monthTotal").textContent = fmtUSD(monthSum);
-  renderStoreChips();
+  hideStoreSuggestions();
 }
 
 function isDuplicate(candidate, skipIdx){
@@ -687,6 +772,7 @@ async function saveEntry(){
     toast("Saved ✓");
   }
   resetForm();
+  showMainTab("dashboard");
 
   if(cloudCfg){
     try{
@@ -951,6 +1037,7 @@ async function saveNW(){
     toast("Saved ✓");
   }
   resetNWForm();
+  showMainTab("dashboard");
 
   if(cloudCfg){
     try{
@@ -1112,7 +1199,7 @@ async function cloudConnect(){
 }
 
 async function cloudSyncNow(){
-  if(!cloudCfg){ toast("Connect Cloud Sync first (scroll down)","var(--amber)"); return; }
+  if(!cloudCfg){ toast("Connect Cloud Sync first (on Dashboard)","var(--amber)"); return; }
   toast("Syncing…","var(--amber)");
   try{
     const merged = await cloudSyncMutation(remote=>unionMerge(remote, entries));
@@ -1170,11 +1257,14 @@ function showNetWorth(){
   document.getElementById("tabIncomeBtn").classList.remove("sel");
   document.getElementById("tabNetWorthBtn").classList.add("sel");
   document.getElementById("tabDashboardBtn").classList.remove("sel");
+  document.getElementById("fabAddBtn").style.display = "none";
   renderNWItemList();
   renderNWItemChips();
 }
 
-// ===== Dashboard: all data computed entirely client-side from synced entries =====
+// ===== Dashboard: all data computed entirely client-side from synced entries.
+// Dashboard is the app's permanent home screen — the floating + button is the
+// only way to reach the Expense/Income/Net Worth forms (see openAddPicker). =====
 function showMainTab(tab){
   if(tab==="dashboard"){
     document.getElementById("entriesView").style.display = "none";
@@ -1184,6 +1274,7 @@ function showMainTab(tab){
     document.getElementById("tabIncomeBtn").classList.remove("sel");
     document.getElementById("tabNetWorthBtn").classList.remove("sel");
     document.getElementById("tabDashboardBtn").classList.add("sel");
+    document.getElementById("fabAddBtn").style.display = "flex";
     renderDashboard();
   } else if(tab==="networth"){
     showNetWorth();
@@ -1792,6 +1883,7 @@ if(IS_DEV_PREVIEW){
   try{ saved = localStorage.getItem(nsKey("iexpense_theme")) || "dark"; }catch(e){}
   setTheme(saved);
 })();
+showMainTab("dashboard"); // Dashboard is the app's home screen; the + button is the only way to log an expense/income/net worth entry
 </script>
 </body>
 </html>
