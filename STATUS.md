@@ -1189,3 +1189,48 @@ rounds back that still referenced the old always-visible category
 grid). Verified visually with screenshots of the new Dashboard home
 screen, the Add picker, the reordered form with live merchant
 suggestions, and the category picker showing all 6 new categories.
+
+## Round 43 (2026-07-26, Net Worth category search, Dashboard tab reorder, a real Backup/Excel-export bug fix)
+
+Three pieces of feedback from actually testing last round's release.
+
+**A real bug, not a cache issue this time.** You reported still not
+seeing the Excel export button on the dev link. Traced it down: a
+Round 16 decision hides the *entire* Backup section on dev (since dev
+has its own Cloud Sync, the old JSON Backup/Restore felt redundant
+there) — but that section now also holds the brand-new Excel export
+button, so hiding the whole thing meant there was no way to test Excel
+export on dev at all, and it's not on production yet either. Fixed by
+splitting the two: JSON Backup/Restore still hides on dev exactly as
+before, but Excel export now always stays visible on both dev and
+production.
+
+**Net Worth's Category field** is now the same collapsed field +
+full-screen picker as Expense/Income categories got two rounds ago —
+plus a live search box at the top, so typing a couple of letters (e.g.
+"ret") filters straight to "Retirement (401k/IRA)" instead of scanning
+a button grid. Same prefix-then-substring search rule as the Merchant
+autocomplete. Editing an existing item, tapping a quick-pick chip, and
+saving all still preselect and carry the right category exactly as
+before — only the picker's presentation changed.
+
+**Dashboard sub-tabs reordered**: Monthly Detail is now the landing
+view when Dashboard opens (it's the highest-traffic screen — checking
+and adding this month's expenses), "Overview" is relabeled "Summary",
+and the final order is Monthly Detail → Summary → Net Worth.
+
+Tested with 2 new dedicated test files (12 checks for the Net Worth
+picker — opens as a searchable list not a grid, prefix and substring
+search both work, save/edit round-trip the right category — and 12
+more for the tab reorder — correct order and labels, Monthly is the
+landing view both on first load and after a reload, switching between
+all three sub-tabs still works) plus migrating all 24 existing test
+files that assumed the old grid or the old Overview-as-default behavior
+(confirmed via grep, same mechanical one-file-at-a-time style as every
+prior picker/nav rollout) — full suite re-run and green. Also did a
+manual usability pass per your request: seeded a realistic 240-entry,
+12-month, 8-account dataset directly into a local test session (never
+touched any committed file or the real data repos) and clicked through
+Dashboard, Summary, Net Worth, adding an expense with the merchant
+autocomplete, and searching the new Net Worth category picker — all
+correct and responsive at that scale, confirmed with screenshots.
