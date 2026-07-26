@@ -1096,3 +1096,32 @@ unrelated stale test fixture along the way and refreshed it. Full
 regression suite (26 files, 450+ checks) all green; verified visually
 in both themes, including the checkmark showing correctly when
 reopening the picker on an already-chosen category.
+
+## Round 41 (2026-07-26, Excel report export)
+
+The same SpendCheck screenshots also showed a one-tap "export everything
+to Excel" feature, so you asked for the equivalent alongside the
+existing JSON backup.
+
+Added an **"Export Excel report (.xlsx)"** button in the Backup section.
+One tap downloads a multi-sheet workbook: Monthly Summary (income,
+expenses, net savings, savings rate per month), Category Breakdown
+(each category's spend per month plus a total column), All Entries
+(every expense/income line item), and — when you have net worth data —
+Net Worth (Current) and Net Worth History sheets. Built client-side with
+SheetJS, no server involved, same as the rest of the app.
+
+One honest caveat: a lightweight client-side library like this can't
+generate native embedded Excel charts the way a full desktop app can —
+so instead of faking that, the export gives you clean, well-labeled
+tabular data across all those sheets that you can pivot or chart
+yourself in Excel in a couple of clicks. Said so plainly in a caption
+under the button rather than overselling it.
+
+Tested with 14 new checks (stubbing the SheetJS CDN, since it's blocked
+in this sandbox the same way Chart.js is) confirming every sheet is
+created with the right data — monthly totals, category totals, entry
+fields, net worth values — and that the file downloads with a dated
+filename, plus a full re-run of the existing regression suite (30+
+files) — all green. Verified visually with a screenshot of the new
+button's placement in the Backup section.
