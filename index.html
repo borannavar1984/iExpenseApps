@@ -188,18 +188,15 @@
 
 <div id="entriesView">
 
-<div class="label">Date</div>
-<input type="date" id="fDate">
-
-<div class="label">Category</div>
-<div class="grid" id="catGrid"></div>
-
 <div class="label">Amount</div>
-<div class="amount-wrap"><input type="tel" id="fAmount" inputmode="decimal" placeholder="0.00"></div>
+<div class="amount-wrap"><input type="tel" id="fAmount" inputmode="decimal" placeholder="0.00" autofocus></div>
 
 <div class="label" id="storeLabel">Store / Merchant</div>
 <input type="text" id="fStore" placeholder="e.g. Costco" autocomplete="off">
 <div class="chip-row" id="storeChips" style="margin-top:8px"></div>
+
+<div class="label">Date</div>
+<input type="date" id="fDate">
 
 <div id="paymentSection">
   <div class="label">Payment Method</div>
@@ -208,6 +205,9 @@
 
 <div class="label">Note (optional)</div>
 <input type="text" id="fNote" placeholder="">
+
+<div class="label">Category</div>
+<div class="grid" id="catGrid"></div>
 
 <div class="row2">
   <button class="btn btn-save" id="saveBtn" onclick="saveEntry()">Save Expense</button>
