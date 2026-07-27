@@ -1266,3 +1266,43 @@ that used the old chip buttons, and a full regression re-run — all
 green. Verified visually with a screenshot showing "Cash & Bank" picked
 and typing "w" correctly surfacing only "Wells Fargo Checking," not the
 401k from a different category.
+
+## Round 45 (2026-07-27, promote Rounds 39-44 to production + refresh dev from prod)
+
+Everything approved on `develop` since the last production push is now
+live on `main`: entry-form reorder (Amount first), the searchable
+category picker for Expense/Income, Excel report export, the
+Add-button/Dashboard-home redesign with merchant autocomplete and 6 new
+categories, the Backup-section bug fix that was hiding the Excel export
+button on `/dev/`, the Net Worth category picker, and the Net Worth
+Item Name search scoped by category — plus the Dashboard tab reorder
+(Monthly Detail lands first, "Overview" renamed "Summary", Net Worth
+last).
+
+Promoted with the same dry-run-first process as every prior release: a
+throwaway clone merged `origin/develop` into `origin/main` first to
+confirm there'd be no surprises (the only conflict, in STATUS.md, was
+resolved the usual way — keep develop's fuller history), then the
+identical merge was repeated for real and pushed to `main`. A `diff`
+confirmed the dry-run and the real merge produced byte-identical
+`index.html`.
+
+Before pushing anything live, the merged build was loaded with a real
+copy of production's actual data (148 entries, 26 net worth items —
+restored through the app's own restore mechanism, not synthetic test
+data) and checked end-to-end: all entries load, Dashboard lands on
+Monthly Detail, Summary totals match the real numbers exactly, no
+NaN/undefined anywhere, the new categories are present, Net Worth's US
+region and category/item pickers work correctly against real accounts
+(computed to a real net worth of $421,079), and the Excel export button
+is visible. 12/12 checks passed before the merge went out.
+
+Production's underlying financial data was never touched by this — the
+promotion is a code-only change to the `iExpenseApps` repo, completely
+separate from the `expense-data` data repo. Confirmed via `git status`
+and `git log` on the data repo that nothing there moved.
+
+Afterward, re-ran the production→dev sync so dev has everything prod
+has: 0 entries and 0 net worth items missing from dev in either
+direction, beyond the already-known, intentionally-untouched dev-only
+extras from earlier rounds.
