@@ -1234,3 +1234,35 @@ touched any committed file or the real data repos) and clicked through
 Dashboard, Summary, Net Worth, adding an expense with the merchant
 autocomplete, and searching the new Net Worth category picker — all
 correct and responsive at that scale, confirmed with screenshots.
+
+## Round 44 (2026-07-26, Net Worth Item Name search, scoped by category)
+
+One more Net Worth follow-up: the Item Name field still showed every
+account/asset you've ever logged as a row of always-visible chip
+buttons, the same clutter the Merchant field had before its own
+autocomplete. Same fix applied here:
+
+- **Item Name is now a live search field**, not a chip row. Focus it
+  and your recent items show up; type a couple of letters and it
+  filters live (prefix match first, then substring), same rule as the
+  Merchant autocomplete. Each suggestion has a small × to hide it from
+  future suggestions without touching any history.
+- **Scoped to whichever category you picked.** Select "Cash & Bank"
+  first, and only your bank items show up when you search Item Name —
+  not your 401k, not your house, just your banks. Pick a different
+  category and the list re-scopes automatically.
+- **Category now comes first, Item Name second** — matching how you
+  described wanting to work: pick the category, then search within it.
+  Date moved to third; Asset Region, Current Value, and Growth Rate
+  keep their existing order after that. Picking a suggested item still
+  auto-fills its currency and growth rate from its latest entry, same
+  as before.
+
+Tested with a new 13-check test file (field order, the old chip row is
+gone, category-scoped filtering both ways, prefix search, prefill
+correctness, hide-a-suggestion persists across reload, a brand-new item
+name still saves as free text) plus migrating the one existing test
+that used the old chip buttons, and a full regression re-run — all
+green. Verified visually with a screenshot showing "Cash & Bank" picked
+and typing "w" correctly surfacing only "Wells Fargo Checking," not the
+401k from a different category.
