@@ -269,9 +269,6 @@
   <div class="cat-picker-title">Update Net Worth</div>
 </div>
 
-<div class="label">Date</div>
-<input type="date" id="nwDate">
-
 <div class="label">Category</div>
 <button type="button" class="cat-field" id="nwCatFieldBtn" onclick="openNWCatPicker()">
   <span class="cpr-icon" id="nwCatFieldIcon"></span>
@@ -280,8 +277,13 @@
 </button>
 
 <div class="label">Item Name</div>
-<input type="text" id="nwItem" placeholder="e.g. Fidelity 401k" autocomplete="off">
-<div class="chip-row" id="nwItemChips" style="margin-top:8px"></div>
+<div class="store-field-wrap">
+  <input type="text" id="nwItem" placeholder="e.g. Fidelity 401k" autocomplete="off">
+  <div class="store-suggest" id="nwItemSuggest" style="display:none"></div>
+</div>
+
+<div class="label">Date</div>
+<input type="date" id="nwDate">
 
 <div class="label">Asset Region</div>
 <div class="chip-row" id="nwCurrencyRow"></div>
@@ -973,17 +975,67 @@ function exportExcel(){
   toast("Excel report downloaded");
 }
 
-// ===== Net Worth: quick-pick chips for previously-used item names, so logging
-// a monthly update is just tap-the-chip + type-the-new-value =====
-function renderNWItemChips(){
-  const box=document.getElementById("nwItemChips"); box.innerHTML="";
-  const seen=[]; [...nwEntries].reverse().forEach(e=>{ if(e.item && !seen.includes(e.item)) seen.push(e.item); });
-  seen.slice(0,8).forEach(item=>{
-    const b=document.createElement("button"); b.className="opt"; b.textContent=item;
-    b.onclick=()=>{ document.getElementById("nwItem").value=item; nwPrefillFromLatest(item); };
-    box.appendChild(b);
-  });
+// ===== Net Worth: Item Name type-ahead, same pattern as the Merchant
+// autocomplete — search-as-you-type instead of a wall of chip buttons, and
+// scoped to whichever category is currently selected (pick "Cash & Bank"
+// first and only your bank items show up when you start typing) =====
+const NW_HIDDEN_ITEMS_KEY = nsKey("iexpense_nw_hidden_items_v1");
+function loadNWHiddenItems(){ try{ return JSON.parse(localStorage.getItem(NW_HIDDEN_ITEMS_KEY)||"[]"); }catch(e){ return []; } }
+function saveNWHiddenItems(list){ try{ localStorage.setItem(NW_HIDDEN_ITEMS_KEY, JSON.stringify(list)); }catch(e){} }
+function nwHideItem(item){
+  const hidden = loadNWHiddenItems();
+  if(!hidden.includes(item)) hidden.push(item);
+  saveNWHiddenItems(hidden);
+  renderNWItemSuggestions();
 }
+function nwUnhideItem(item){
+  const hidden = loadNWHiddenItems();
+  const idx = hidden.indexOf(item);
+  if(idx>=0){ hidden.splice(idx,1); saveNWHiddenItems(hidden); }
+}
+// ordered, hidden-filtered item history for the currently selected category
+// (falls back to every category if none is picked yet)
+function nwItemHistoryList(){
+  const hidden = loadNWHiddenItems();
+  const seen=[]; const seenLower=new Set();
+  [...nwEntries].reverse().forEach(e=>{
+    if(!e.item) return;
+    if(nwSel.cat && e.category!==nwSel.cat) return;
+    if(!seenLower.has(e.item.toLowerCase())){ seenLower.add(e.item.toLowerCase()); seen.push(e.item); }
+  });
+  return seen.filter(item=>!hidden.includes(item));
+}
+function renderNWItemSuggestions(){
+  const box=document.getElementById("nwItemSuggest");
+  const query=document.getElementById("nwItem").value.trim().toLowerCase();
+  const source=nwItemHistoryList();
+  let matches;
+  if(!query){ matches=source; }
+  else{
+    const starts=source.filter(s=>s.toLowerCase().startsWith(query));
+    const contains=source.filter(s=>!s.toLowerCase().startsWith(query) && s.toLowerCase().includes(query));
+    matches=[...starts,...contains];
+  }
+  matches=matches.slice(0,6);
+  if(!matches.length){ box.style.display="none"; box.innerHTML=""; return; }
+  box.innerHTML = matches.map(s=>`<div class="store-suggest-row" data-item="${s.replace(/"/g,"&quot;")}">
+    <span class="ssr-label">${s}</span>
+    <button type="button" class="ssr-remove" aria-label="Remove ${s} from suggestions">×</button>
+  </div>`).join("");
+  [...box.children].forEach(row=>{
+    row.addEventListener("mousedown",e=>e.preventDefault());
+    const s=row.dataset.item;
+    row.querySelector(".ssr-label").onclick=()=>{ document.getElementById("nwItem").value=s; nwPrefillFromLatest(s); hideNWItemSuggestions(); };
+    row.querySelector(".ssr-remove").onclick=(ev)=>{ ev.stopPropagation(); nwHideItem(s); };
+  });
+  box.style.display="block";
+}
+function hideNWItemSuggestions(){ document.getElementById("nwItemSuggest").style.display="none"; }
+document.getElementById("nwItem").addEventListener("input",()=>renderNWItemSuggestions());
+document.getElementById("nwItem").addEventListener("focus",()=>renderNWItemSuggestions());
+document.getElementById("nwItem").addEventListener("blur",()=>hideNWItemSuggestions());
+document.getElementById("nwItem").addEventListener("keydown",(e)=>{ if(e.key==="Escape") hideNWItemSuggestions(); });
+
 function nwLatestForItem(itemName){
   const matches = nwEntries.filter(e=>e.item===itemName);
   if(!matches.length) return null;
@@ -1040,7 +1092,7 @@ function resetNWForm(){
   nwSelectCurrency("USD");
   document.getElementById("nwSaveBtn").textContent="Save Net Worth Entry";
   renderNWItemList();
-  renderNWItemChips();
+  hideNWItemSuggestions();
 }
 
 function cancelNWEdit(){
@@ -1111,7 +1163,7 @@ async function delNWItem(itemName, evt){
   nwEntries = nwEntries.filter(e=>e.item!==itemName);
   persistNW();
   if(nwEditIndex!==null && !nwEntries[nwEditIndex]) cancelNWEdit();
-  else { renderNWItemList(); renderNWItemChips(); }
+  else renderNWItemList();
 
   if(cloudCfg){
     try{
@@ -1245,7 +1297,7 @@ async function cloudConnect(){
     nwEntries = nwMerged;
     persistNW();
     renderNWItemList();
-    renderNWItemChips();
+    renderNWItemSuggestions();
   }catch(err){ /* net worth cloud sync failed silently; core connect above already succeeded */ }
 }
 
@@ -1266,7 +1318,7 @@ async function cloudSyncNow(){
   // result above, which already reflects the core expense/income sync
   try{
     const nwMerged = await nwCloudSyncMutation(remote=>unionMerge(remote, nwEntries));
-    nwEntries = nwMerged; persistNW(); renderNWItemList(); renderNWItemChips();
+    nwEntries = nwMerged; persistNW(); renderNWItemList(); renderNWItemSuggestions();
   }catch(err){ /* best-effort */ }
 }
 
@@ -1296,7 +1348,7 @@ async function cloudPullOnLoad(){
   try{
     const { entries: nwRemote } = await cloudFetchRemote(cloudCfg, "networth.json");
     const nwMerged = unionMerge(nwRemote, nwEntries);
-    nwEntries = nwMerged; persistNW(); renderNWItemList(); renderNWItemChips();
+    nwEntries = nwMerged; persistNW(); renderNWItemList(); renderNWItemSuggestions();
   }catch(err){ /* best-effort */ }
 }
 
@@ -1310,7 +1362,7 @@ function showNetWorth(){
   document.getElementById("tabDashboardBtn").classList.remove("sel");
   document.getElementById("fabAddBtn").style.display = "none";
   renderNWItemList();
-  renderNWItemChips();
+  hideNWItemSuggestions();
 }
 
 // ===== Dashboard: all data computed entirely client-side from synced entries.
@@ -1916,7 +1968,6 @@ renderNWCurrencyRow();
 renderNWDisplayCurrencyRow();
 document.getElementById("nwDate").value=todayStr(); document.getElementById("nwDate").max=todayStr();
 renderNWItemList();
-renderNWItemChips();
 if(cloudCfg){
   document.getElementById("cloudSetup").style.display="none";
   document.getElementById("cloudControls").style.display="block";
