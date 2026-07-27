@@ -1306,3 +1306,45 @@ Afterward, re-ran the production→dev sync so dev has everything prod
 has: 0 entries and 0 net worth items missing from dev in either
 direction, beyond the already-known, intentionally-untouched dev-only
 extras from earlier rounds.
+
+## Round 46 (2026-07-27, real native charts in the Excel export)
+
+The Excel report export used to be raw data only — you'd have to build
+your own charts in Excel by hand. Now the exported `.xlsx` opens
+straight to a new "Charts" sheet with real, editable Excel chart
+objects (not pictures) built right in:
+
+- **Monthly Income vs Expenses** (bar) and **Net Savings Trend**
+  (line), from the Monthly Summary sheet.
+- **Category Breakdown** (bar), from the Category Breakdown sheet.
+- **Net Worth by Category** (pie) and **Net Worth Trend** (line) — one
+  pair per currency you actually use (e.g. one for USD, one for INR),
+  rather than adding them together, since combining currencies without
+  a live same-day exchange rate would misreport the total. This is the
+  same reasoning the app's own Net Worth region tabs already use.
+
+These are genuine Excel chart objects that reference the live cells in
+the data sheets — edit a number in "Monthly Summary" and the chart
+updates, the same as if you'd built it yourself with Excel's own
+Insert > Chart.
+
+Why this needed custom work: neither the free SheetJS build already
+used for the export, nor ExcelJS, can write chart objects — that's a
+documented gap in both, not something a settings flag turns on. Since
+an `.xlsx` file is just a zip of XML parts, the fix builds the chart
+XML by hand (the same DrawingML format real Excel writes) and splices
+it into the workbook via JSZip after SheetJS builds the data sheets.
+If JSZip ever fails to load, the export still falls back to the
+previous plain, chartless file rather than breaking the button.
+
+Verified two ways: openpyxl (an independent, real-world-tested Python
+Excel library, not anything used to build the feature) opened the
+generated file and correctly read back all 7 charts — right types,
+right titles, right cell references, right data — and a full
+regression pass covered a zero-data account, a single-currency
+account, and JSZip failing to load, confirming a plain-but-valid file
+still downloads in every case rather than an error. The existing
+Round 41 Excel export test was updated for the new delivery path (a
+real file download instead of always calling `XLSX.writeFile`
+directly) and still passes. Ships to `develop` only — production
+promotion is a separate step, same as every other round.
