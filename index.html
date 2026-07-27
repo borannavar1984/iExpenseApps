@@ -15,6 +15,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
   /* Warm, rounded theme — a vibrant lime primary accent + deep forest-green
      secondary, on a soft cream (light) / warm near-black (dark) surface,
@@ -924,19 +925,36 @@ function restoreData(evt){
   reader.readAsText(file);
 }
 
-// ===== Excel report export: a multi-sheet .xlsx alongside the JSON backup.
-// SheetJS is a lightweight data-only library — it can't draw native Excel
-// charts, so instead of faking that, each sheet is clean tabular data the
-// user can pivot/chart themselves in Excel. =====
-function exportExcel(){
+// ===== Excel report export: a multi-sheet .xlsx with real, native Excel
+// charts — not static pictures — spliced into the workbook via JSZip.
+// Neither the free SheetJS build nor ExcelJS can write chart objects, so
+// after SheetJS builds the data sheets, injectChartsIntoWorkbook() adds the
+// chart XML parts (DrawingML) by hand, referencing live cells in those
+// sheets. Because they're live references, editing a number in the sheet
+// updates the chart in Excel — this is the same kind of chart object you'd
+// get from Excel's own Insert > Chart, just built without Excel. =====
+async function exportExcel(){
   if(typeof XLSX==="undefined"){ toast("Excel library couldn't load — check your connection","var(--red)"); return; }
 
   const months = allMonths();
   const monthRows = months.map(m=>({ m, ...monthTotals(m) }));
+  const chartsData = []; // {title, kind:'bar'|'line'|'pie', sheet, catCol, valCols:[{col,name}], firstRow, lastRow}
+
+  const wb = XLSX.utils.book_new();
+  // "Charts" is appended first so it's the sheet Excel opens to by default —
+  // the same idea as the app's own Dashboard-as-home redesign.
+  const chartsSheet = XLSX.utils.aoa_to_sheet([["iExpense Report — Charts"]]);
+  XLSX.utils.book_append_sheet(wb, chartsSheet, "Charts");
+
   const summarySheet = XLSX.utils.aoa_to_sheet([
     ["Month","Income","Expenses","Net Savings","Savings Rate"],
     ...monthRows.map(t=>[monthLabel(t.m), Number(t.income.toFixed(2)), Number(t.expenses.toFixed(2)), Number(t.net.toFixed(2)), Number((t.rate*100).toFixed(1))+"%"])
   ]);
+  XLSX.utils.book_append_sheet(wb, summarySheet, "Monthly Summary");
+  if(months.length){
+    chartsData.push({ title:"Monthly Income vs Expenses", kind:"bar", sheet:"Monthly Summary", catCol:"A", valCols:[{col:"B"},{col:"C"}], firstRow:2, lastRow:1+months.length });
+    chartsData.push({ title:"Net Savings Trend", kind:"line", sheet:"Monthly Summary", catCol:"A", valCols:[{col:"D"}], firstRow:2, lastRow:1+months.length });
+  }
 
   const allCats = [...new Set(entries.filter(e=>(e.type||"expense")==="expense").map(e=>e.category))];
   const catRows = allCats.map(cat=>{
@@ -948,15 +966,16 @@ function exportExcel(){
     ["Category", ...months.map(monthLabel), "Total"],
     ...catRows.map(r=>[r.cat, ...r.perMonth.map(v=>Number(v.toFixed(2))), Number(r.total.toFixed(2))])
   ]);
+  XLSX.utils.book_append_sheet(wb, categorySheet, "Category Breakdown");
+  if(catRows.length){
+    const totalCol = XLSX.utils.encode_col(1+months.length);
+    chartsData.push({ title:"Category Breakdown", kind:"bar", sheet:"Category Breakdown", catCol:"A", valCols:[{col:totalCol}], firstRow:2, lastRow:1+catRows.length });
+  }
 
   const entriesSheet = XLSX.utils.json_to_sheet([...entries].sort((a,b)=>(a.date||"")<(b.date||"")?-1:1).map(e=>({
     Date:e.date, Type:e.type||"expense", Category:e.category, Amount:Number(e.amount||0),
     Store:e.store||"", Payment:e.payment||"", Note:e.note||""
   })));
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, summarySheet, "Monthly Summary");
-  XLSX.utils.book_append_sheet(wb, categorySheet, "Category Breakdown");
   XLSX.utils.book_append_sheet(wb, entriesSheet, "All Entries");
 
   if(nwEntries.length){
@@ -969,10 +988,113 @@ function exportExcel(){
     })));
     XLSX.utils.book_append_sheet(wb, nwCurrentSheet, "Net Worth (Current)");
     XLSX.utils.book_append_sheet(wb, nwHistorySheet, "Net Worth History");
+
+    // one "by category" + one "trend" chart per currency actually in use.
+    // Net worth items can be logged in different currencies (e.g. USD and
+    // INR accounts) and summing them without a live same-day FX rate would
+    // misreport the total, so each currency gets its own honest,
+    // unconverted chart instead of a guessed combined number.
+    const currencies = [...new Set(nwEntries.map(e=>e.currency||"USD"))].sort();
+    const nwMonths = nwAllMonths();
+    currencies.forEach(cur=>{
+      const byCat = {};
+      nwLatestPerItem().forEach(({e})=>{ if((e.currency||"USD")===cur) byCat[e.category]=(byCat[e.category]||0)+Number(e.value||0); });
+      const catEntries = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+      if(catEntries.length){
+        const sheetName = `NW by Category (${cur})`.slice(0,31);
+        const sheet = XLSX.utils.aoa_to_sheet([["Category","Value"], ...catEntries.map(([cat,val])=>[cat, Number(val.toFixed(2))])]);
+        XLSX.utils.book_append_sheet(wb, sheet, sheetName);
+        chartsData.push({ title:`Net Worth by Category (${cur})`, kind:"pie", sheet:sheetName, catCol:"A", valCols:[{col:"B"}], firstRow:2, lastRow:1+catEntries.length });
+      }
+      const trendRows = nwMonths.map(m=>({ m, ...nwValueAsOf(m, cur, null, cur) }));
+      if(trendRows.length){
+        const sheetName = `NW Trend (${cur})`.slice(0,31);
+        const sheet = XLSX.utils.aoa_to_sheet([["Month","Net Worth"], ...trendRows.map(t=>[monthLabel(t.m), Number(t.net.toFixed(2))])]);
+        XLSX.utils.book_append_sheet(wb, sheet, sheetName);
+        chartsData.push({ title:`Net Worth Trend (${cur})`, kind:"line", sheet:sheetName, catCol:"A", valCols:[{col:"B"}], firstRow:2, lastRow:1+trendRows.length });
+      }
+    });
   }
 
-  XLSX.writeFile(wb, `iexpense_report_${todayStr().replace(/-/g,"")}.xlsx`);
-  toast("Excel report downloaded");
+  const filename = `iexpense_report_${todayStr().replace(/-/g,"")}.xlsx`;
+  const buffer = XLSX.write(wb, { type:"array", bookType:"xlsx" });
+  try{
+    await injectChartsIntoWorkbook(buffer, chartsData, filename);
+    toast("Excel report downloaded");
+  }catch(err){
+    console.error("chart embedding failed, falling back to plain export", err);
+    XLSX.writeFile(wb, filename);
+    toast("Excel report downloaded (charts unavailable)","var(--red)");
+  }
+}
+
+function escXml(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+// builds one DrawingML chart part (chartN.xml) referencing live cells —
+// categories/values are read fresh from the sheet every time Excel opens
+// or recalculates, so these charts stay in sync if the data is edited
+function buildChartXml(c){
+  const titleXml = `<title><tx><rich><a:bodyPr/><a:p><a:pPr><a:defRPr/></a:pPr><a:r><a:t>${escXml(c.title)}</a:t></a:r></a:p></rich></tx></title>`;
+  const catRef = `'${c.sheet}'!$${c.catCol}$${c.firstRow}:$${c.catCol}$${c.lastRow}`;
+  if(c.kind==="pie"){
+    const v = c.valCols[0];
+    const valRef = `'${c.sheet}'!$${v.col}$${c.firstRow}:$${v.col}$${c.lastRow}`;
+    return `<chartSpace xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns="http://schemas.openxmlformats.org/drawingml/2006/chart"><chart>${titleXml}<plotArea><pieChart><varyColors val="1"/><ser><idx val="0"/><order val="0"/><tx><strRef><f>'${c.sheet}'!$${v.col}$1</f></strRef></tx><spPr><a:ln><a:prstDash val="solid"/></a:ln></spPr><cat><numRef><f>${catRef}</f></numRef></cat><val><numRef><f>${valRef}</f></numRef></val></ser><firstSliceAng val="0"/></pieChart></plotArea><legend><legendPos val="r"/></legend><plotVisOnly val="1"/><dispBlanksAs val="gap"/></chart></chartSpace>`;
+  }
+  const isLine = c.kind==="line";
+  const serXml = c.valCols.map((v,i)=>`<ser><idx val="${i}"/><order val="${i}"/><tx><strRef><f>'${c.sheet}'!$${v.col}$1</f></strRef></tx><spPr><a:ln><a:prstDash val="solid"/></a:ln></spPr>${isLine?'<marker><symbol val="none"/><spPr><a:ln><a:prstDash val="solid"/></a:ln></spPr></marker>':""}<cat><numRef><f>${catRef}</f></numRef></cat><val><numRef><f>'${c.sheet}'!$${v.col}$${c.firstRow}:$${v.col}$${c.lastRow}</f></numRef></val></ser>`).join("");
+  const bodyChart = isLine
+    ? `<lineChart><grouping val="standard"/>${serXml}<axId val="10"/><axId val="100"/></lineChart>`
+    : `<barChart><barDir val="col"/><grouping val="clustered"/>${serXml}<gapWidth val="150"/><axId val="10"/><axId val="100"/></barChart>`;
+  return `<chartSpace xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns="http://schemas.openxmlformats.org/drawingml/2006/chart"><chart>${titleXml}<plotArea>${bodyChart}<catAx><axId val="10"/><scaling><orientation val="minMax"/></scaling><axPos val="l"/><majorTickMark val="none"/><minorTickMark val="none"/><crossAx val="100"/><lblOffset val="100"/></catAx><valAx><axId val="100"/><scaling><orientation val="minMax"/></scaling><axPos val="l"/><majorGridlines/><majorTickMark val="none"/><minorTickMark val="none"/><crossAx val="10"/></valAx></plotArea><legend><legendPos val="r"/></legend><plotVisOnly val="1"/><dispBlanksAs val="gap"/></chart></chartSpace>`;
+}
+
+// splices chart parts into the SheetJS-built .xlsx zip, wires them to the
+// "Charts" sheet via a single drawing, and triggers the download
+async function injectChartsIntoWorkbook(buffer, chartsData, filename){
+  if(!chartsData.length || typeof JSZip==="undefined"){
+    downloadBlob(new Blob([buffer], { type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), filename);
+    return;
+  }
+  const zip = await JSZip.loadAsync(buffer);
+
+  // find which physical worksheet file backs the "Charts" sheet by name —
+  // never assume it's sheet1.xml just because it was appended first
+  const wbDoc = new DOMParser().parseFromString(await zip.file("xl/workbook.xml").async("string"), "application/xml");
+  const sheetEl = [...wbDoc.getElementsByTagName("sheet")].find(s=>s.getAttribute("name")==="Charts");
+  const rid = sheetEl.getAttributeNS("http://schemas.openxmlformats.org/officeDocument/2006/relationships","id");
+  const relsDoc = new DOMParser().parseFromString(await zip.file("xl/_rels/workbook.xml.rels").async("string"), "application/xml");
+  const relEl = [...relsDoc.getElementsByTagName("Relationship")].find(r=>r.getAttribute("Id")===rid);
+  const target = relEl.getAttribute("Target").replace(/^\//,"");
+  const sheetPath = target.startsWith("xl/") ? target : `xl/${target}`;
+  const sheetFile = sheetPath.split("/").pop();
+
+  chartsData.forEach((c,i)=>zip.file(`xl/charts/chart${i+1}.xml`, buildChartXml(c)));
+
+  const CX=7200000, CY=3200000, ROW_GAP=22; // ~7.9in x 3.5in each, stacked with room to spare
+  const anchors = chartsData.map((c,i)=>`<oneCellAnchor><from><col>0</col><colOff>0</colOff><row>${1+i*ROW_GAP}</row><rowOff>0</rowOff></from><ext cx="${CX}" cy="${CY}"/><graphicFrame><nvGraphicFramePr><cNvPr id="${i+1}" name="Chart ${i+1}"/><cNvGraphicFramePr/></nvGraphicFramePr><xfrm/><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/chart"><c:chart r:id="rId${i+1}"/></a:graphicData></a:graphic></graphicFrame><clientData/></oneCellAnchor>`).join("");
+  zip.file("xl/drawings/drawing1.xml", `<wsDr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing">${anchors}</wsDr>`);
+  zip.file("xl/drawings/_rels/drawing1.xml.rels", `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${chartsData.map((c,i)=>`<Relationship Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart" Target="/xl/charts/chart${i+1}.xml" Id="rId${i+1}"/>`).join("")}</Relationships>`);
+
+  zip.file(`xl/worksheets/_rels/${sheetFile}.rels`, `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="/xl/drawings/drawing1.xml" Id="rId1"/></Relationships>`);
+  const sheetXml = await zip.file(sheetPath).async("string");
+  zip.file(sheetPath, sheetXml.replace("</worksheet>", `<drawing r:id="rId1"/></worksheet>`));
+
+  const overrides = [`<Override PartName="/xl/drawings/drawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>`,
+    ...chartsData.map((c,i)=>`<Override PartName="/xl/charts/chart${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.drawingml.chart+xml"/>`)].join("");
+  const ctXml = await zip.file("[Content_Types].xml").async("string");
+  zip.file("[Content_Types].xml", ctXml.replace("</Types>", `${overrides}</Types>`));
+
+  const blob = await zip.generateAsync({ type:"blob", mimeType:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+  downloadBlob(blob, filename);
+}
+
+function downloadBlob(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
 }
 
 // ===== Net Worth: Item Name type-ahead, same pattern as the Merchant
