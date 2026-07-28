@@ -1380,3 +1380,46 @@ category still works. Full regression suite green. Ships to `develop`
 and, per explicit approval this round, straight on to production —
 promoted the same dry-run-then-real-merge way as every previous
 release, verified against real production data before going live.
+
+## Round 48 (2026-07-28, confirm dialogs + fully automatic sync, dev only)
+
+Prompted by a real bug report: an income entry kept reappearing after
+being deleted three times. Root cause was in how Cloud Sync merges —
+`unionMerge` could only ever add entries, so it had no way to tell
+"never existed on the other side" apart from "existed there, then got
+deleted here." If the remote copy hadn't caught up to a delete yet for
+any reason, the next merge (page load, reconnect, or the sync button)
+would silently bring the deleted entry right back. Deleted ids are now
+recorded locally and every merge excludes them permanently; if a merge
+still finds a tombstoned id sitting on the remote copy, it pushes a
+cleanup write so the remote side converges too, instead of the same
+entry resurrecting indefinitely.
+
+Two other changes requested together:
+
+- **Delete and Update now ask for confirmation first** — "Delete this
+  entry? This can't be undone." / "Update this entry?" — for both
+  Expense/Income entries and Net Worth items. Brand-new entries still
+  save with no prompt, since only changing or removing something
+  already saved carries a "wait, are you sure" risk.
+- **The manual "Sync Now" button is gone.** It turned out to be mostly
+  redundant already — saving, updating, and deleting an entry has
+  always pushed to the cloud automatically the moment it happens.
+  What's new: a `visibilitychange` listener now also reconciles
+  automatically when you switch back to the app, so changes made on
+  another device while this tab was in the background show up without
+  ever needing to tap anything.
+
+Tested with two new dedicated test files: one exercising every confirm
+dialog (Cancel keeps the entry/update, OK applies it, new entries never
+prompt) and confirming auto-sync still fires with no manual step; the
+other specifically reproducing the reported bug — delete an entry,
+force the remote copy to still have it (simulating the exact failure
+condition), reload, and confirm it no longer resurrects and the remote
+copy gets cleaned up. Full regression suite green, including
+retargeting one test that only verified the now-intentionally-removed
+Sync Now button and regenerating a stale reference-data fixture in
+another (production data had genuinely moved on since it was last
+captured — unrelated to this change, just happened to be noticed here).
+Shipped to `develop` only, per this round's explicit "implement that
+in dev" ask — not promoted to production yet.
