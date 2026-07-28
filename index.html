@@ -87,8 +87,6 @@
   .fx-manual-row .fx-label{font-size:13px;color:var(--muted)}
   .fx-manual-row .btn-fx{background:var(--accent2);color:#fff;border:none;border-radius:999px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer}
   .link-btn{background:none;border:none;color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;padding:0;margin-left:4px;text-decoration:underline}
-  .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:18px}
-  .row2 .btn{margin-top:0}
   .btn{width:100%;border:none;border-radius:999px;padding:16px;font-size:17px;font-weight:700;cursor:pointer;margin-top:18px;transition:transform .1s ease,opacity .1s ease}
   .btn:active{transform:scale(.97);opacity:.85}
   .btn-save{background:var(--accent);color:var(--ctatext)}
@@ -251,10 +249,7 @@
 <div class="label">Note (optional)</div>
 <input type="text" id="fNote" placeholder="">
 
-<div class="row2">
-  <button class="btn btn-save" id="saveBtn" onclick="saveEntry()">Save Expense</button>
-  <button class="btn btn-export" id="syncNowTopBtn" onclick="cloudSyncNow()">Sync Now</button>
-</div>
+<button class="btn btn-save" id="saveBtn" onclick="saveEntry()">Save Expense</button>
 <button class="btn btn-ghost" id="cancelEditBtn" style="display:none" onclick="closeAddForm()">Cancel edit</button>
 
 <div class="label" style="margin-top:22px">📝 Today's Entries</div>
@@ -843,6 +838,7 @@ async function saveEntry(){
   const wasEdit = editIndex!==null;
   let targetId;
   if(wasEdit){
+    if(!confirm("Update this entry?")) return;
     targetId = entries[editIndex].id;
     entries[editIndex] = { ...entries[editIndex], ...candidate };
     persist();
@@ -866,7 +862,7 @@ async function saveEntry(){
       });
       setCloudStatus(true);
     }catch(err){
-      setCloudStatus(false, "Saved locally — cloud sync failed, tap Sync Now later");
+      setCloudStatus(false, "Saved locally — will retry syncing automatically");
     }
   }
 }
@@ -881,8 +877,10 @@ function resetForm(){
 
 async function delEntry(i,evt){
   if(evt) evt.stopPropagation();
+  if(!confirm("Delete this entry? This can't be undone.")) return;
   const idToDelete = entries[i].id;
   entries.splice(i,1); persist();
+  addDeletedIds(DELETED_IDS_KEY, [idToDelete]);
   if(editIndex===i) cancelEdit();
   else renderList();
 
@@ -891,7 +889,7 @@ async function delEntry(i,evt){
       await cloudSyncMutation(remote=>remote.filter(e=>e.id!==idToDelete));
       setCloudStatus(true);
     }catch(err){
-      setCloudStatus(false, "Deleted locally — cloud sync failed, tap Sync Now later");
+      setCloudStatus(false, "Deleted locally — will retry syncing automatically");
     }
   }
 }
@@ -1278,6 +1276,7 @@ async function saveNW(){
   const wasEdit = nwEditIndex!==null;
   let targetId;
   if(wasEdit){
+    if(!confirm("Update this entry?")) return;
     targetId = nwEntries[nwEditIndex].id;
     nwEntries[nwEditIndex] = { ...nwEntries[nwEditIndex], ...candidate };
     persistNW();
@@ -1300,7 +1299,7 @@ async function saveNW(){
         return remote;
       });
     }catch(err){
-      setCloudStatus(false, "Saved locally — cloud sync failed, tap Sync Now later");
+      setCloudStatus(false, "Saved locally — will retry syncing automatically");
     }
   }
 }
@@ -1308,9 +1307,11 @@ async function saveNW(){
 // removes every snapshot for this item (i.e. "I no longer want to track this account/asset")
 async function delNWItem(itemName, evt){
   if(evt) evt.stopPropagation();
+  if(!confirm(`Delete all history for "${itemName}"? This can't be undone.`)) return;
   const idsToDelete = nwEntries.filter(e=>e.item===itemName).map(e=>e.id);
   nwEntries = nwEntries.filter(e=>e.item!==itemName);
   persistNW();
+  addDeletedIds(NW_DELETED_IDS_KEY, idsToDelete);
   if(nwEditIndex!==null && !nwEntries[nwEditIndex]) cancelNWEdit();
   else renderNWItemList();
 
@@ -1318,9 +1319,26 @@ async function delNWItem(itemName, evt){
     try{
       await nwCloudSyncMutation(remote=>remote.filter(e=>!idsToDelete.includes(e.id)));
     }catch(err){
-      setCloudStatus(false, "Deleted locally — cloud sync failed, tap Sync Now later");
+      setCloudStatus(false, "Deleted locally — will retry syncing automatically");
     }
   }
+}
+
+// ===== Delete tombstones: a plain union-merge can only ADD entries, so it
+// can't tell "never existed remotely" apart from "existed remotely, then
+// got deleted here" — without this, a merge (auto-sync on load, on
+// reconnect, or after a failed push retries) could silently resurrect
+// something you just deleted, because the remote copy hadn't caught up yet.
+// Recording every deleted id locally lets every merge exclude them for
+// good, and if a merge finds a tombstoned id still sitting on the remote
+// copy, it pushes a cleanup write so the remote side converges too. =====
+const DELETED_IDS_KEY = nsKey("iexpense_deleted_ids_v1");
+const NW_DELETED_IDS_KEY = nsKey("iexpense_nw_deleted_ids_v1");
+function loadDeletedIds(key){ try{ return JSON.parse(localStorage.getItem(key)||"[]"); }catch(e){ return []; } }
+function addDeletedIds(key, ids){
+  const cur = loadDeletedIds(key);
+  ids.forEach(id=>{ if(!cur.includes(id)) cur.push(id); });
+  try{ localStorage.setItem(key, JSON.stringify(cur)); }catch(e){}
 }
 
 // ===== Cloud Sync: GitHub repo (private) acts as the shared data store =====
@@ -1404,10 +1422,12 @@ function setCloudStatus(ok, msg){
   else { el.textContent = msg || "Cloud sync error"; el.className="cloud-status off"; }
 }
 
-function unionMerge(remote, local){
+function unionMerge(remote, local, deletedIds){
+  const deleted = deletedIds && deletedIds.length ? new Set(deletedIds) : null;
   const seen = new Set(remote.map(mergeKey));
-  const out = [...remote];
+  let out = [...remote];
   local.forEach(e=>{ const k=mergeKey(e); if(!seen.has(k)){ out.push(e); seen.add(k); } });
+  if(deleted) out = out.filter(e=>!deleted.has(e.id));
   return out;
 }
 
@@ -1420,7 +1440,7 @@ async function cloudConnect(){
   toast("Connecting…","var(--amber)");
   try{
     const { entries: remote, sha } = await cloudFetchRemote(cfg);
-    const merged = unionMerge(remote, entries);
+    const merged = unionMerge(remote, entries, loadDeletedIds(DELETED_IDS_KEY));
     await cloudWriteRemote(cfg, merged, sha);
     cloudCfg = cfg;
     saveCloudCfg(cfg);
@@ -1441,7 +1461,7 @@ async function cloudConnect(){
   // expense/income connection that just succeeded above
   try{
     const { entries: nwRemote, sha: nwSha } = await cloudFetchRemote(cloudCfg, "networth.json");
-    const nwMerged = unionMerge(nwRemote, nwEntries);
+    const nwMerged = unionMerge(nwRemote, nwEntries, loadDeletedIds(NW_DELETED_IDS_KEY));
     await cloudWriteRemote(cloudCfg, nwMerged, nwSha, "networth.json");
     nwEntries = nwMerged;
     persistNW();
@@ -1454,7 +1474,7 @@ async function cloudSyncNow(){
   if(!cloudCfg){ toast("Connect Cloud Sync first (on Dashboard)","var(--amber)"); return; }
   toast("Syncing…","var(--amber)");
   try{
-    const merged = await cloudSyncMutation(remote=>unionMerge(remote, entries));
+    const merged = await cloudSyncMutation(remote=>unionMerge(remote, entries, loadDeletedIds(DELETED_IDS_KEY)));
     entries = merged; persist(); renderList();
     toast("Synced ✓");
     setCloudStatus(true);
@@ -1466,7 +1486,7 @@ async function cloudSyncNow(){
   // net worth sync is best-effort and must never override the "Synced ✓"
   // result above, which already reflects the core expense/income sync
   try{
-    const nwMerged = await nwCloudSyncMutation(remote=>unionMerge(remote, nwEntries));
+    const nwMerged = await nwCloudSyncMutation(remote=>unionMerge(remote, nwEntries, loadDeletedIds(NW_DELETED_IDS_KEY)));
     nwEntries = nwMerged; persistNW(); renderNWItemList(); renderNWItemSuggestions();
   }catch(err){ /* best-effort */ }
 }
@@ -1482,13 +1502,19 @@ function cloudDisconnect(){
 }
 
 async function cloudPullOnLoad(){
+  let needsPushBack = false;
   try{
     const { entries: remote } = await cloudFetchRemote(cloudCfg);
-    const merged = unionMerge(remote, entries);
+    const deletedIds = loadDeletedIds(DELETED_IDS_KEY);
+    const merged = unionMerge(remote, entries, deletedIds);
     const hadLocalOnly = merged.length > remote.length;
+    // a tombstoned id still on the remote copy means some earlier delete
+    // never made it back to the cloud — push the cleaned-up list up so the
+    // remote side converges instead of quietly resurrecting it on our next pull
+    const remoteHadDeleted = deletedIds.length && remote.some(e=>deletedIds.includes(e.id));
     entries = merged; persist(); renderList();
     setCloudStatus(true);
-    if(hadLocalOnly) cloudSyncNow();
+    if(hadLocalOnly || remoteHadDeleted) needsPushBack = true;
   }catch(err){
     setCloudStatus(false, "Offline or cloud unreachable — using local copy");
     return;
@@ -1496,9 +1522,12 @@ async function cloudPullOnLoad(){
   // net worth pull is best-effort and must never override the status set above
   try{
     const { entries: nwRemote } = await cloudFetchRemote(cloudCfg, "networth.json");
-    const nwMerged = unionMerge(nwRemote, nwEntries);
+    const nwDeletedIds = loadDeletedIds(NW_DELETED_IDS_KEY);
+    const nwMerged = unionMerge(nwRemote, nwEntries, nwDeletedIds);
+    if(nwDeletedIds.length && nwRemote.some(e=>nwDeletedIds.includes(e.id))) needsPushBack = true;
     nwEntries = nwMerged; persistNW(); renderNWItemList(); renderNWItemSuggestions();
   }catch(err){ /* best-effort */ }
+  if(needsPushBack) cloudSyncNow();
 }
 
 function showNetWorth(){
@@ -2126,6 +2155,13 @@ if(cloudCfg){
 } else {
   setCloudStatus(false);
 }
+// every add/update/delete already syncs itself immediately (see saveEntry,
+// delEntry, saveNW, delNWItem) — this just catches changes made from
+// *another* device while this tab was in the background, so there's never
+// a manual "Sync Now" button to remember to tap
+document.addEventListener("visibilitychange", ()=>{
+  if(document.visibilityState==="visible" && cloudCfg) cloudPullOnLoad();
+});
 if(IS_DEV_PREVIEW){
   // dev already has its own Cloud Sync connected to expense-data-dev, so the
   // JSON Backup/Restore flow is redundant there — but Excel export is a real
