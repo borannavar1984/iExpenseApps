@@ -531,6 +531,30 @@ function toast(msg,color){
   t.textContent=icon+msg; t.style.background=color||"var(--green)"; t.style.display="block"; setTimeout(()=>t.style.display="none",2200);
 }
 
+// ===== Category ordering: rather than a fixed list you scroll through every
+// time, categories you actually use bubble to the top — ranked by how many
+// times you've logged them in the last few months (so a once-a-month Rent
+// payment doesn't outrank something you tap several times a week), with
+// all-time count as a tiebreak. Anything with zero activity in either window
+// keeps its original relative position at the bottom — Array.sort is a
+// stable sort, so equal-score categories never get shuffled arbitrarily. =====
+function rankCatsByFrequency(cats, items, monthsBack){
+  const today = new Date();
+  const windowMonths = new Set();
+  for(let i=0;i<monthsBack;i++){
+    const d = new Date(today.getFullYear(), today.getMonth()-i, 1);
+    windowMonths.add(d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"));
+  }
+  const windowCount={}, allCount={};
+  items.forEach(it=>{
+    const cat = it.category;
+    if(cat==null) return;
+    allCount[cat]=(allCount[cat]||0)+1;
+    if(it.date && windowMonths.has(it.date.slice(0,7))) windowCount[cat]=(windowCount[cat]||0)+1;
+  });
+  return [...cats].sort((a,b)=> (windowCount[b]||0)-(windowCount[a]||0) || (allCount[b]||0)-(allCount[a]||0));
+}
+
 const catFieldIcon=document.getElementById("catFieldIcon");
 const catFieldLabel=document.getElementById("catFieldLabel");
 let catPickerList = EXP_CATS; // whichever list (expense/income categories) is active right now
@@ -542,7 +566,9 @@ function selectCategory(cat){
   closeCatPicker();
 }
 function renderCatGrid(type){
-  catPickerList = type==="income" ? INC_CATS : EXP_CATS;
+  // income categories stay in their fixed order — only expense categories
+  // are frequent enough, and numerous enough, for ranking to help
+  catPickerList = type==="income" ? INC_CATS : rankCatsByFrequency(EXP_CATS, entries.filter(e=>(e.type||"expense")==="expense"), 3);
   sel.cat = null;
   catFieldIcon.textContent = "";
   catFieldLabel.textContent = "Select category";
@@ -612,10 +638,11 @@ function renderNWCatGrid(){
 // substring match, same filtering rule as the merchant autocomplete
 function renderNWCatPickerList(){
   const query = document.getElementById("nwCatSearch").value.trim().toLowerCase();
-  let matches = NW_CATS;
+  const ranked = rankCatsByFrequency(NW_CATS, nwEntries, 3);
+  let matches = ranked;
   if(query){
-    const starts = NW_CATS.filter(c=>c.toLowerCase().startsWith(query));
-    const contains = NW_CATS.filter(c=>!c.toLowerCase().startsWith(query) && c.toLowerCase().includes(query));
+    const starts = ranked.filter(c=>c.toLowerCase().startsWith(query));
+    const contains = ranked.filter(c=>!c.toLowerCase().startsWith(query) && c.toLowerCase().includes(query));
     matches = [...starts, ...contains];
   }
   const list = document.getElementById("nwCatPickerList");
