@@ -1348,3 +1348,35 @@ Round 41 Excel export test was updated for the new delivery path (a
 real file download instead of always calling `XLSX.writeFile`
 directly) and still passes. Ships to `develop` only — production
 promotion is a separate step, same as every other round.
+
+## Round 47 (2026-07-28, category pickers ranked by usage frequency)
+
+The Expense and Net Worth category pickers used to list categories in
+a fixed order, so a frequently-used category could sit below several
+you rarely touch. Both pickers now rank categories by how often you've
+actually logged them in the last 3 months — counted by number of
+entries, not dollar amount, so a once-a-month Rent payment doesn't
+outrank Groceries just because it's a bigger number. Ties break on
+all-time count; anything with zero activity in either window keeps its
+original relative position at the bottom rather than being shuffled
+arbitrarily. Income categories are untouched — few enough, and regular
+enough (mostly just Salary), that ranking wouldn't help.
+
+Before building anything, the proposed order was computed from real
+account data and shown for approval — top of the Expense list came out
+Groceries, Shopping, Health, Subscriptions, Utilities/Phone, Gas,
+Dining Out, with Rent (high dollar amount, only 3 times in 3 months)
+correctly dropping out of the top spot. Net Worth's top came out Cash
+& Bank, then Other Assets. Approved as shown, then implemented exactly
+that way — the ranking is computed live from `entries`/`nwEntries` each
+time a picker opens, not hardcoded to today's numbers, so it keeps
+adapting as spending habits change.
+
+Tested against real dev account data end-to-end: the rendered picker
+order matches the approved table exactly, income categories are
+provably untouched, the Net Worth picker's search box still filters
+correctly on top of the new ranked order, and selecting/saving a
+category still works. Full regression suite green. Ships to `develop`
+and, per explicit approval this round, straight on to production —
+promoted the same dry-run-then-real-merge way as every previous
+release, verified against real production data before going live.
