@@ -1423,3 +1423,66 @@ another (production data had genuinely moved on since it was last
 captured — unrelated to this change, just happened to be noticed here).
 Shipped to `develop` only, per this round's explicit "implement that
 in dev" ask — not promoted to production yet.
+
+## Round 54 (2026-08-01, first-run onboarding: name + currency preferences)
+
+The goal that kicked this off: the app has been a personal single-user
+tool, but there's now interest in handing the same link to other people
+to try. Everyone sharing the app needs their own name and currency
+setup without touching anyone else's data or the shared code.
+
+- **First launch on a truly empty phone** (no entries, no net worth, no
+  cloud config) now shows a one-time welcome screen: enter your name,
+  pick a **primary currency** (any of 12 — USD, INR, EUR, GBP, CAD,
+  AUD, JPY, SGD, AED, CHF, CNY, MXN — USD is just the default, not
+  privileged), and say whether you also want to track a **second
+  currency**. Saying yes picks a second currency and unlocks the
+  existing US/IN-style region split (region tabs, per-region asset
+  totals, FX-converted combined total) for whatever pair you chose —
+  saying no collapses Net Worth down to a single Total view with no
+  region picker, no currency field on the entry form, and no FX rate
+  UI at all, since there's nothing to convert.
+- **Preferences persist locally only** (`iexpense_prefs_v1` key) and
+  are never part of the cloud-sync payload — two people using their own
+  linked cloud repos each keep their own name/currency, and existing
+  entries/net-worth data are completely unaffected by a currency
+  choice; it only changes how amounts are labeled and grouped on
+  screen.
+- **My own usage is untouched by construction, not by a special case**:
+  anyone who already has entries, net worth data, or a cloud connection
+  saved (i.e. every existing user, including me) gets silently
+  migrated to `{primaryCurrency: "USD", secondaryCurrency: "INR"}` the
+  first time this build runs — the exact pairing the app has always
+  used — so the onboarding screen never appears and nothing on screen
+  changes. Preferences are reachable anytime after via a new "Name &
+  currency preferences" button under Backup, prefilled with your
+  current choice, for anyone who wants to revisit it (including to add
+  a name after being auto-migrated).
+- Every hardcoded "USD"/"$"/"₹" assumption that mattered for this (the
+  header month-total badge, the Net Worth entry form's region field,
+  region-tab labels, the FX rate status line, the manual-rate labels,
+  `nwConvert`/`getUsdInrRate`) now reads from the two prefs currencies
+  instead — a non-US/India pair (tested with EUR/GBP) gets the same
+  region-split behavior with generic labels instead of "US"/"IN".
+
+Tested end-to-end: fresh single-currency install (name, primary-only,
+confirms name is required, no region picker/tabs/FX UI anywhere,
+correct symbol throughout, survives reload), fresh dual-currency
+install (region tabs + labels correct, display-currency toggle works,
+FX conversion and lakh/crore formatting still correct for the
+secondary currency), a non-USD/INR pair to prove the currency choice
+isn't hardcoded, the existing-user silent migration path (data present,
+no prefs → USD+INR, no onboarding screen, greeting stays hidden until a
+name is set), and reopening Preferences later to edit an existing
+setup. Also ran a full realistic-scale pass by hand: ~27 dummy
+expense/income entries across many categories for the current month
+plus a couple of net worth assets added through the real UI for both a
+single-currency and a dual-currency user, checking Monthly Detail,
+Summary, and Net Worth dashboard totals all matched by hand-computed
+expected sums before clearing the seeded data. Full regression suite
+(40 test files, all pre-existing behavior) re-verified green after this
+change — a few tests needed fixing along the way for reasons unrelated
+to this feature (hardcoded "current month" dates that had rolled over
+since being written, two retired scripts that predated the Round 40
+category-picker redesign and were checking removed markup). Shipped to
+`develop` only — production untouched until tried and confirmed.

@@ -79,8 +79,11 @@
   input[type=text],input[type=date],input[type=tel]{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:16px;padding:13px 14px;font-size:16px;outline:none;transition:border-color .12s,box-shadow .12s}
   input:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent)}
   .amount-wrap{position:relative}
-  .amount-wrap::before{content:"$";position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:18px}
-  #nwAmountWrap.inr::before{content:"₹"}
+  .amount-wrap::before{content:var(--cur-sym,"$");position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:18px}
+  #nwAmountWrap::before{content:var(--nw-sym,var(--cur-sym,"$"))}
+  select.ob-select{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:16px;padding:13px 14px;font-size:16px;outline:none;appearance:none;-webkit-appearance:none}
+  .ob-body{padding:16px 18px calc(24px + env(safe-area-inset-bottom));overflow-y:auto;flex:1}
+  .ob-intro{font-size:14px;color:var(--muted);line-height:1.5;margin:2px 0 6px}
   .amount-wrap input{padding-left:32px;font-size:22px;font-weight:700}
   .fx-manual-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
   .fx-manual-row input[type=tel]{width:90px;padding:10px 12px;font-size:15px}
@@ -201,7 +204,10 @@
 </head>
 <body>
 <header>
-  <h1>i<span>Expense</span></h1>
+  <div>
+    <h1>i<span>Expense</span></h1>
+    <div id="helloName" style="display:none;font-size:11.5px;color:var(--muted);font-weight:600;margin-top:1px"></div>
+  </div>
   <div style="display:flex;align-items:center;gap:8px">
     <div class="badge">This Month Total: <b id="monthTotal">$0</b></div>
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">🌙</button>
@@ -281,7 +287,7 @@
 <div class="label">Date</div>
 <input type="date" id="nwDate">
 
-<div class="label">Asset Region</div>
+<div class="label" id="nwRegionLabel">Asset Region</div>
 <div class="chip-row" id="nwCurrencyRow"></div>
 
 <div class="label">Current Value</div>
@@ -337,7 +343,7 @@
   </div>
 
   <div id="dashNetWorthView" style="display:none">
-    <div class="dash-tabs" style="margin-bottom:14px">
+    <div class="dash-tabs" style="margin-bottom:14px" id="nwRegionTabs">
       <button id="nwRegionUSBtn" onclick="showNWRegion('US')">US Assets</button>
       <button id="nwRegionINBtn" onclick="showNWRegion('IN')">IN Assets</button>
       <button class="sel" id="nwRegionTotalBtn" onclick="showNWRegion('total')">🌐 Total</button>
@@ -348,7 +354,7 @@
       <div class="chart-card"><h4>Net Worth Trend</h4><canvas id="nwTrendChartUS" height="180"></canvas><div class="dash-empty" id="nwTrendChartUSEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Breakdown by Category</h4><canvas id="nwCatChartUS" height="220"></canvas><div class="dash-empty" id="nwCatChartUSEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Net Worth Growth Projection</h4><canvas id="nwProjectionChartUS" height="200"></canvas><div class="dash-empty" id="nwProjectionChartUSEmpty" style="display:none"></div><div style="font-size:12px;color:var(--muted);margin-top:6px" id="nwProjectionChartUSWarn"></div></div>
-      <div class="dtable-wrap"><div class="tw-head">Your US Accounts &amp; Assets</div><div id="nwItemsTableUS"></div></div>
+      <div class="dtable-wrap"><div class="tw-head" id="nwItemsTableUSHead">Your US Accounts &amp; Assets</div><div id="nwItemsTableUS"></div></div>
       <div class="dtable-wrap"><div class="tw-head">Growth Projections</div><div id="nwProjectionsTableUS"></div></div>
     </div>
 
@@ -357,7 +363,7 @@
       <div class="chart-card"><h4>Net Worth Trend</h4><canvas id="nwTrendChartIN" height="180"></canvas><div class="dash-empty" id="nwTrendChartINEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Breakdown by Category</h4><canvas id="nwCatChartIN" height="220"></canvas><div class="dash-empty" id="nwCatChartINEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Net Worth Growth Projection</h4><canvas id="nwProjectionChartIN" height="200"></canvas><div class="dash-empty" id="nwProjectionChartINEmpty" style="display:none"></div><div style="font-size:12px;color:var(--muted);margin-top:6px" id="nwProjectionChartINWarn"></div></div>
-      <div class="dtable-wrap"><div class="tw-head">Your India Accounts &amp; Assets</div><div id="nwItemsTableIN"></div></div>
+      <div class="dtable-wrap"><div class="tw-head" id="nwItemsTableINHead">Your India Accounts &amp; Assets</div><div id="nwItemsTableIN"></div></div>
       <div class="dtable-wrap"><div class="tw-head">Growth Projections</div><div id="nwProjectionsTableIN"></div></div>
     </div>
 
@@ -366,9 +372,9 @@
         <div class="chip-row" id="nwDisplayCurrencyRow" style="flex:1"></div>
       </div>
       <div class="fx-manual-row" id="fxManualRow" style="display:none">
-        <span class="fx-label">$1 =</span>
+        <span class="fx-label" id="fxFromLabel">$1 =</span>
         <input type="tel" id="nwManualRateInput" inputmode="decimal" placeholder="e.g. 95">
-        <span class="fx-label">₹ today</span>
+        <span class="fx-label" id="fxToLabel">₹ today</span>
         <button class="btn-fx" id="nwSaveRateBtn" onclick="saveManualFxRate()">Set Rate</button>
       </div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:14px" id="nwRateStatus"></div>
@@ -402,6 +408,7 @@
 </div>
 <button class="btn btn-ghost" onclick="exportExcel()" style="margin-top:8px">📊 Export Excel report (.xlsx)</button>
 <div style="margin-top:6px;color:var(--muted);font-size:12.5px">Monthly summary, category breakdown, all entries &amp; net worth — build your own charts/pivot tables in Excel</div>
+<button class="btn btn-ghost" id="prefsBtn" onclick="openPrefs()" style="margin-top:8px">👤 Name &amp; currency preferences</button>
 </div>
 
 </div>
@@ -442,6 +449,32 @@
   <div class="cat-picker-list" id="nwCatPickerList"></div>
 </div>
 
+<div class="cat-picker-overlay" id="onboardOverlay" style="display:none">
+  <div class="cat-picker-header">
+    <div style="width:36px"></div>
+    <div class="cat-picker-title" id="obTitle">Welcome to iExpense 👋</div>
+    <div style="width:36px"></div>
+  </div>
+  <div class="ob-body">
+    <div class="ob-intro" id="obIntro">Let's set up your preferences — takes 30 seconds, saved only on this device.</div>
+    <div class="label">Your name</div>
+    <input type="text" id="obName" placeholder="e.g. Deepak" autocomplete="off">
+    <div class="label">Main currency</div>
+    <select class="ob-select" id="obPrimary" onchange="obSyncSecondaryOptions()"></select>
+    <div class="label">Track assets in another currency too?</div>
+    <div class="ob-intro">If some of your accounts or assets are in a different currency (say you live in the US but also have accounts in India), pick Yes and you'll get separate tracking for each currency plus a combined total.</div>
+    <div class="chip-row">
+      <button type="button" class="opt sel" id="obSecNo" onclick="obSetSecondary(false)">No — just one</button>
+      <button type="button" class="opt" id="obSecYes" onclick="obSetSecondary(true)">Yes</button>
+    </div>
+    <div id="obSecondaryWrap" style="display:none">
+      <div class="label">Second currency</div>
+      <select class="ob-select" id="obSecondary"></select>
+    </div>
+    <button class="btn btn-save" id="obSaveBtn" onclick="finishOnboarding()">Get Started</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -477,8 +510,43 @@ const NW_CAT_ICONS = {
 function nwCatIcon(cat){ return NW_CAT_ICONS[cat] ? NW_CAT_ICONS[cat]+" " : ""; }
 function isLiability(cat){ return cat === "Liabilities/Debt"; }
 const NW_LS_KEY = nsKey("iexpense_networth_v1");
-const NW_CURRENCIES = ["USD","INR"];
-const NW_CUR_SYMBOL = { USD:"$", INR:"₹" };
+
+// ===== Per-user preferences (name + currencies), set once on first launch =====
+// Stored only on this device — never part of the cloud-sync payload, so every
+// person the app link is shared with gets their own name/currency setup while
+// the entries/networth data model stays exactly the same.
+const PREFS_KEY = nsKey("iexpense_prefs_v1");
+const CURRENCY_INFO = {
+  USD:{sym:"$",  label:"US Dollar"},
+  INR:{sym:"₹",  label:"Indian Rupee"},
+  EUR:{sym:"€",  label:"Euro"},
+  GBP:{sym:"£",  label:"British Pound"},
+  CAD:{sym:"C$", label:"Canadian Dollar"},
+  AUD:{sym:"A$", label:"Australian Dollar"},
+  JPY:{sym:"¥",  label:"Japanese Yen"},
+  SGD:{sym:"S$", label:"Singapore Dollar"},
+  AED:{sym:"د.إ",label:"UAE Dirham"},
+  CHF:{sym:"CHF ",label:"Swiss Franc"},
+  CNY:{sym:"¥",  label:"Chinese Yuan"},
+  MXN:{sym:"Mex$",label:"Mexican Peso"}
+};
+function curSym(cur){ return CURRENCY_INFO[cur] ? CURRENCY_INFO[cur].sym : cur+" "; }
+function loadPrefs(){ try{ return JSON.parse(localStorage.getItem(PREFS_KEY)||"null"); }catch(e){ return null; } }
+function savePrefs(){ try{ localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); }catch(e){} }
+let prefs = loadPrefs();
+// Anyone already using the app before preferences existed keeps today's exact
+// behavior (USD primary + INR secondary) without ever seeing the onboarding
+// screen — only a truly fresh install (no data at all) gets asked.
+if(!prefs){
+  const hasData = !!(localStorage.getItem(LS_KEY) || localStorage.getItem(NW_LS_KEY) || localStorage.getItem(nsKey("iexpense_cloud_cfg")));
+  if(hasData){
+    prefs = { name:"", primaryCurrency:"USD", secondaryCurrency:"INR", onboarded:true, migrated:true };
+    savePrefs();
+  }
+}
+let PRIMARY_CUR = prefs ? prefs.primaryCurrency : "USD";
+let SECONDARY_CUR = prefs ? prefs.secondaryCurrency : "INR";
+let NW_CURRENCIES = SECONDARY_CUR ? [PRIMARY_CUR, SECONDARY_CUR] : [PRIMARY_CUR];
 // Lakh/crore grouping (1,00,000 / 1,00,00,000) reads much easier than long
 // digit strings once rupee amounts get large, so INR switches to
 // "X.XX L" / "X.XX Cr" past those thresholds — this is specifically an
@@ -491,7 +559,7 @@ function nwFmtNum(value, cur){
   }
   return value.toLocaleString("en-US", { minimumFractionDigits:2, maximumFractionDigits:2 });
 }
-function nwFmtAmount(value, cur){ return NW_CUR_SYMBOL[cur] + nwFmtNum(value, cur); }
+function nwFmtAmount(value, cur){ return curSym(cur) + nwFmtNum(value, cur); }
 const FX_CACHE_KEY = nsKey("iexpense_fx_rate");
 const FX_MANUAL_KEY = nsKey("iexpense_fx_manual");
 
@@ -499,10 +567,10 @@ let sel = {cat:null, pay:null};
 let entries = load();
 let editIndex = null;
 let formType = "expense";
-let nwSel = {cat:null, currency:"USD"};
+let nwSel = {cat:null, currency:PRIMARY_CUR};
 let nwEntries = loadNW();
 let nwEditIndex = null;
-let nwDisplayCurrency = "USD";
+let nwDisplayCurrency = PRIMARY_CUR;
 // which region tab of the Net Worth dashboard is showing — "US" and "IN" are
 // always single-currency (no conversion involved), "total" is the combined
 // view with the USD/INR display toggle, kept as the default so switching to
@@ -519,7 +587,10 @@ function ensureNWIds(){ nwEntries.forEach(e=>{ if(!e.id) e.id=genId(); }); }
 function persistNW(){ ensureNWIds(); try{ localStorage.setItem(NW_LS_KEY, JSON.stringify(nwEntries)); }catch(e){} }
 persistNW();
 function todayStr(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
-function fmtUSD(value){ return "$" + value.toLocaleString("en-US", { minimumFractionDigits:2, maximumFractionDigits:2 }); }
+// despite the historical name, this formats in whatever the user's PRIMARY
+// currency is — kept as fmtUSD to avoid churning every call site; INR uses
+// en-IN so large amounts group lakh-style (1,00,000) as Indian users expect
+function fmtUSD(value){ return curSym(PRIMARY_CUR) + value.toLocaleString(PRIMARY_CUR==="INR"?"en-IN":"en-US", { minimumFractionDigits:2, maximumFractionDigits:2 }); }
 function toast(msg,color){
   const t=document.getElementById("toast");
   const icon = color==="var(--red)" ? "⚠️ " : color==="var(--amber)" ? "ℹ️ " : "✅ ";
@@ -662,25 +733,30 @@ const nwCurrencyRow=document.getElementById("nwCurrencyRow");
 function nwSelectCurrency(cur){
   nwSel.currency=cur;
   [...nwCurrencyRow.children].forEach(x=>x.classList.toggle("sel",x.dataset.cur===cur));
-  document.getElementById("nwAmountWrap").classList.toggle("inr", cur==="INR");
+  document.getElementById("nwAmountWrap").style.setProperty("--nw-sym", JSON.stringify(curSym(cur)));
 }
 // the entry form asks "which region is this asset in", not "which currency" —
-// with only two currencies supported, region and currency are the same
-// underlying value (USD ⇔ US Asset, INR ⇔ India Asset), so no new field is
-// needed, just a clearer label than a raw currency code
-const NW_REGION_LABEL = { USD:"US Asset ($)", INR:"IN Asset (₹)" };
+// region and currency are the same underlying value (USD ⇔ US Asset,
+// INR ⇔ India Asset; any other currency pair shows its code), so no new
+// field is needed, just a clearer label than a raw currency code
+function nwRegionShort(cur){ return cur==="USD" ? "US" : cur==="INR" ? "IN" : cur; }
+function nwRegionLabel(cur){ return `${nwRegionShort(cur)} Asset (${curSym(cur).trim()})`; }
 function renderNWCurrencyRow(){
   nwCurrencyRow.innerHTML="";
-  NW_CURRENCIES.forEach(cur=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=NW_REGION_LABEL[cur]; b.dataset.cur=cur;
+  NW_CURRENCIES.forEach(cur=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=nwRegionLabel(cur); b.dataset.cur=cur;
     b.onclick=()=>nwSelectCurrency(cur); nwCurrencyRow.appendChild(b); });
-  nwSelectCurrency("USD");
+  nwSelectCurrency(NW_CURRENCIES[0]);
+  // a single-currency user has nothing to choose here — hide the field
+  const single = NW_CURRENCIES.length < 2;
+  document.getElementById("nwRegionLabel").style.display = single ? "none" : "";
+  nwCurrencyRow.style.display = single ? "none" : "";
 }
 
 // which currency the Net Worth DASHBOARD totals are shown in — independent
 // of what currency any individual account was actually logged in
 function renderNWDisplayCurrencyRow(){
   const row = document.getElementById("nwDisplayCurrencyRow"); row.innerHTML="";
-  NW_CURRENCIES.forEach(cur=>{ const b=document.createElement("button"); b.className="opt"+(cur===nwDisplayCurrency?" sel":""); b.textContent=`${NW_CUR_SYMBOL[cur]} ${cur}`;
+  NW_CURRENCIES.forEach(cur=>{ const b=document.createElement("button"); b.className="opt"+(cur===nwDisplayCurrency?" sel":""); b.textContent=`${curSym(cur)} ${cur}`;
     b.onclick=()=>{ nwDisplayCurrency=cur; renderNWDisplayCurrencyRow(); renderDashNetWorth(); };
     row.appendChild(b); });
 }
@@ -1192,7 +1268,7 @@ function nwPrefillFromLatest(itemName){
   const latest = nwLatestForItem(itemName);
   if(!latest) return;
   nwSelectCategory(latest.category);
-  nwSelectCurrency(latest.currency || "USD");
+  nwSelectCurrency(latest.currency || PRIMARY_CUR);
   document.getElementById("nwGrowth").value = latest.growthRate!=null ? latest.growthRate : "";
 }
 
@@ -1236,7 +1312,7 @@ function resetNWForm(){
   document.getElementById("nwDate").value=todayStr(); document.getElementById("nwDate").max=todayStr();
   document.getElementById("nwCancelEditBtn").style.display="none";
   renderNWCatGrid();
-  nwSelectCurrency("USD");
+  nwSelectCurrency(NW_CURRENCIES[0]);
   document.getElementById("nwSaveBtn").textContent="Save Net Worth Entry";
   renderNWItemList();
   hideNWItemSuggestions();
@@ -1254,7 +1330,7 @@ function editNWEntry(i){
   document.getElementById("nwValue").value=e.value;
   document.getElementById("nwGrowth").value=e.growthRate!=null ? e.growthRate : "";
   nwSelectCategory(e.category);
-  nwSelectCurrency(e.currency || "USD");
+  nwSelectCurrency(e.currency || PRIMARY_CUR);
   document.getElementById("nwCancelEditBtn").style.display="block";
   document.getElementById("nwSaveBtn").textContent="Update Entry";
   window.scrollTo({top:0,behavior:"smooth"});
@@ -1270,7 +1346,7 @@ async function saveNW(){
   if(/\.\d{3,}/.test(rawVal)){ toast("Amounts can have at most 2 decimal places","var(--red)"); return; }
   const growthRaw=document.getElementById("nwGrowth").value.trim();
   const growthRate = growthRaw ? parseFloat(growthRaw) : null;
-  const candidate = { date:document.getElementById("nwDate").value||todayStr(), category:nwSel.cat, item, value:Math.round(val*100)/100, growthRate, currency:nwSel.currency||"USD" };
+  const candidate = { date:document.getElementById("nwDate").value||todayStr(), category:nwSel.cat, item, value:Math.round(val*100)/100, growthRate, currency:nwSel.currency||PRIMARY_CUR };
   if(candidate.date > todayStr()){ toast("Date can't be in the future","var(--red)"); return; }
 
   const wasEdit = nwEditIndex!==null;
@@ -1890,7 +1966,11 @@ function showManualRateForm(){
   document.getElementById("fxManualRow").style.display = "flex";
   document.getElementById("nwManualRateInput").focus();
 }
+// despite the historical name, this fetches primary→secondary for whatever
+// currency pair the user picked in onboarding; a single-currency user never
+// needs a rate at all, so it resolves to null without touching the network
 async function getUsdInrRate(){
+  if(!SECONDARY_CUR) return null;
   const today = todayStr();
   const manual = getManualFxRate();
   if(manual && manual.date===today) return manual; // a rate you typed in yourself always wins for today
@@ -1898,10 +1978,10 @@ async function getUsdInrRate(){
   try{ cached = JSON.parse(localStorage.getItem(FX_CACHE_KEY)||"null"); }catch(e){}
   if(cached && cached.date===today) return cached;
   try{
-    const res = await fetch("https://api.frankfurter.dev/v1/latest?from=USD&to=INR");
+    const res = await fetch(`https://api.frankfurter.dev/v1/latest?from=${PRIMARY_CUR}&to=${SECONDARY_CUR}`);
     if(!res.ok) throw new Error("rate unavailable");
     const data = await res.json();
-    const rate = data.rates && data.rates.INR;
+    const rate = data.rates && data.rates[SECONDARY_CUR];
     if(!rate) throw new Error("no rate in response");
     const fresh = { rate, date:today, manual:false };
     try{ localStorage.setItem(FX_CACHE_KEY, JSON.stringify(fresh)); }catch(e){}
@@ -1913,9 +1993,9 @@ async function getUsdInrRate(){
 function nwConvert(value, fromCur, toCur, rateInfo){
   if(fromCur===toCur) return value;
   if(!rateInfo) return null;
-  if(fromCur==="USD" && toCur==="INR") return value*rateInfo.rate;
-  if(fromCur==="INR" && toCur==="USD") return value/rateInfo.rate;
-  return value;
+  if(fromCur===PRIMARY_CUR && toCur===SECONDARY_CUR) return value*rateInfo.rate;
+  if(fromCur===SECONDARY_CUR && toCur===PRIMARY_CUR) return value/rateInfo.rate;
+  return null; // a legacy currency outside the configured pair can't be converted honestly
 }
 
 // net worth as of the end of a given month, converted into toCur: for each
@@ -1957,7 +2037,8 @@ function nwComputeAndRender(suffix, itemsWithIdx, toCur, rateInfo, opts){
     const anyForeign = items.some(e=>(e.currency||"USD")!==toCur);
     const fxManualRow = document.getElementById("fxManualRow");
     if(rateInfo){
-      const rateText = toCur==="USD" ? `₹${rateInfo.rate.toFixed(2)} = $1` : `$1 = ₹${rateInfo.rate.toFixed(2)}`;
+      const pSym = curSym(PRIMARY_CUR).trim(), sSym = curSym(SECONDARY_CUR||"").trim();
+      const rateText = toCur===PRIMARY_CUR ? `${sSym}${rateInfo.rate.toFixed(2)} = ${pSym}1` : `${pSym}1 = ${sSym}${rateInfo.rate.toFixed(2)}`;
       const source = rateInfo.manual ? "set by you" : `as of ${rateInfo.date}`;
       document.getElementById("nwRateStatus").innerHTML = anyForeign
         ? `Using ${rateText} (rate ${source}) <button class="link-btn" id="nwEditRateBtn" onclick="showManualRateForm()">Edit</button>`
@@ -2101,14 +2182,16 @@ async function renderDashNetWorth(){
   const rateInfo = await getUsdInrRate();
   const allItemsWithIdx = nwLatestPerItem();
 
-  if(nwActiveRegion==="US"){
-    const usItemsWithIdx = allItemsWithIdx.filter(o=>(o.e.currency||"USD")==="USD");
-    nwComputeAndRender("US", usItemsWithIdx, "USD", rateInfo, { showRateUI:false, currencyFilterForTrend:"USD" });
-  } else if(nwActiveRegion==="IN"){
-    const inItemsWithIdx = allItemsWithIdx.filter(o=>(o.e.currency||"USD")==="INR");
-    nwComputeAndRender("IN", inItemsWithIdx, "INR", rateInfo, { showRateUI:false, currencyFilterForTrend:"INR" });
+  if(SECONDARY_CUR && nwActiveRegion==="US"){
+    const usItemsWithIdx = allItemsWithIdx.filter(o=>(o.e.currency||"USD")===PRIMARY_CUR);
+    nwComputeAndRender("US", usItemsWithIdx, PRIMARY_CUR, rateInfo, { showRateUI:false, currencyFilterForTrend:PRIMARY_CUR });
+  } else if(SECONDARY_CUR && nwActiveRegion==="IN"){
+    const inItemsWithIdx = allItemsWithIdx.filter(o=>(o.e.currency||"USD")===SECONDARY_CUR);
+    nwComputeAndRender("IN", inItemsWithIdx, SECONDARY_CUR, rateInfo, { showRateUI:false, currencyFilterForTrend:SECONDARY_CUR });
   } else {
-    nwComputeAndRender("", allItemsWithIdx, nwDisplayCurrency, rateInfo, { showRateUI:true, currencyFilterForTrend:null });
+    // single-currency users only ever have the Total view — no region tabs,
+    // no display-currency toggle, no FX involved
+    nwComputeAndRender("", allItemsWithIdx, nwDisplayCurrency, rateInfo, { showRateUI:!!SECONDARY_CUR, currencyFilterForTrend:null });
   }
 }
 
@@ -2136,14 +2219,100 @@ function toggleTheme(){
   setTheme(current==="dark" ? "light" : "dark");
 }
 
+// ===== Preferences → UI: everything currency-shaped in the app derives from
+// the two prefs currencies, so this runs once at startup and again whenever
+// preferences are saved =====
+function applyPrefs(){
+  PRIMARY_CUR = prefs ? prefs.primaryCurrency : "USD";
+  SECONDARY_CUR = prefs ? prefs.secondaryCurrency : "INR";
+  NW_CURRENCIES = SECONDARY_CUR ? [PRIMARY_CUR, SECONDARY_CUR] : [PRIMARY_CUR];
+  if(!NW_CURRENCIES.includes(nwDisplayCurrency)) nwDisplayCurrency = PRIMARY_CUR;
+  if(!NW_CURRENCIES.includes(nwSel.currency)) nwSel.currency = PRIMARY_CUR;
+  document.documentElement.style.setProperty("--cur-sym", JSON.stringify(curSym(PRIMARY_CUR)));
+
+  const hello = document.getElementById("helloName");
+  if(prefs && prefs.name){ hello.textContent = "👋 " + prefs.name; hello.style.display = ""; }
+  else hello.style.display = "none";
+
+  const tabs = document.getElementById("nwRegionTabs");
+  if(SECONDARY_CUR){
+    tabs.style.display = "";
+    document.getElementById("nwRegionUSBtn").textContent = `${nwRegionShort(PRIMARY_CUR)} Assets`;
+    document.getElementById("nwRegionINBtn").textContent = `${nwRegionShort(SECONDARY_CUR)} Assets`;
+    document.getElementById("nwItemsTableUSHead").textContent = `Your ${nwRegionShort(PRIMARY_CUR)} Accounts & Assets`;
+    document.getElementById("nwItemsTableINHead").textContent = `Your ${SECONDARY_CUR==="INR" ? "India" : nwRegionShort(SECONDARY_CUR)} Accounts & Assets`;
+    document.getElementById("fxFromLabel").textContent = `${curSym(PRIMARY_CUR).trim()}1 =`;
+    document.getElementById("fxToLabel").textContent = `${curSym(SECONDARY_CUR).trim()} today`;
+  } else {
+    // one currency → no regions to split by: force the Total view and hide
+    // the tab row plus the display-currency toggle entirely
+    tabs.style.display = "none";
+    nwActiveRegion = "total";
+    document.getElementById("nwRegionUSView").style.display = "none";
+    document.getElementById("nwRegionINView").style.display = "none";
+    document.getElementById("nwRegionTotalView").style.display = "";
+    document.getElementById("nwRegionUSBtn").classList.remove("sel");
+    document.getElementById("nwRegionINBtn").classList.remove("sel");
+    document.getElementById("nwRegionTotalBtn").classList.add("sel");
+  }
+  document.getElementById("nwDisplayCurrencyRow").parentElement.style.display = SECONDARY_CUR ? "" : "none";
+  renderNWCurrencyRow();
+  renderNWDisplayCurrencyRow();
+}
+
+// ===== First-run onboarding (also reachable later as the Preferences screen) =====
+function obCurOption(c){ return `<option value="${c}">${c} — ${CURRENCY_INFO[c].label} (${curSym(c).trim()})</option>`; }
+function obSyncSecondaryOptions(){
+  const primary = document.getElementById("obPrimary").value;
+  const sec = document.getElementById("obSecondary");
+  const prev = sec.value;
+  sec.innerHTML = Object.keys(CURRENCY_INFO).filter(c=>c!==primary).map(obCurOption).join("");
+  sec.value = [...sec.options].some(o=>o.value===prev) ? prev : (primary==="INR" ? "USD" : "INR");
+}
+function obSetSecondary(yes){
+  document.getElementById("obSecYes").classList.toggle("sel", yes);
+  document.getElementById("obSecNo").classList.toggle("sel", !yes);
+  document.getElementById("obSecondaryWrap").style.display = yes ? "" : "none";
+}
+function openPrefs(){
+  const returning = !!prefs;
+  document.getElementById("obTitle").textContent = returning ? "Preferences" : "Welcome to iExpense 👋";
+  document.getElementById("obIntro").textContent = returning
+    ? "Changing currency only changes how things are displayed — none of your saved entries are modified."
+    : "Let's set up your preferences — takes 30 seconds, saved only on this device.";
+  document.getElementById("obSaveBtn").textContent = returning ? "Save Preferences" : "Get Started";
+  document.getElementById("obPrimary").innerHTML = Object.keys(CURRENCY_INFO).map(obCurOption).join("");
+  document.getElementById("obPrimary").value = returning ? prefs.primaryCurrency : "USD";
+  obSyncSecondaryOptions();
+  document.getElementById("obName").value = returning ? (prefs.name||"") : "";
+  obSetSecondary(returning && !!prefs.secondaryCurrency);
+  if(returning && prefs.secondaryCurrency) document.getElementById("obSecondary").value = prefs.secondaryCurrency;
+  document.getElementById("onboardOverlay").style.display = "flex";
+}
+function finishOnboarding(){
+  const name = document.getElementById("obName").value.trim();
+  if(!name){ toast("Please enter your name","var(--red)"); return; }
+  const primary = document.getElementById("obPrimary").value;
+  const wantSec = document.getElementById("obSecYes").classList.contains("sel");
+  const secondary = wantSec ? document.getElementById("obSecondary").value : null;
+  const firstTime = !prefs;
+  prefs = Object.assign({}, prefs||{}, { name, primaryCurrency:primary, secondaryCurrency:secondary, onboarded:true });
+  savePrefs();
+  applyPrefs();
+  document.getElementById("onboardOverlay").style.display = "none";
+  renderList();
+  renderNWItemList();
+  if(document.getElementById("dashboardView").style.display !== "none") renderDashboard();
+  toast(firstTime ? `Welcome, ${name}! You're all set` : "Preferences saved ✓");
+}
+
 renderPayRow();
 document.getElementById("fDate").value=todayStr(); document.getElementById("fDate").max=todayStr();
 setFormType("expense");
 renderList();
 renderCategoryFilterOptions();
 renderNWCatGrid();
-renderNWCurrencyRow();
-renderNWDisplayCurrencyRow();
+applyPrefs();
 document.getElementById("nwDate").value=todayStr(); document.getElementById("nwDate").max=todayStr();
 renderNWItemList();
 if(cloudCfg){
@@ -2174,6 +2343,9 @@ if(IS_DEV_PREVIEW){
   setTheme(saved);
 })();
 showMainTab("dashboard"); // Dashboard is the app's home screen; the + button is the only way to log an expense/income/net worth entry
+// a truly fresh install (no prefs, no data — see the migration block up top)
+// starts with the one-time welcome/preferences screen
+if(!prefs) openPrefs();
 </script>
 </body>
 </html>
