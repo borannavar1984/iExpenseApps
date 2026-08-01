@@ -354,7 +354,12 @@
       <div class="chart-card"><h4>Net Worth Trend</h4><canvas id="nwTrendChartUS" height="180"></canvas><div class="dash-empty" id="nwTrendChartUSEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Breakdown by Category</h4><canvas id="nwCatChartUS" height="220"></canvas><div class="dash-empty" id="nwCatChartUSEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Net Worth Growth Projection</h4><canvas id="nwProjectionChartUS" height="200"></canvas><div class="dash-empty" id="nwProjectionChartUSEmpty" style="display:none"></div><div style="font-size:12px;color:var(--muted);margin-top:6px" id="nwProjectionChartUSWarn"></div></div>
+      <div class="dash-month">
+        <select id="nwFilterCatUS" onchange="nwSetFilter('US','cat',this.value)"></select>
+        <select id="nwFilterItemUS" onchange="nwSetFilter('US','item',this.value)"></select>
+      </div>
       <div class="dtable-wrap"><div class="tw-head" id="nwItemsTableUSHead">Your US Accounts &amp; Assets</div><div id="nwItemsTableUS"></div></div>
+      <div class="dtable-wrap" id="nwHistoryWrapUS" style="display:none"><div class="tw-head" id="nwHistoryHeadUS"></div><div id="nwHistoryTableUS"></div></div>
       <div class="dtable-wrap"><div class="tw-head">Growth Projections</div><div id="nwProjectionsTableUS"></div></div>
     </div>
 
@@ -363,7 +368,12 @@
       <div class="chart-card"><h4>Net Worth Trend</h4><canvas id="nwTrendChartIN" height="180"></canvas><div class="dash-empty" id="nwTrendChartINEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Breakdown by Category</h4><canvas id="nwCatChartIN" height="220"></canvas><div class="dash-empty" id="nwCatChartINEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Net Worth Growth Projection</h4><canvas id="nwProjectionChartIN" height="200"></canvas><div class="dash-empty" id="nwProjectionChartINEmpty" style="display:none"></div><div style="font-size:12px;color:var(--muted);margin-top:6px" id="nwProjectionChartINWarn"></div></div>
+      <div class="dash-month">
+        <select id="nwFilterCatIN" onchange="nwSetFilter('IN','cat',this.value)"></select>
+        <select id="nwFilterItemIN" onchange="nwSetFilter('IN','item',this.value)"></select>
+      </div>
       <div class="dtable-wrap"><div class="tw-head" id="nwItemsTableINHead">Your India Accounts &amp; Assets</div><div id="nwItemsTableIN"></div></div>
+      <div class="dtable-wrap" id="nwHistoryWrapIN" style="display:none"><div class="tw-head" id="nwHistoryHeadIN"></div><div id="nwHistoryTableIN"></div></div>
       <div class="dtable-wrap"><div class="tw-head">Growth Projections</div><div id="nwProjectionsTableIN"></div></div>
     </div>
 
@@ -382,7 +392,12 @@
       <div class="chart-card"><h4>Net Worth Trend</h4><canvas id="nwTrendChart" height="180"></canvas><div class="dash-empty" id="nwTrendChartEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Breakdown by Category</h4><canvas id="nwCatChart" height="220"></canvas><div class="dash-empty" id="nwCatChartEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Net Worth Growth Projection</h4><canvas id="nwProjectionChart" height="200"></canvas><div class="dash-empty" id="nwProjectionChartEmpty" style="display:none"></div><div style="font-size:12px;color:var(--muted);margin-top:6px" id="nwProjectionChartWarn"></div></div>
+      <div class="dash-month">
+        <select id="nwFilterCat" onchange="nwSetFilter('','cat',this.value)"></select>
+        <select id="nwFilterItem" onchange="nwSetFilter('','item',this.value)"></select>
+      </div>
       <div class="dtable-wrap"><div class="tw-head">Your Accounts &amp; Assets</div><div id="nwItemsTable"></div></div>
+      <div class="dtable-wrap" id="nwHistoryWrap" style="display:none"><div class="tw-head" id="nwHistoryHead"></div><div id="nwHistoryTable"></div></div>
       <div class="dtable-wrap"><div class="tw-head">Growth Projections</div><div id="nwProjectionsTable"></div></div>
     </div>
   </div>
@@ -569,13 +584,22 @@ let editIndex = null;
 let formType = "expense";
 let nwSel = {cat:null, currency:PRIMARY_CUR};
 let nwEntries = loadNW();
-let nwEditIndex = null;
+let nwUpdatingItem = null;
 let nwDisplayCurrency = PRIMARY_CUR;
 // which region tab of the Net Worth dashboard is showing — "US" and "IN" are
 // always single-currency (no conversion involved), "total" is the combined
 // view with the USD/INR display toggle, kept as the default so switching to
 // Net Worth behaves exactly as it always has unless a region tab is picked
 let nwActiveRegion = "total";
+// per-region filter state (category + item) for the "Your Accounts & Assets"
+// detail table and its history drill-down — keyed by the same suffix used
+// throughout nwComputeAndRender ("US", "IN", or "" for Total)
+let nwFilters = { US:{cat:"",item:""}, IN:{cat:"",item:""}, "":{cat:"",item:""} };
+function nwSetFilter(suffix, kind, value){
+  if(kind==="cat"){ nwFilters[suffix].cat = value; nwFilters[suffix].item = ""; }
+  else nwFilters[suffix].item = value;
+  renderDashNetWorth();
+}
 
 function load(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||"[]"); }catch(e){ return []; } }
 function genId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
@@ -1299,13 +1323,13 @@ function renderNWItemList(){
     del.onclick=(evt)=>delNWItem(e.item,evt);
     right.appendChild(amt); right.appendChild(del);
     d.appendChild(left); d.appendChild(right);
-    d.onclick=()=>editNWEntry(idx);
+    d.onclick=()=>nwStartUpdate(e.item);
     box.appendChild(d);
   });
 }
 
 function resetNWForm(){
-  nwEditIndex=null;
+  nwUpdatingItem=null;
   document.getElementById("nwItem").value="";
   document.getElementById("nwValue").value="";
   document.getElementById("nwGrowth").value="";
@@ -1322,17 +1346,26 @@ function cancelNWEdit(){
   resetNWForm();
 }
 
-function editNWEntry(i){
-  const e=nwEntries[i];
-  nwEditIndex=i;
-  document.getElementById("nwDate").value=e.date;
-  document.getElementById("nwItem").value=e.item;
-  document.getElementById("nwValue").value=e.value;
-  document.getElementById("nwGrowth").value=e.growthRate!=null ? e.growthRate : "";
-  nwSelectCategory(e.category);
-  nwSelectCurrency(e.currency || PRIMARY_CUR);
-  document.getElementById("nwCancelEditBtn").style.display="block";
-  document.getElementById("nwSaveBtn").textContent="Update Entry";
+// tapping an existing item never mutates its history — it prefills the form
+// with that item's last known category/currency/growth rate and value, dated
+// TODAY, so you can just retype the new number and hit Update; saving always
+// appends a fresh snapshot (see saveNW), so nothing you logged before can
+// ever change. This replaced an in-place edit that used to silently
+// overwrite the previous month's value when tapping straight into an item
+// instead of using Add — exactly the bug that caused real net worth history
+// to go missing.
+function nwStartUpdate(itemName){
+  const latest = nwLatestForItem(itemName);
+  if(!latest) return;
+  nwUpdatingItem = itemName;
+  document.getElementById("nwItem").value = itemName;
+  document.getElementById("nwValue").value = latest.value;
+  document.getElementById("nwGrowth").value = latest.growthRate!=null ? latest.growthRate : "";
+  nwSelectCategory(latest.category);
+  nwSelectCurrency(latest.currency || PRIMARY_CUR);
+  document.getElementById("nwDate").value = todayStr(); document.getElementById("nwDate").max = todayStr();
+  document.getElementById("nwCancelEditBtn").style.display = "block";
+  document.getElementById("nwSaveBtn").textContent = "Update Entry";
   window.scrollTo({top:0,behavior:"smooth"});
 }
 
@@ -1349,29 +1382,23 @@ async function saveNW(){
   const candidate = { date:document.getElementById("nwDate").value||todayStr(), category:nwSel.cat, item, value:Math.round(val*100)/100, growthRate, currency:nwSel.currency||PRIMARY_CUR };
   if(candidate.date > todayStr()){ toast("Date can't be in the future","var(--red)"); return; }
 
-  const wasEdit = nwEditIndex!==null;
-  let targetId;
-  if(wasEdit){
-    if(!confirm("Update this entry?")) return;
-    targetId = nwEntries[nwEditIndex].id;
-    nwEntries[nwEditIndex] = { ...nwEntries[nwEditIndex], ...candidate };
-    persistNW();
-    toast("Updated ✓");
-  } else {
-    targetId = genId();
-    nwEntries.push({ ...candidate, id:targetId });
-    persistNW();
-    toast("Saved ✓");
-  }
+  const wasUpdate = nwUpdatingItem!==null;
+  if(wasUpdate && !confirm(`Log this month's value for "${candidate.item}"? Your previous entries stay untouched.`)) return;
+
+  // always append a brand-new snapshot — net worth history is never mutated
+  // in place, whether this is a first-time add or a monthly update of an
+  // existing item, so past months' values can never silently change
+  const targetId = genId();
+  nwEntries.push({ ...candidate, id:targetId });
+  persistNW();
+  toast(wasUpdate ? "Updated ✓" : "Saved ✓");
   resetNWForm();
   showMainTab("dashboard");
 
   if(cloudCfg){
     try{
       await nwCloudSyncMutation(remote=>{
-        const idx = remote.findIndex(e=>e.id===targetId);
-        if(idx>=0) remote[idx] = { ...remote[idx], ...candidate, id:targetId };
-        else remote.push({ ...candidate, id:targetId });
+        remote.push({ ...candidate, id:targetId });
         return remote;
       });
     }catch(err){
@@ -1388,7 +1415,7 @@ async function delNWItem(itemName, evt){
   nwEntries = nwEntries.filter(e=>e.item!==itemName);
   persistNW();
   addDeletedIds(NW_DELETED_IDS_KEY, idsToDelete);
-  if(nwEditIndex!==null && !nwEntries[nwEditIndex]) cancelNWEdit();
+  if(nwUpdatingItem===itemName) cancelNWEdit();
   else renderNWItemList();
 
   if(cloudCfg){
@@ -2150,8 +2177,32 @@ function nwComputeAndRender(suffix, itemsWithIdx, toCur, rateInfo, opts){
     showChartFallback("nwProjectionChart"+suffix, msg);
   }
 
-  document.getElementById("nwItemsTable"+suffix).innerHTML = itemsWithIdx.length ? `<table><thead><tr><th>Item</th><th>Category</th><th>Value</th><th>Updated</th><th></th></tr></thead><tbody>
-    ${itemsWithIdx.map(({e,idx})=>{
+  // ===== Sort: highest value first; when a view mixes currencies (Total),
+  // group primary-currency items before secondary-currency ones rather than
+  // interleaving by raw number, so "US first, then India" holds regardless
+  // of exchange rate =====
+  const sortedItemsWithIdx = [...itemsWithIdx].sort((a,b)=>{
+    const curA = a.e.currency||PRIMARY_CUR, curB = b.e.currency||PRIMARY_CUR;
+    if(curA!==curB) return curA===PRIMARY_CUR ? -1 : 1;
+    return b.e.value - a.e.value;
+  });
+
+  // ===== Filter: narrow the detail table to one category and/or one item,
+  // and when a single item is picked, show its full history below so you
+  // can see exactly how that item has changed over time =====
+  const filt = nwFilters[suffix] || (nwFilters[suffix]={cat:"",item:""});
+  const catsPresent = [...new Set(items.map(e=>e.category))];
+  const catSel = document.getElementById("nwFilterCat"+suffix);
+  catSel.innerHTML = '<option value="">All Categories</option>' + catsPresent.map(c=>`<option value="${c}"${c===filt.cat?" selected":""}>${nwCatIcon(c)}${c}</option>`).join("");
+  const itemsForCat = items.filter(e=>!filt.cat || e.category===filt.cat);
+  const itemNamesPresent = [...new Set(itemsForCat.map(e=>e.item))].sort();
+  const itemSel = document.getElementById("nwFilterItem"+suffix);
+  itemSel.innerHTML = '<option value="">All Items</option>' + itemNamesPresent.map(it=>`<option value="${it}"${it===filt.item?" selected":""}>${it}</option>`).join("");
+
+  const filteredItemsWithIdx = sortedItemsWithIdx.filter(({e})=> (!filt.cat || e.category===filt.cat) && (!filt.item || e.item===filt.item));
+
+  document.getElementById("nwItemsTable"+suffix).innerHTML = filteredItemsWithIdx.length ? `<table><thead><tr><th>Item</th><th>Category</th><th>Value</th><th>Updated</th><th></th></tr></thead><tbody>
+    ${filteredItemsWithIdx.map(({e,idx})=>{
       const cur = e.currency||"USD";
       const native = nwFmtAmount(Number(e.value), cur);
       let valueCell = `${isLiability(e.category)?"-":""}${native}`;
@@ -2161,7 +2212,19 @@ function nwComputeAndRender(suffix, itemsWithIdx, toCur, rateInfo, opts){
       }
       return `<tr class="entry-row" onclick="editFromNWDashboard(${idx})"><td>${e.item}</td><td>${nwCatIcon(e.category)}${e.category}</td><td>${valueCell}</td><td>${e.date}</td><td><button class="row-del" onclick="deleteFromNWDashboard(${idx},event)">✕</button></td></tr>`;
     }).join("")}
-  </tbody></table>` : `<div class="dash-empty">💎 No net worth items yet — add your first one in the Net Worth tab</div>`;
+  </tbody></table>` : `<div class="dash-empty">💎 No net worth items match this filter</div>`;
+
+  const historyWrap = document.getElementById("nwHistoryWrap"+suffix);
+  if(filt.item){
+    const history = nwEntries.filter(e=>e.item===filt.item).sort((a,b)=> a.date<b.date?-1:1);
+    document.getElementById("nwHistoryHead"+suffix).textContent = `${filt.item} — History`;
+    document.getElementById("nwHistoryTable"+suffix).innerHTML = `<table><thead><tr><th>Date</th><th>Value</th><th>Category</th><th>Growth</th></tr></thead><tbody>
+      ${history.map(e=>`<tr><td>${e.date}</td><td>${isLiability(e.category)?"-":""}${nwFmtAmount(Number(e.value), e.currency||PRIMARY_CUR)}</td><td>${nwCatIcon(e.category)}${e.category}</td><td>${e.growthRate!=null?e.growthRate+"%/yr":"—"}</td></tr>`).join("")}
+    </tbody></table>`;
+    historyWrap.style.display = "";
+  } else {
+    historyWrap.style.display = "none";
+  }
 
   document.getElementById("nwProjectionsTable"+suffix).innerHTML = investable.length ? `<table><thead><tr><th>Item</th><th>Current</th><th>Rate</th><th>1 yr</th><th>5 yr</th><th>10 yr</th></tr></thead><tbody>
     ${investable.map(e=>{
@@ -2196,7 +2259,7 @@ async function renderDashNetWorth(){
 }
 
 function editFromNWDashboard(idx){
-  editNWEntry(idx);
+  nwStartUpdate(nwEntries[idx].item);
   showNetWorth();
 }
 

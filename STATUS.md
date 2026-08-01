@@ -1486,3 +1486,50 @@ to this feature (hardcoded "current month" dates that had rolled over
 since being written, two retired scripts that predated the Round 40
 category-picker redesign and were checking removed markup). Shipped to
 `develop` only — production untouched until tried and confirmed.
+
+## Round 55 (2026-08-01, net worth: never mutate history + sort/filter rework)
+
+Real usage today surfaced a bug: tapping straight into a Net Worth item to
+log this month's value used the "edit" flow, which overwrote that item's
+last entry in place — silently erasing the previous month's data point and
+producing a bogus month-over-month "change" figure. Traced and repaired 6
+affected items in the live production data (each one's lost prior-month
+value restored as its own entry, in both prod and dev), then fixed the
+underlying behavior so this can't happen again:
+
+- **Tapping an item never edits it anymore.** It opens the entry form
+  pre-filled with that item's name, category, currency/region, and growth
+  rate, plus its **last known value** so you can just retype the new
+  number — but the date is always **today**, and saving always appends a
+  brand-new entry with a fresh id. The previous entry is never touched.
+  This applies whether you tap the item from the Net Worth tab's "Your
+  Items" list or from a Dashboard region table row. The only thing this
+  removes is the ability to silently rewrite a past month's value — which
+  was the exact mechanism that caused today's real bug.
+- **Sorted high to low, US then India.** The "Your Accounts & Assets"
+  table (all three region views) now sorts by value descending; the
+  combined Total view groups every primary-currency item before every
+  secondary-currency item rather than interleaving by raw number, so it
+  reads as "biggest US account first, then biggest India account" the way
+  you'd expect even though the two currencies aren't directly comparable.
+- **Category + item filters, with a history drill-down.** Each region view
+  gets two new dropdowns above its items table — Category and Item (the
+  Item list narrows to whatever the picked category contains). Picking a
+  specific item reveals a new "History" table below listing every snapshot
+  ever logged for it, oldest to newest, so a question like "how has my
+  401k actually changed month to month" has a direct answer instead of
+  requiring a mental diff of the combined view. Clearing the category
+  filter clears the item filter too. This only narrows the detail table
+  and history section — the summary cards, charts, and growth projections
+  above still reflect the full unfiltered picture.
+
+Tested end-to-end: tapping an item prefills today's date + last value +
+growth rate and changes nothing on Cancel; saving an update appends a new
+entry while the original is provably byte-for-byte unchanged; the same
+holds from the Dashboard's row-tap path; sort order verified across a
+mixed 3-US/2-India seed (both the cross-region grouping and the within-
+region descending order); category filter narrows the table, item filter
+reveals the History table with both the old and new value visible,
+clearing the category filter hides history and restores the full list.
+Full regression suite (41 files including the new one) green. Shipped to
+`develop` only.
