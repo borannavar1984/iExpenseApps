@@ -1533,3 +1533,25 @@ reveals the History table with both the old and new value visible,
 clearing the category filter hides history and restores the full list.
 Full regression suite (41 files including the new one) green. Shipped to
 `develop` only.
+
+## Round 56 (2026-08-01, header hamburger menu for name + preferences)
+
+Replaced the standalone dark/light toggle button in the header with a
+"☰" menu button. Tapping it opens a small dropdown showing your name and
+current currency setup (e.g. "USD + INR") at a glance, the appearance
+toggle (now two Dark/Light buttons instead of one cycling icon), and a
+link straight into the full "Name & currency preferences" screen. This
+gives a direct, on-demand way to confirm what's currently set — no more
+guessing whether preferences took effect, especially useful once other
+people start using their own copies of the app. Tapping outside the menu
+closes it; theme choice still persists exactly as before.
+
+Tested end-to-end: old theme button confirmed gone, menu opens/closes
+correctly, name and currency summary shown accurately, both theme buttons
+switch the theme and reflect the current selection, tapping the backdrop
+closes the menu, theme choice survives reload, and the preferences link
+opens the existing Preferences screen pre-filled — including that the
+menu immediately reflects a name edited from there. Three existing tests
+that drove the old `#themeToggle` button directly were updated to use the
+menu instead. Full regression suite (42 files) green. Shipped to
+`develop` only.

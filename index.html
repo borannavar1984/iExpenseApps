@@ -121,6 +121,15 @@
   .dash-row .dr-fill{height:100%;background:var(--accent2);border-radius:6px}
   .dash-empty{color:var(--muted);font-size:14px;text-align:center;padding:30px 0}
   .theme-toggle{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:20px;font-size:14px;cursor:pointer;line-height:1}
+  .header-menu-backdrop{position:fixed;inset:0;z-index:150;display:none}
+  .header-menu{position:fixed;z-index:151;background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:14px;width:240px;display:none}
+  .header-menu-name{font-weight:800;font-size:15px;margin-bottom:2px}
+  .header-menu-cur{font-size:12.5px;color:var(--muted);margin-bottom:12px}
+  .header-menu-label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:10px 0 6px}
+  .header-menu-theme-row{display:flex;gap:8px}
+  .header-menu-theme-row button.opt{flex:1;padding:9px 6px;font-size:13px}
+  .header-menu-divider{border-top:1px solid var(--border);margin:12px 0}
+  .header-menu-link{display:block;width:100%;background:none;border:none;color:var(--accent);font-weight:700;font-size:14px;text-align:left;padding:2px 0;cursor:pointer}
   .entry.income .amt{color:var(--green)}
   .dash-tabs{display:flex;gap:8px;margin-bottom:16px}
   .dash-tabs button{flex:1;background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:16px;padding:8px;font-size:13px;font-weight:600;cursor:pointer;transition:transform .1s ease}
@@ -210,9 +219,22 @@
   </div>
   <div style="display:flex;align-items:center;gap:8px">
     <div class="badge">This Month Total: <b id="monthTotal">$0</b></div>
-    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">🌙</button>
+    <button class="theme-toggle" id="menuBtn" onclick="openHeaderMenu()">☰</button>
   </div>
 </header>
+
+<div class="header-menu-backdrop" id="headerMenuBackdrop" onclick="closeHeaderMenu()"></div>
+<div class="header-menu" id="headerMenu">
+  <div class="header-menu-name" id="headerMenuName">👤 You</div>
+  <div class="header-menu-cur" id="headerMenuCur"></div>
+  <div class="header-menu-label">Appearance</div>
+  <div class="header-menu-theme-row">
+    <button type="button" class="opt" id="headerMenuDarkBtn" onclick="setTheme('dark')">🌙 Dark</button>
+    <button type="button" class="opt" id="headerMenuLightBtn" onclick="setTheme('light')">☀️ Light</button>
+  </div>
+  <div class="header-menu-divider"></div>
+  <button type="button" class="header-menu-link" onclick="closeHeaderMenu(); openPrefs();">👤 Name &amp; currency preferences ›</button>
+</div>
 
 <div class="tabs" style="display:none">
   <button class="sel" id="tabExpenseBtn" onclick="showMainTab('expense')">🧾 Expense</button>
@@ -2273,13 +2295,29 @@ async function deleteFromNWDashboard(idx, evt){
 // ===== Light / dark theme, persisted =====
 function setTheme(theme){
   document.documentElement.setAttribute("data-theme", theme);
-  document.getElementById("themeToggle").textContent = theme==="light" ? "☀️" : "🌙";
+  document.getElementById("headerMenuDarkBtn").classList.toggle("sel", theme!=="light");
+  document.getElementById("headerMenuLightBtn").classList.toggle("sel", theme==="light");
   try{ localStorage.setItem(nsKey("iexpense_theme"), theme); }catch(e){}
   if(document.getElementById("dashboardView").style.display !== "none") renderDashboard();
 }
-function toggleTheme(){
-  const current = document.documentElement.getAttribute("data-theme")==="light" ? "light" : "dark";
-  setTheme(current==="dark" ? "light" : "dark");
+
+// ===== Header hamburger menu: replaces the old standalone theme-toggle
+// button — one tap now surfaces who you're set up as (name + currency),
+// the appearance toggle, and a way into full Preferences, instead of only
+// ever showing a dark/light icon =====
+function openHeaderMenu(){
+  document.getElementById("headerMenuName").textContent = "👤 " + (prefs && prefs.name ? prefs.name : "You");
+  document.getElementById("headerMenuCur").textContent = SECONDARY_CUR ? `${PRIMARY_CUR} + ${SECONDARY_CUR}` : PRIMARY_CUR;
+  const btnRect = document.getElementById("menuBtn").getBoundingClientRect();
+  const menu = document.getElementById("headerMenu");
+  menu.style.top = (btnRect.bottom + 8) + "px";
+  menu.style.right = (window.innerWidth - btnRect.right) + "px";
+  menu.style.display = "block";
+  document.getElementById("headerMenuBackdrop").style.display = "block";
+}
+function closeHeaderMenu(){
+  document.getElementById("headerMenu").style.display = "none";
+  document.getElementById("headerMenuBackdrop").style.display = "none";
 }
 
 // ===== Preferences → UI: everything currency-shaped in the app derives from
