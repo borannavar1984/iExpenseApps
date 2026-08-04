@@ -1555,3 +1555,58 @@ menu immediately reflects a name edited from there. Three existing tests
 that drove the old `#themeToggle` button directly were updated to use the
 menu instead. Full regression suite (42 files) green. Shipped to
 `develop` only.
+
+## Round 57 (2026-08-04, backup/restore data-integrity + small polish)
+
+Bug-hunt round on `develop`. Read the whole `index.html` end-to-end after
+Round 56, found five issues, and fixed all of them in one round. The
+three top ones are all in the JSON Backup/Restore flow and are the kind
+of silent data-integrity bug the app is otherwise very careful about, so
+they belonged together.
+
+- **Restore no longer strips entry ids.** `restoreData` was building a
+  fresh object per entry and never copying `e.id` over. `ensureIds()`
+  then minted a brand-new id on the next `persist()`. If the backup came
+  from a cloud-connected copy of the app, those entries already lived in
+  the private `entries.json` on GitHub with their original ids, so the
+  next Cloud Sync `unionMerge` couldn't dedupe them by id and would
+  quietly push them up as duplicates — and the delete tombstones would
+  no longer match either. Now the original `e.id` is preserved when the
+  backup has one; legacy bare-array backups without ids still work as
+  before and get their ids backfilled by `ensureIds`.
+- **Backup now includes Net Worth history.** `backupData` was only
+  serializing `entries`, silently dropping every `nwEntries` snapshot the
+  user had ever logged. Round 55 went to specific trouble to make sure
+  net worth history can never be lost through in-app editing — leaving
+  it out of the on-device backup file was inconsistent with that
+  guarantee. Backup payload is now `{ backup, source, entries, nwEntries }`,
+  and `restoreData` dedupes NW entries strictly by id (nwEntries have
+  had ids since day one). Legacy backups (bare array, or object without
+  `nwEntries`) still restore cleanly.
+- **Restore pushes to cloud immediately.** Even in the happy path,
+  `restoreData` was leaving the two sides out of sync until the next
+  save/delete happened to touch the cloud copy. When `cloudCfg` is
+  connected and the restore actually added something, we now call
+  `cloudSyncNow()` right away — same union-merge + retry path all the
+  other sync mutations use.
+- **Header menu closes after picking a theme.** The Round 56 hamburger
+  menu's Dark/Light buttons flipped the theme but left the menu +
+  backdrop open until you tapped outside. Both onclick handlers now call
+  `closeHeaderMenu()` too, matching the "Name & currency preferences"
+  link right below them.
+- **Manual FX rate sanity band.** `saveManualFxRate` now rejects
+  non-finite values and anything outside `0.0001 … 100000`, so a stray
+  typo (missing decimal, extra zero, `1e12`) can't quietly turn a
+  correct-looking net worth total into nonsense. Realistic pairs
+  (USD/INR ~83, CAD/JPY ~120, USD/VND ~24000) all still accepted.
+
+Tested end-to-end with a lightweight harness that stubs `document` /
+`localStorage` / `Blob` / `FileReader`, extracts the exact `backupData`
+and `restoreData` source from the shipped `index.html`, and walks
+through: (1) backup payload contains both `entries` and `nwEntries`, (2)
+restore preserves ids on both entries and NW snapshots, (3) re-restoring
+the same file is a no-op (dedupes by id), (4) legacy bare-array backups
+still restore, (5) `cloudSyncNow()` is called only when `cloudCfg` is
+set and something was actually added. All pass. Manual FX guard verified
+against a range of good and bad inputs. Node `--check` on the extracted
+script block reports clean syntax. Shipped directly to `develop`.

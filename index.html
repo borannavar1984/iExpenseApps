@@ -229,8 +229,8 @@
   <div class="header-menu-cur" id="headerMenuCur"></div>
   <div class="header-menu-label">Appearance</div>
   <div class="header-menu-theme-row">
-    <button type="button" class="opt" id="headerMenuDarkBtn" onclick="setTheme('dark')">🌙 Dark</button>
-    <button type="button" class="opt" id="headerMenuLightBtn" onclick="setTheme('light')">☀️ Light</button>
+    <button type="button" class="opt" id="headerMenuDarkBtn" onclick="setTheme('dark'); closeHeaderMenu();">🌙 Dark</button>
+    <button type="button" class="opt" id="headerMenuLightBtn" onclick="setTheme('light'); closeHeaderMenu();">☀️ Light</button>
   </div>
   <div class="header-menu-divider"></div>
   <button type="button" class="header-menu-link" onclick="closeHeaderMenu(); openPrefs();">👤 Name &amp; currency preferences ›</button>
@@ -1039,35 +1039,76 @@ function cancelEdit(){
 }
 
 function backupData(){
-  const payload = { backup:new Date().toISOString(), source:"iExpense", entries:entries };
+  // net worth history now travels with expense/income entries in the same
+  // backup file — earlier versions silently dropped nwEntries here, so a
+  // restore-round would lose every net worth snapshot the user ever logged
+  const payload = { backup:new Date().toISOString(), source:"iExpense", entries:entries, nwEntries:nwEntries };
   const blob = new Blob([JSON.stringify(payload,null,1)],{type:"application/json"});
   const fname = `iexpense_backup_${payload.backup.replace(/[-:T]/g,"").slice(0,14)}.json`;
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=fname; a.click();
   toast("Backup downloaded");
 }
 
-function restoreData(evt){
+async function restoreData(evt){
   const file = evt.target.files[0];
   evt.target.value = "";
   if(!file) return;
   const reader = new FileReader();
-  reader.onload = ()=>{
+  reader.onload = async ()=>{
     let data;
     try{ data = JSON.parse(reader.result); }catch(e){ toast("Invalid backup file","var(--red)"); return; }
+    // legacy backups were a bare array of expense/income entries; newer ones
+    // are { entries, nwEntries } and may or may not include nwEntries
     const incoming = Array.isArray(data) ? data : (data.entries||[]);
-    if(!Array.isArray(incoming) || !incoming.length){ toast("No entries found in file","var(--amber)"); return; }
+    const incomingNW = Array.isArray(data) ? [] : (data.nwEntries||[]);
+    if((!Array.isArray(incoming) || !incoming.length) && (!Array.isArray(incomingNW) || !incomingNW.length)){
+      toast("No entries found in file","var(--amber)"); return;
+    }
     const key = e => [(e.type||"expense"),e.date,e.category,e.amount,e.store,e.note].join("|");
-    const existing = new Set(entries.map(key));
+    const existingByKey = new Set(entries.map(key));
+    const existingIds = new Set(entries.map(e=>e.id).filter(Boolean));
     let added = 0;
     incoming.forEach(e=>{
       if(!e || !e.date || !e.category || e.amount==null) return;
-      if(existing.has(key(e))) return;
-      entries.push({ date:e.date, type:e.type||"expense", category:e.category, amount:Number(e.amount), store:e.store||"", payment:e.payment||"", note:e.note||"" });
-      existing.add(key(e));
+      // dedupe by id first (the backup's own id, if it has one), then fall
+      // back to the composite key for legacy backups written before ids existed
+      if(e.id && existingIds.has(e.id)) return;
+      if(existingByKey.has(key(e))) return;
+      // preserve the original id so cloud merge dedupes correctly on the next
+      // sync — earlier versions stripped it, which caused restored entries to
+      // be re-inserted as brand-new rows on the cloud copy
+      const restored = { date:e.date, type:e.type||"expense", category:e.category, amount:Number(e.amount), store:e.store||"", payment:e.payment||"", note:e.note||"" };
+      if(e.id) restored.id = e.id;
+      entries.push(restored);
+      if(restored.id) existingIds.add(restored.id);
+      existingByKey.add(key(restored));
       added++;
     });
-    persist(); renderList();
-    toast(added ? `Restored ${added} entr${added===1?"y":"ies"}` : "Nothing new to restore");
+
+    // net worth history: dedupe strictly by id (nwEntries always have ids in
+    // any backup produced by this app; skip entries missing an id rather than
+    // guessing an identity that could double-count real snapshots)
+    const existingNWIds = new Set(nwEntries.map(e=>e.id).filter(Boolean));
+    let addedNW = 0;
+    incomingNW.forEach(e=>{
+      if(!e || !e.date || !e.category || !e.item || e.value==null || !e.id) return;
+      if(existingNWIds.has(e.id)) return;
+      nwEntries.push({ date:e.date, category:e.category, item:e.item, value:Number(e.value), growthRate:e.growthRate==null?null:Number(e.growthRate), currency:e.currency||"USD", id:e.id });
+      existingNWIds.add(e.id);
+      addedNW++;
+    });
+
+    persist(); persistNW(); renderList(); renderNWItemList();
+
+    // push the restored rows up to Cloud Sync right away instead of waiting
+    // for the next save/delete — otherwise the two sides can stay silently
+    // out of sync for however long the user goes before their next action
+    if(cloudCfg && (added || addedNW)) cloudSyncNow();
+
+    const parts = [];
+    if(added) parts.push(`${added} entr${added===1?"y":"ies"}`);
+    if(addedNW) parts.push(`${addedNW} net worth snapshot${addedNW===1?"":"s"}`);
+    toast(parts.length ? `Restored ${parts.join(" + ")}` : "Nothing new to restore");
   };
   reader.readAsText(file);
 }
@@ -2005,7 +2046,16 @@ function getManualFxRate(){
 }
 function saveManualFxRate(){
   const val = Number(document.getElementById("nwManualRateInput").value);
-  if(!val || val<=0){ toast("Enter a valid rate, e.g. 95","var(--red)"); return; }
+  // guard against nonsense that would silently produce laughable net worth
+  // totals — finite, positive, and inside a wide-but-plausible band. A
+  // sanity band this loose still rejects e.g. 0.00001 or 1e12 rate typos
+  // while covering every real-world currency pair we’d actually convert.
+  if(!isFinite(val) || val<=0){ toast("Enter a valid rate, e.g. 95","var(--red)"); return; }
+  if(val < 0.0001 || val > 100000){ toast("That rate looks off — double\u2011check it","var(--red)"); return; }
+  // stamp with the same todayStr() the rest of the app trusts; getUsdInrRate
+  // then treats this as valid only while todayStr() still matches, so a
+  // manual rate can never silently outlive its day even if the device clock
+  // rolls forward mid\u2011session
   const fresh = { rate:val, date:todayStr(), manual:true };
   try{ localStorage.setItem(FX_MANUAL_KEY, JSON.stringify(fresh)); }catch(e){}
   toast("Rate saved ✓");
