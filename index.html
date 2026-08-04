@@ -50,8 +50,15 @@
   }
   h1{font-size:22px;font-weight:700;letter-spacing:-.2px}
   h1 span{color:var(--accent)}
-  .badge{background:var(--card2);border:1px solid var(--border);color:var(--muted);font-size:12px;padding:4px 10px;border-radius:20px}
+  .badge{background:var(--card2);border:1px solid var(--border);color:var(--muted);font-size:12px;padding:4px 10px;border-radius:20px;white-space:nowrap}
   .badge b{color:var(--amber)}
+  /* On very narrow phones the month-total badge can crowd the header —
+     drop the leading label and just keep the number so the header stays
+     comfortably in one row alongside the settings gear. */
+  @media (max-width:359px){
+    .badge#monthTotalBadge{font-size:11.5px;padding:3px 8px}
+    .badge#monthTotalBadge > span{display:none}
+  }
   .label{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:16px 0 8px}
   .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
   .chip-row{display:flex;flex-wrap:wrap;gap:8px}
@@ -112,6 +119,33 @@
   .cloud-status{font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.5}
   .cloud-status.on{color:var(--green)}
   .cloud-status.off{color:var(--amber)}
+
+  /* ===== Settings view =====
+     Grouped-section layout — each card is a labelled block of controls,
+     so the screen reads as a settings screen rather than a wall of
+     ghost buttons. Sections use the same card treatment as .chart-card
+     for visual consistency across the app. */
+  #settingsView{padding-bottom:12px}
+  .settings-header{margin-bottom:14px}
+  .settings-title{font-size:22px;font-weight:800;letter-spacing:-.2px;margin-bottom:4px}
+  .settings-sub{font-size:13px;color:var(--muted);line-height:1.45}
+  .settings-section{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:14px 16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(20,30,15,.05)}
+  .settings-section-label{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:700;margin-bottom:10px}
+  .settings-row{width:100%;display:flex;align-items:center;gap:12px;background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:12px 14px;text-align:left;cursor:pointer;color:var(--text);font-family:inherit;transition:transform .1s ease,background .12s}
+  .settings-row:active{transform:scale(.99)}
+  .settings-row:hover{background:color-mix(in srgb, var(--accent2) 6%, var(--card2))}
+  .settings-row-main{flex:1;min-width:0}
+  .settings-row-title{font-size:15px;font-weight:700;margin-bottom:2px}
+  .settings-row-sub{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .settings-row-chev{color:var(--muted);font-size:22px;line-height:1;flex:none}
+  .settings-theme-row{display:flex;gap:10px}
+  .settings-theme-row button.opt{flex:1;padding:14px 6px;font-size:14px;font-weight:600}
+  .settings-hint{margin-top:8px;font-size:12px;color:var(--muted);line-height:1.5}
+  .settings-section .btn,.settings-section .btn-ghost{margin-top:10px}
+  .settings-section input[type=text],.settings-section input[type=password]{margin-top:0}
+  .settings-footer{display:flex;justify-content:space-between;align-items:center;padding:8px 4px 4px;font-size:11.5px;color:var(--muted)}
+  .settings-env{padding:3px 10px;border-radius:999px;background:var(--card2);border:1px solid var(--border);font-weight:700;letter-spacing:.4px;text-transform:uppercase;font-size:10.5px}
+  .settings-env.dev{color:var(--amber);border-color:color-mix(in srgb, var(--amber) 40%, var(--border))}
   .dash-month{display:flex;gap:8px;align-items:center;margin-bottom:14px}
   .dash-month select{flex:1;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:16px;padding:12px;font-size:15px}
   .dash-total{font-size:28px;font-weight:700;margin-bottom:18px}
@@ -120,16 +154,10 @@
   .dash-row .dr-bar{height:8px;background:var(--card2);border-radius:6px;overflow:hidden}
   .dash-row .dr-fill{height:100%;background:var(--accent2);border-radius:6px}
   .dash-empty{color:var(--muted);font-size:14px;text-align:center;padding:30px 0}
-  .theme-toggle{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:20px;font-size:14px;cursor:pointer;line-height:1}
-  .header-menu-backdrop{position:fixed;inset:0;z-index:150;display:none}
-  .header-menu{position:fixed;z-index:151;background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:14px;width:240px;display:none}
-  .header-menu-name{font-weight:800;font-size:15px;margin-bottom:2px}
-  .header-menu-cur{font-size:12.5px;color:var(--muted);margin-bottom:12px}
-  .header-menu-label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:10px 0 6px}
-  .header-menu-theme-row{display:flex;gap:8px}
-  .header-menu-theme-row button.opt{flex:1;padding:9px 6px;font-size:13px}
-  .header-menu-divider{border-top:1px solid var(--border);margin:12px 0}
-  .header-menu-link{display:block;width:100%;background:none;border:none;color:var(--accent);font-weight:700;font-size:14px;text-align:left;padding:2px 0;cursor:pointer}
+  /* The header “gear” button reuses the .theme-toggle pill styling so the
+     header stays a single well-balanced row (title • badge • icon). Icon
+     is emoji so it inherits the theme via currentColor without a webfont. */
+  .theme-toggle{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:20px;font-size:16px;cursor:pointer;line-height:1}
   .entry.income .amt{color:var(--green)}
   .dash-tabs{display:flex;gap:8px;margin-bottom:16px}
   .dash-tabs button{flex:1;background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:16px;padding:8px;font-size:13px;font-weight:600;cursor:pointer;transition:transform .1s ease}
@@ -218,23 +246,10 @@
     <div id="helloName" style="display:none;font-size:11.5px;color:var(--muted);font-weight:600;margin-top:1px"></div>
   </div>
   <div style="display:flex;align-items:center;gap:8px">
-    <div class="badge">This Month Total: <b id="monthTotal">$0</b></div>
-    <button class="theme-toggle" id="menuBtn" onclick="openHeaderMenu()">☰</button>
+    <div class="badge" id="monthTotalBadge"><span>This Month Total: </span><b id="monthTotal">$0</b></div>
+    <button class="theme-toggle" id="settingsHeaderBtn" onclick="showMainTab('settings')" title="Settings" aria-label="Settings">⚙️</button>
   </div>
 </header>
-
-<div class="header-menu-backdrop" id="headerMenuBackdrop" onclick="closeHeaderMenu()"></div>
-<div class="header-menu" id="headerMenu">
-  <div class="header-menu-name" id="headerMenuName">👤 You</div>
-  <div class="header-menu-cur" id="headerMenuCur"></div>
-  <div class="header-menu-label">Appearance</div>
-  <div class="header-menu-theme-row">
-    <button type="button" class="opt" id="headerMenuDarkBtn" onclick="setTheme('dark'); closeHeaderMenu();">🌙 Dark</button>
-    <button type="button" class="opt" id="headerMenuLightBtn" onclick="setTheme('light'); closeHeaderMenu();">☀️ Light</button>
-  </div>
-  <div class="header-menu-divider"></div>
-  <button type="button" class="header-menu-link" onclick="closeHeaderMenu(); openPrefs();">👤 Name &amp; currency preferences ›</button>
-</div>
 
 <div class="tabs" style="display:none">
   <button class="sel" id="tabExpenseBtn" onclick="showMainTab('expense')">🧾 Expense</button>
@@ -424,30 +439,81 @@
     </div>
   </div>
 
-<div class="label" style="margin-top:22px">☁️ Cloud Sync</div>
-<div class="cloud-status" id="cloudStatus">Not connected — saving on this device only</div>
-<div id="cloudSetup">
-  <input type="text" id="cloudOwner" placeholder="GitHub username" autocomplete="off">
-  <input type="text" id="cloudRepo" placeholder="Private data repo name (e.g. iExpense-data)" autocomplete="off" style="margin-top:8px">
-  <input type="password" id="cloudToken" placeholder="Personal access token" autocomplete="off" style="margin-top:8px">
-  <button class="btn btn-export" onclick="cloudConnect()">Connect &amp; Sync</button>
-</div>
-<div id="cloudControls" style="display:none">
-  <button class="btn btn-ghost" onclick="cloudDisconnect()">Disconnect</button>
 </div>
 
-<div id="backupSection">
-<div class="label" style="margin-top:22px">💾 Backup</div>
-<div id="jsonBackupSection">
-<button class="btn btn-ghost" onclick="backupData()">Backup all data (.json)</button>
-<button class="btn btn-ghost" onclick="document.getElementById('restoreFile').click()">Restore from backup</button>
-<input type="file" id="restoreFile" accept="application/json" style="display:none" onchange="restoreData(event)">
-</div>
-<button class="btn btn-ghost" onclick="exportExcel()" style="margin-top:8px">📊 Export Excel report (.xlsx)</button>
-<div style="margin-top:6px;color:var(--muted);font-size:12.5px">Monthly summary, category breakdown, all entries &amp; net worth — build your own charts/pivot tables in Excel</div>
-<button class="btn btn-ghost" id="prefsBtn" onclick="openPrefs()" style="margin-top:8px">👤 Name &amp; currency preferences</button>
-</div>
+<!-- =====================================================================
+     Settings view — everything that isn't day-to-day data lives here now:
+     profile (name + currency), appearance (dark/light), cloud sync setup,
+     backup/restore, and Excel export. All of these used to be piled at
+     the bottom of the Dashboard tab, which made the Dashboard feel like a
+     settings screen the moment you scrolled past the charts.
+     ================================================================= -->
+<div id="settingsView" style="display:none">
+  <div class="settings-header">
+    <h2 class="settings-title">Settings</h2>
+    <div class="settings-sub">Everything you’d normally only touch once. Data-entry tabs at the bottom.</div>
+  </div>
 
+  <!-- Profile: identity + currency. Tapping the row opens the same
+       full-screen prefs sheet used by first-run onboarding. -->
+  <div class="settings-section">
+    <div class="settings-section-label">👤 Profile</div>
+    <button type="button" class="settings-row" onclick="openPrefs()">
+      <div class="settings-row-main">
+        <div class="settings-row-title" id="settingsProfileName">Your name</div>
+        <div class="settings-row-sub" id="settingsProfileCur">USD only</div>
+      </div>
+      <div class="settings-row-chev">›</div>
+    </button>
+  </div>
+
+  <!-- Appearance: theme picker as two tile buttons. Big, clearly-labelled,
+       obviously a toggle — the old ☰ menu hid this behind an icon. -->
+  <div class="settings-section">
+    <div class="settings-section-label">🎨 Appearance</div>
+    <div class="settings-theme-row">
+      <button type="button" class="opt" id="settingsDarkBtn" onclick="setTheme('dark')">🌙 Dark</button>
+      <button type="button" class="opt" id="settingsLightBtn" onclick="setTheme('light')">☀️ Light</button>
+    </div>
+  </div>
+
+  <!-- Cloud Sync: same three inputs + connect/disconnect flow as before,
+       just no longer at the tail of the Dashboard. -->
+  <div class="settings-section">
+    <div class="settings-section-label">☁️ Cloud Sync</div>
+    <div class="cloud-status" id="cloudStatus">Not connected — saving on this device only</div>
+    <div id="cloudSetup">
+      <input type="text" id="cloudOwner" placeholder="GitHub username" autocomplete="off">
+      <input type="text" id="cloudRepo" placeholder="Private data repo name (e.g. iExpense-data)" autocomplete="off" style="margin-top:8px">
+      <input type="password" id="cloudToken" placeholder="Personal access token" autocomplete="off" style="margin-top:8px">
+      <button class="btn btn-export" onclick="cloudConnect()">Connect &amp; Sync</button>
+    </div>
+    <div id="cloudControls" style="display:none">
+      <button class="btn btn-ghost" onclick="cloudDisconnect()">Disconnect</button>
+    </div>
+    <div class="settings-hint">Your data stays in your own private GitHub repo. No third party sees it.</div>
+  </div>
+
+  <!-- Backup + Restore + Excel export. Backup/Restore is hidden on the
+       /dev/ preview because dev has its own cloud target and the JSON
+       backup would only cause confusion; Excel export always stays. -->
+  <div class="settings-section" id="backupSection">
+    <div class="settings-section-label">💾 Backup &amp; Export</div>
+    <div id="jsonBackupSection">
+      <button class="btn btn-ghost" onclick="backupData()">Backup all data (.json)</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('restoreFile').click()">Restore from backup</button>
+      <input type="file" id="restoreFile" accept="application/json" style="display:none" onchange="restoreData(event)">
+    </div>
+    <button class="btn btn-ghost" onclick="exportExcel()" style="margin-top:8px">📊 Export Excel report (.xlsx)</button>
+    <div class="settings-hint">Monthly summary, category breakdown, all entries &amp; net worth — build your own charts/pivot tables in Excel.</div>
+  </div>
+
+  <!-- Footer: version + environment badge. Cheap way to answer "am I on
+       prod or dev right now?" without inspecting the URL bar. -->
+  <div class="settings-footer">
+    <div class="settings-env" id="settingsEnvBadge">Production</div>
+    <div class="settings-version">iExpense · <span id="settingsVersion">v1</span></div>
+  </div>
 </div>
 
 <button type="button" class="fab-add" id="fabAddBtn" onclick="openAddPicker()">+</button>
@@ -1637,7 +1703,7 @@ async function cloudConnect(){
 }
 
 async function cloudSyncNow(){
-  if(!cloudCfg){ toast("Connect Cloud Sync first (on Dashboard)","var(--amber)"); return; }
+  if(!cloudCfg){ toast("Connect Cloud Sync first (in Settings)","var(--amber)"); return; }
   toast("Syncing…","var(--amber)");
   try{
     const merged = await cloudSyncMutation(remote=>unionMerge(remote, entries, loadDeletedIds(DELETED_IDS_KEY)));
@@ -1717,6 +1783,7 @@ function showMainTab(tab){
     document.getElementById("entriesView").style.display = "none";
     document.getElementById("netWorthView").style.display = "none";
     document.getElementById("dashboardView").style.display = "block";
+    document.getElementById("settingsView").style.display = "none";
     document.getElementById("tabExpenseBtn").classList.remove("sel");
     document.getElementById("tabIncomeBtn").classList.remove("sel");
     document.getElementById("tabNetWorthBtn").classList.remove("sel");
@@ -1724,10 +1791,60 @@ function showMainTab(tab){
     document.getElementById("fabAddBtn").style.display = "flex";
     renderDashboard();
   } else if(tab==="networth"){
+    document.getElementById("settingsView").style.display = "none";
     showNetWorth();
+  } else if(tab==="settings"){
+    // Settings is a first-class view now, not a modal — hide every other
+    // view, hide the floating "+" (nothing to add on the settings screen),
+    // and refresh the profile row + theme selection state so it reflects
+    // what's currently active.
+    document.getElementById("entriesView").style.display = "none";
+    document.getElementById("netWorthView").style.display = "none";
+    document.getElementById("dashboardView").style.display = "none";
+    document.getElementById("settingsView").style.display = "block";
+    document.getElementById("tabExpenseBtn").classList.remove("sel");
+    document.getElementById("tabIncomeBtn").classList.remove("sel");
+    document.getElementById("tabNetWorthBtn").classList.remove("sel");
+    document.getElementById("tabDashboardBtn").classList.remove("sel");
+    document.getElementById("fabAddBtn").style.display = "none";
+    renderSettings();
   } else {
+    document.getElementById("settingsView").style.display = "none";
     setFormType(tab);
   }
+}
+
+// ===== Settings view render =====
+// Refresh anything on the Settings screen that depends on state — the
+// profile row (name + currency summary), the theme selection state, and
+// the environment badge. Called every time the user opens Settings so
+// the values are never stale.
+function renderSettings(){
+  const nameEl = document.getElementById("settingsProfileName");
+  const curEl  = document.getElementById("settingsProfileCur");
+  if(nameEl){
+    nameEl.textContent = (prefs && prefs.name) ? prefs.name : "Set your name";
+  }
+  if(curEl){
+    // one-currency setup shows just the primary; two-currency shows both
+    // in the same "USD + INR" shape used in the old header menu
+    if(SECONDARY_CUR) curEl.textContent = `${PRIMARY_CUR} + ${SECONDARY_CUR}`;
+    else curEl.textContent = `${PRIMARY_CUR} only`;
+  }
+  const env = document.getElementById("settingsEnvBadge");
+  if(env){
+    if(IS_DEV_PREVIEW){ env.textContent = "Dev preview"; env.classList.add("dev"); }
+    else { env.textContent = "Production"; env.classList.remove("dev"); }
+  }
+  // Restore theme selection state on the Settings buttons. setTheme() only
+  // touches these buttons if they're already in the DOM — on first load
+  // they don't exist yet, so this is where the correct ".sel" gets stamped
+  // on the first visit to the Settings screen.
+  const theme = document.documentElement.getAttribute("data-theme") || "dark";
+  const dBtn = document.getElementById("settingsDarkBtn");
+  const lBtn = document.getElementById("settingsLightBtn");
+  if(dBtn) dBtn.classList.toggle("sel", theme!=="light");
+  if(lBtn) lBtn.classList.toggle("sel", theme==="light");
 }
 
 function monthLabel(m){
@@ -2343,31 +2460,19 @@ async function deleteFromNWDashboard(idx, evt){
 }
 
 // ===== Light / dark theme, persisted =====
+// The theme toggles now live in the Settings view, not in a header menu.
+// setTheme keeps the selection state in sync on those buttons if they're
+// currently on-screen; use querySelector-with-null-guard because the
+// buttons only exist inside #settingsView, and setTheme is also called
+// on initial page load before any view has rendered.
 function setTheme(theme){
   document.documentElement.setAttribute("data-theme", theme);
-  document.getElementById("headerMenuDarkBtn").classList.toggle("sel", theme!=="light");
-  document.getElementById("headerMenuLightBtn").classList.toggle("sel", theme==="light");
+  const dBtn = document.getElementById("settingsDarkBtn");
+  const lBtn = document.getElementById("settingsLightBtn");
+  if(dBtn) dBtn.classList.toggle("sel", theme!=="light");
+  if(lBtn) lBtn.classList.toggle("sel", theme==="light");
   try{ localStorage.setItem(nsKey("iexpense_theme"), theme); }catch(e){}
   if(document.getElementById("dashboardView").style.display !== "none") renderDashboard();
-}
-
-// ===== Header hamburger menu: replaces the old standalone theme-toggle
-// button — one tap now surfaces who you're set up as (name + currency),
-// the appearance toggle, and a way into full Preferences, instead of only
-// ever showing a dark/light icon =====
-function openHeaderMenu(){
-  document.getElementById("headerMenuName").textContent = "👤 " + (prefs && prefs.name ? prefs.name : "You");
-  document.getElementById("headerMenuCur").textContent = SECONDARY_CUR ? `${PRIMARY_CUR} + ${SECONDARY_CUR}` : PRIMARY_CUR;
-  const btnRect = document.getElementById("menuBtn").getBoundingClientRect();
-  const menu = document.getElementById("headerMenu");
-  menu.style.top = (btnRect.bottom + 8) + "px";
-  menu.style.right = (window.innerWidth - btnRect.right) + "px";
-  menu.style.display = "block";
-  document.getElementById("headerMenuBackdrop").style.display = "block";
-}
-function closeHeaderMenu(){
-  document.getElementById("headerMenu").style.display = "none";
-  document.getElementById("headerMenuBackdrop").style.display = "none";
 }
 
 // ===== Preferences → UI: everything currency-shaped in the app derives from
@@ -2409,6 +2514,10 @@ function applyPrefs(){
   document.getElementById("nwDisplayCurrencyRow").parentElement.style.display = SECONDARY_CUR ? "" : "none";
   renderNWCurrencyRow();
   renderNWDisplayCurrencyRow();
+  // If the Settings screen is currently visible, refresh its profile row so
+  // the name/currency summary updates immediately after a Preferences save.
+  const settingsView = document.getElementById("settingsView");
+  if(settingsView && settingsView.style.display !== "none") renderSettings();
 }
 
 // ===== First-run onboarding (also reachable later as the Preferences screen) =====

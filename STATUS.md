@@ -1610,3 +1610,83 @@ still restore, (5) `cloudSyncNow()` is called only when `cloudCfg` is
 set and something was actually added. All pass. Manual FX guard verified
 against a range of good and bad inputs. Node `--check` on the extracted
 script block reports clean syntax. Shipped directly to `develop`.
+
+## Round 58 (2026-08-04, dedicated Settings screen + header/cosmetic polish)
+
+The Dashboard tab had quietly turned into two screens stacked on top of
+each other — real data at the top (charts, cards, tables, projections),
+then a wall of settings controls below: ☁️ Cloud Sync setup, 💾 Backup,
+Restore, Export, and a Preferences button. Anyone opening the app to
+check numbers had to scroll past that pile every time. Meanwhile the
+Round 56 hamburger menu also duplicated some of it (name, currency,
+theme, "Preferences"). This round consolidates all of it.
+
+- **New Settings screen as a first-class view.** `#settingsView` is a
+  proper top-level view alongside `#dashboardView`, `#entriesView`,
+  `#netWorthView`. Not a modal — a real screen you navigate to, with
+  its own header, grouped sections, and a footer showing which
+  environment (Production / Dev preview) you're actually on. The
+  `#dashboardView` no longer contains anything settings-shaped; it's
+  purely data now, and stays that way for anyone just glancing at their
+  numbers. `showMainTab("settings")` handles the switch, hides the
+  floating "+" (nothing to add on this screen), and refreshes the
+  profile row + theme selection + env badge every time.
+
+- **Settings sections.** Each section is a card, labeled like the rest
+  of the app's `.chart-card` blocks:
+    - Profile: shows current name + currency summary ("USD + INR" or
+      "USD only"). Tap the row → opens the existing full-screen
+      Preferences sheet (still used verbatim for first-run onboarding).
+    - Appearance: full-width Dark / Light tile toggles with the same
+      "opt" pill styling used everywhere else in the app; the selection
+      state is bound to `data-theme` on `<html>` and re-stamped every
+      time the screen renders.
+    - Cloud Sync: same three inputs and Connect/Disconnect flow as
+      before, plus a short hint explaining that data lives in the
+      user's own private GitHub repo.
+    - Backup & Export: JSON backup, JSON restore, Excel export, with
+      the existing dev-preview hider still stripping JSON backup on
+      /dev/ (that path already has its own cloud target).
+
+- **Header cleanup.** Ripped out the Round 56 hamburger + slide-out
+  panel entirely — the whole `#headerMenu`, `#headerMenuBackdrop`,
+  `openHeaderMenu`, `closeHeaderMenu`, and all their CSS. In its place
+  the header now shows a single ⚙️ gear button on the right that jumps
+  straight to the Settings screen. One tap, one predictable place, no
+  floating panel to keep in sync. The "This Month Total" badge stays,
+  because it's still useful at a glance, but on very narrow phones
+  (≤359px) it collapses to just the number so it can't crowd the gear.
+
+- **`setTheme` is now null-safe.** The theme buttons live inside
+  `#settingsView`, which doesn't render on initial load — so setTheme
+  now guards `getElementById` with null checks and lets
+  `renderSettings` re-apply the selection state the first time the
+  user actually opens Settings. Same behavior for anyone landing
+  directly on the Dashboard.
+
+- **Cosmetic drive-bys.**
+    - Dead-code cleanup: the "Connect Cloud Sync first (on Dashboard)"
+      toast now correctly says "in Settings".
+    - `#prefsBtn` — the ghost "Name & currency preferences" button
+      previously stacked at the bottom of the Dashboard — is gone; the
+      Profile row inside Settings replaces it.
+    - The old `.header-menu*` CSS block (10 rules) is deleted; only
+      `.theme-toggle` remains and its font-size is bumped to 16px so
+      the ⚙️ glyph reads clearly.
+    - The header greeting under the h1 still renders when a name is
+      set, and no longer competes with the badge because the badge
+      collapses to the number on narrow widths.
+
+Verified end-to-end in a headless jsdom harness that loads the shipped
+`index.html`, then walks the full flow: initial state (Dashboard visible,
+Settings hidden, no cloud/backup pile leaking into Dashboard), tapping
+the header ⚙️ (Settings shows, Dashboard hides, FAB hides, profile row
+populated, env badge reads "Dev preview" on /dev/, dark/light tiles
+reflect current theme), switching theme (data-theme flips, tile
+selection flips), navigating back to Dashboard (FAB back, Settings
+hidden), navigating to Settings again and tapping the Profile row
+(full-screen Preferences sheet opens with the right title), and finally
+the dev-preview backup hider (`#jsonBackupSection` hidden on /dev/, as
+before). No exceptions, no missing DOM ids, JS syntax clean.
+
+Shipped to `develop` only. `main` unchanged and waiting for your call.
