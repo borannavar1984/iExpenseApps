@@ -166,10 +166,11 @@
   .dash-row .dr-bar{height:8px;background:var(--card2);border-radius:6px;overflow:hidden}
   .dash-row .dr-fill{height:100%;background:var(--accent2);border-radius:6px}
   .dash-empty{color:var(--muted);font-size:14px;text-align:center;padding:30px 0}
-  /* The header “gear” button reuses the .theme-toggle pill styling so the
-     header stays a single well-balanced row (title • badge • icon). Icon
-     is emoji so it inherits the theme via currentColor without a webfont. */
-  .theme-toggle{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:20px;font-size:16px;cursor:pointer;line-height:1}
+  /* Header menu button. Uses the hamburger glyph (☰) at font-size 18 with
+     weight 700 so the three horizontal bars read cleanly on a phone — the
+     bare Unicode character is thinner than the old gear emoji and needed
+     the extra weight to keep the same optical presence. */
+  .theme-toggle{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:20px;font-size:18px;font-weight:700;cursor:pointer;line-height:1;font-family:inherit}
   .entry.income .amt{color:var(--green)}
   .dash-tabs{display:flex;gap:8px;margin-bottom:16px}
   .dash-tabs button{flex:1;background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:16px;padding:8px;font-size:13px;font-weight:600;cursor:pointer;transition:transform .1s ease}
@@ -259,7 +260,11 @@
   </div>
   <div style="display:flex;align-items:center;gap:8px">
     <div class="badge" id="monthTotalBadge"><span>This Month Total: </span><b id="monthTotal">$0</b></div>
-    <button class="theme-toggle" id="settingsHeaderBtn" onclick="showMainTab('settings')" title="Settings" aria-label="Settings">⚙️</button>
+    <!-- Header “menu” button: opens the Settings screen. Uses the hamburger
+         glyph (☰) because that's the shape users expect for “app menu.”
+         Behavior is unchanged from the gear icon — same onclick, same route
+         to Settings, same big Done button to come back. -->
+    <button class="theme-toggle" id="settingsHeaderBtn" onclick="showMainTab('settings')" title="Menu" aria-label="Open menu">☰</button>
   </div>
 </header>
 

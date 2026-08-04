@@ -1753,3 +1753,26 @@ right, no stale chevron in Settings, and clicking Done hides Settings,
 shows Dashboard, restores the FAB, and re-selects the Dashboard tab.
 
 Shipped to `develop` only; `main` untouched.
+
+## Round 61 (2026-08-04, hamburger menu icon)
+
+Cosmetic swap: the header button that opens the Settings screen now uses
+the hamburger glyph (☰) instead of the gear (⚙️). "App menu" is what
+users expect when they see three horizontal lines in a top corner, and
+the gear was reading more like "settings for this specific thing" than
+"open the app menu."
+
+- Icon changed from `⚙️` to `☰`.
+- `aria-label` from "Settings" to "Open menu"; `title` from "Settings"
+  to "Menu" for hover tooltips on desktop.
+- `.theme-toggle` font-size bumped 16→18 px and font-weight set to 700
+  because the bare Unicode hamburger renders thinner than the gear
+  emoji and needed the extra weight to keep the same optical presence.
+- Behavior unchanged: same `onclick="showMainTab('settings')"`, same
+  Settings screen with the big pill Done button in the top-right to
+  come back.
+
+Verified in jsdom: button present with glyph `☰`, correct labels, no
+stale gear character anywhere in HTML, clicking opens Settings (Done
+button present), clicking Done returns to Dashboard with the FAB
+restored.
