@@ -127,13 +127,20 @@
      for visual consistency across the app. */
   #settingsView{padding-bottom:12px}
   .settings-header{margin-bottom:14px}
-  /* Back chevron sits inline with the title so the whole thing reads as
-     one header block; sub-heading drops beneath and aligns with the
-     title, not the button, so it doesn’t look indented awkwardly. */
-  .settings-header-row{display:flex;align-items:center;gap:10px;margin-bottom:4px}
-  .settings-header-row .cat-picker-back{width:32px;height:32px;min-width:32px;font-size:18px;flex:none}
-  .settings-title{font-size:22px;font-weight:800;letter-spacing:-.2px;margin:0}
+  /* Header row is a two-column layout: title + sub-heading on the left,
+     the big Done button on the right. `align-items:flex-start` keeps the
+     button lined up with the top of the title even when the sub-heading
+     makes the left column taller. */
+  .settings-header-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+  .settings-title-block{flex:1;min-width:0}
+  .settings-title{font-size:22px;font-weight:800;letter-spacing:-.2px;margin:0 0 4px}
   .settings-sub{font-size:13px;color:var(--muted);line-height:1.45}
+  /* Done button: filled with the primary accent, pill-shaped, big enough
+     to be an obvious tap target on a phone. Sticks visually to the title
+     row so the exit-this-screen affordance is impossible to miss. */
+  .settings-done-btn{flex:none;background:var(--accent);color:var(--ctatext);border:none;border-radius:999px;padding:10px 22px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 4px 12px rgba(0,0,0,.18);transition:transform .1s ease,opacity .1s ease;letter-spacing:.2px}
+  .settings-done-btn:active{transform:scale(.95);opacity:.9}
+  .settings-done-btn:hover{opacity:.94}
   .settings-section{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:14px 16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(20,30,15,.05)}
   .settings-section-label{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:700;margin-bottom:10px}
   .settings-row{width:100%;display:flex;align-items:center;gap:12px;background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:12px 14px;text-align:left;cursor:pointer;color:var(--text);font-family:inherit;transition:transform .1s ease,background .12s}
@@ -454,17 +461,19 @@
      settings screen the moment you scrolled past the charts.
      ================================================================= -->
 <div id="settingsView" style="display:none">
-  <!-- Settings header: back chevron + title on one row, sub-heading below.
-       Uses the same .cat-picker-back circular chevron as the Add form and
-       category picker so the “back out of a screen” gesture is one
-       consistent shape across the whole app. Tapping it returns to the
-       Dashboard — the app’s home screen. -->
+  <!-- Settings header: title on the left, a big prominent “Done” button on
+       the right. The Done button is the primary exit affordance for this
+       screen — large, clearly labeled, unmissable, right-aligned so it
+       sits under the thumb on a phone. Tapping it returns to the
+       Dashboard, the app’s home screen. -->
   <div class="settings-header">
     <div class="settings-header-row">
-      <button type="button" class="cat-picker-back" onclick="showMainTab('dashboard')" aria-label="Back to Dashboard">‹</button>
-      <h2 class="settings-title">Settings</h2>
+      <div class="settings-title-block">
+        <h2 class="settings-title">Settings</h2>
+        <div class="settings-sub">Everything you’d normally only touch once. Data-entry tabs at the bottom.</div>
+      </div>
+      <button type="button" class="settings-done-btn" onclick="showMainTab('dashboard')" aria-label="Done — back to Dashboard">Done</button>
     </div>
-    <div class="settings-sub">Everything you’d normally only touch once. Data-entry tabs at the bottom.</div>
   </div>
 
   <!-- Profile: identity + currency. Tapping the row opens the same

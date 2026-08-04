@@ -1721,3 +1721,35 @@ Dashboard, restores the floating "+", and re-selects the Dashboard tab
 indicator. No exceptions, JS syntax clean.
 
 Shipped to `develop` only; `main` untouched.
+
+## Round 60 (2026-08-04, prominent Done button on Settings)
+
+Round 59 added a back chevron to the Settings header, but it was tucked
+in on the LEFT side of the header row and was easy to miss — you asked
+for something big, right-aligned, and unmissable. Also uncovered that
+my chevron sizing (32×32) never actually applied because the base
+`.cat-picker-back` rule (36×36) appears later in the stylesheet and won
+on specificity. Redesigned as a proper primary CTA:
+
+- **`Done` button, right-aligned, primary accent color.** Pill-shaped
+  (border-radius: 999px), padding 10×22 px, font-weight 800, sits under
+  the thumb on the right side of the header. Uses the app's brand
+  accent as background so it reads as "the primary action on this
+  screen." Drops a subtle shadow so it lifts off the page.
+- **Header layout switched to two columns.** `.settings-header-row` is
+  now `display:flex; justify-content:space-between; align-items:flex-start`
+  with the title + sub-heading grouped in a `.settings-title-block` on
+  the left and the Done button on the right. Sub-heading moved inside
+  the title block so the two-column layout stays clean.
+- **Removed the round-59 chevron** so there's exactly one exit
+  affordance on this screen — no split attention.
+- **`aria-label="Done — back to Dashboard"`** for screen readers.
+- **`:active` state** scales the button down slightly so the tap feels
+  physical, matching the treatment on `.settings-row`.
+
+Verified in the jsdom smoke harness: Done button present with label
+"Done", header row uses space-between, title block on left, button on
+right, no stale chevron in Settings, and clicking Done hides Settings,
+shows Dashboard, restores the FAB, and re-selects the Dashboard tab.
+
+Shipped to `develop` only; `main` untouched.
