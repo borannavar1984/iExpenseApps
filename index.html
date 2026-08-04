@@ -127,7 +127,12 @@
      for visual consistency across the app. */
   #settingsView{padding-bottom:12px}
   .settings-header{margin-bottom:14px}
-  .settings-title{font-size:22px;font-weight:800;letter-spacing:-.2px;margin-bottom:4px}
+  /* Back chevron sits inline with the title so the whole thing reads as
+     one header block; sub-heading drops beneath and aligns with the
+     title, not the button, so it doesn’t look indented awkwardly. */
+  .settings-header-row{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+  .settings-header-row .cat-picker-back{width:32px;height:32px;min-width:32px;font-size:18px;flex:none}
+  .settings-title{font-size:22px;font-weight:800;letter-spacing:-.2px;margin:0}
   .settings-sub{font-size:13px;color:var(--muted);line-height:1.45}
   .settings-section{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:14px 16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(20,30,15,.05)}
   .settings-section-label{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:700;margin-bottom:10px}
@@ -449,8 +454,16 @@
      settings screen the moment you scrolled past the charts.
      ================================================================= -->
 <div id="settingsView" style="display:none">
+  <!-- Settings header: back chevron + title on one row, sub-heading below.
+       Uses the same .cat-picker-back circular chevron as the Add form and
+       category picker so the “back out of a screen” gesture is one
+       consistent shape across the whole app. Tapping it returns to the
+       Dashboard — the app’s home screen. -->
   <div class="settings-header">
-    <h2 class="settings-title">Settings</h2>
+    <div class="settings-header-row">
+      <button type="button" class="cat-picker-back" onclick="showMainTab('dashboard')" aria-label="Back to Dashboard">‹</button>
+      <h2 class="settings-title">Settings</h2>
+    </div>
     <div class="settings-sub">Everything you’d normally only touch once. Data-entry tabs at the bottom.</div>
   </div>
 
@@ -1808,6 +1821,11 @@ function showMainTab(tab){
     document.getElementById("tabDashboardBtn").classList.remove("sel");
     document.getElementById("fabAddBtn").style.display = "none";
     renderSettings();
+    // Land the user at the top of the Settings screen so the back chevron
+    // is always the first thing on screen — not mid-scroll from wherever
+    // they were on the previous view. Wrapped in try/catch because some
+    // WebViews throw on the options-object form of scrollTo.
+    try{ window.scrollTo(0, 0); }catch(e){}
   } else {
     document.getElementById("settingsView").style.display = "none";
     setFormType(tab);

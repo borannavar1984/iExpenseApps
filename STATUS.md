@@ -1690,3 +1690,34 @@ the dev-preview backup hider (`#jsonBackupSection` hidden on /dev/, as
 before). No exceptions, no missing DOM ids, JS syntax clean.
 
 Shipped to `develop` only. `main` unchanged and waiting for your call.
+
+## Round 59 (2026-08-04, Settings back button)
+
+Round 58 left the Settings screen without an escape hatch. The header's
+⚙️ gear takes you in, but once inside there was no tap-target that took
+you back to the Dashboard — the only way out was the browser's back
+button, which is a real dead-end on a phone. Fixed.
+
+- **Back chevron on the Settings header.** Same circular `‹` button
+  style used by the Add form and Add-category picker, so "back out of a
+  screen" is one consistent shape across the whole app. Sits inline
+  with the "Settings" title on the first row; the sub-heading drops
+  below the row and aligns with the title (not the button) so it
+  doesn't look awkwardly indented. Tapping the chevron calls
+  `showMainTab("dashboard")` — same code path any other tab switch
+  would use, so the Dashboard tab button re-selects, the floating "+"
+  reappears, and `renderDashboard()` refreshes numbers.
+- **Auto-scroll to top on open.** `showMainTab("settings")` now scrolls
+  the window to `(0, 0)` after switching, so the back chevron is
+  always the first thing on screen — not mid-scroll from wherever the
+  user was on the Dashboard or Net Worth view. Wrapped in try/catch
+  because some older WebViews throw on the options-object form of
+  `scrollTo`.
+
+Verified in the jsdom smoke harness: opening Settings shows the back
+button (label `‹`, aria-label "Back to Dashboard", onclick wired to
+`showMainTab('dashboard')`); clicking it hides Settings, shows the
+Dashboard, restores the floating "+", and re-selects the Dashboard tab
+indicator. No exceptions, JS syntax clean.
+
+Shipped to `develop` only; `main` untouched.
