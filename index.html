@@ -1176,12 +1176,28 @@ async function restoreData(evt){
     if((!Array.isArray(incoming) || !incoming.length) && (!Array.isArray(incomingNW) || !incomingNW.length)){
       toast("No entries found in file","var(--amber)"); return;
     }
+    // SECURITY: Validate entry format before importing
+    function validateRestoreEntry(e) {
+      if(!e || typeof e !== 'object') return false;
+      if(!e.date || !/^\d{4}-\d{2}-\d{2}$/.test(e.date)) return false;
+      if(!e.category || typeof e.category !== 'string') return false;
+      if(e.amount == null || isNaN(Number(e.amount))) return false;
+      if(Number(e.amount) < 0) return false; // reject negative amounts
+      const amt = Number(e.amount).toString();
+      if(amt.split('.')[1]?.length > 2) return false; // reject > 2 decimal places
+      if(e.store && typeof e.store !== 'string') return false;
+      if(e.note && typeof e.note !== 'string') return false;
+      if(e.type && !['expense','income'].includes(e.type)) return false;
+      if(e.payment && !['Credit','Cash'].includes(e.payment)) return false;
+      return true;
+    }
     const key = e => [(e.type||"expense"),e.date,e.category,e.amount,e.store,e.note].join("|");
     const existingByKey = new Set(entries.map(key));
     const existingIds = new Set(entries.map(e=>e.id).filter(Boolean));
     let added = 0;
+    let rejected = 0;
     incoming.forEach(e=>{
-      if(!e || !e.date || !e.category || e.amount==null) return;
+      if(!validateRestoreEntry(e)) { rejected++; return; }
       // dedupe by id first (the backup's own id, if it has one), then fall
       // back to the composite key for legacy backups written before ids existed
       if(e.id && existingIds.has(e.id)) return;
@@ -1200,10 +1216,21 @@ async function restoreData(evt){
     // net worth history: dedupe strictly by id (nwEntries always have ids in
     // any backup produced by this app; skip entries missing an id rather than
     // guessing an identity that could double-count real snapshots)
+    function validateRestoreNWEntry(e) {
+      if(!e || typeof e !== 'object') return false;
+      if(!e.date || !/^\d{4}-\d{2}-\d{2}$/.test(e.date)) return false;
+      if(!e.category || typeof e.category !== 'string') return false;
+      if(!e.item || typeof e.item !== 'string' || e.item.length > 100) return false;
+      if(e.value == null || isNaN(Number(e.value)) || Number(e.value) < 0) return false;
+      if(e.growthRate != null && (isNaN(Number(e.growthRate)) || Number(e.growthRate) < -100 || Number(e.growthRate) > 1000)) return false;
+      if(!e.id) return false;
+      return true;
+    }
     const existingNWIds = new Set(nwEntries.map(e=>e.id).filter(Boolean));
     let addedNW = 0;
+    let rejectedNW = 0;
     incomingNW.forEach(e=>{
-      if(!e || !e.date || !e.category || !e.item || e.value==null || !e.id) return;
+      if(!validateRestoreNWEntry(e)) { rejectedNW++; return; }
       if(existingNWIds.has(e.id)) return;
       nwEntries.push({ date:e.date, category:e.category, item:e.item, value:Number(e.value), growthRate:e.growthRate==null?null:Number(e.growthRate), currency:e.currency||"USD", id:e.id });
       existingNWIds.add(e.id);
@@ -1220,7 +1247,15 @@ async function restoreData(evt){
     const parts = [];
     if(added) parts.push(`${added} entr${added===1?"y":"ies"}`);
     if(addedNW) parts.push(`${addedNW} net worth snapshot${addedNW===1?"":"s"}`);
-    toast(parts.length ? `Restored ${parts.join(" + ")}` : "Nothing new to restore");
+    const msg = parts.length ? `Restored ${parts.join(" + ")}` : "Nothing new to restore";
+    const warnings = [];
+    if(rejected) warnings.push(`${rejected} malformed entry/entries skipped`);
+    if(rejectedNW) warnings.push(`${rejectedNW} invalid net worth snapshot(s) skipped`);
+    if(warnings.length) {
+      toast(`${msg}. ${warnings.join("; ")}`, "var(--amber)");
+    } else {
+      toast(msg);
+    }
   };
   reader.readAsText(file);
 }
@@ -1621,11 +1656,32 @@ function addDeletedIds(key, ids){
 
 // ===== Cloud Sync: GitHub repo (private) acts as the shared data store =====
 const CLOUD_KEY = nsKey("iexpense_cloud_cfg");
-function loadCloudCfg(){ try{ return JSON.parse(localStorage.getItem(CLOUD_KEY)||"null"); }catch(e){ return null; } }
-function saveCloudCfg(cfg){ localStorage.setItem(CLOUD_KEY, JSON.stringify(cfg)); }
-function clearCloudCfg(){ localStorage.removeItem(CLOUD_KEY); }
-let cloudCfg = loadCloudCfg();
+let cloudCfg = null; // In-memory only, token never stored in localStorage
+let cloudToken = null; // PAT stored only in memory during session
+function loadCloudCfg(){
+  try{
+    const stored = JSON.parse(localStorage.getItem(CLOUD_KEY)||"null");
+    if (stored && stored.token) {
+      // SECURITY: Remove token from localStorage if present (old insecure data)
+      localStorage.removeItem(CLOUD_KEY);
+      return null; // Don't load it - token shouldn't be in localStorage
+    }
+    return stored;
+  }catch(e){ return null; }
+}
+function saveCloudCfg(cfg){
+  // SECURITY: Never store token in localStorage - save config without it
+  const toStore = {...cfg};
+  delete toStore.token; // Remove token before storage
+  localStorage.setItem(CLOUD_KEY, JSON.stringify(toStore));
+}
+function clearCloudCfg(){
+  localStorage.removeItem(CLOUD_KEY);
+  cloudToken = null; // Clear in-memory token too
+}
+cloudCfg = loadCloudCfg();
 
+function sanitizeHtml(str){ if(!str)return ""; const div=document.createElement("div"); div.textContent=String(str); return div.innerHTML; }
 function utf8ToB64(str){ return btoa(unescape(encodeURIComponent(str))); }
 function b64ToUtf8(str){ return decodeURIComponent(escape(atob(str.replace(/\n/g,"")))); }
 function cloudApiUrl(cfg, filename){ return `https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/${filename||"entries.json"}`; }
@@ -2273,11 +2329,14 @@ function nwConvert(value, fromCur, toCur, rateInfo){
 // tabs — both single-currency, so conversion never applies); leave it unset
 // for the combined Total tab, which spans both currencies
 function nwValueAsOf(monthStr, toCur, rateInfo, currencyFilter){
-  const cutoff = monthStr + "-31"; // YYYY-MM-DD strings compare lexically, so this safely covers the whole month regardless of its real length
+  // BUGFIX: Proper date range for month - construct first day of next month
+  const [year, month] = monthStr.split('-');
+  const nextMonth = parseInt(month) === 12 ? (parseInt(year)+1) + "-01" : year + "-" + String(parseInt(month)+1).padStart(2,"0");
+  const cutoff = nextMonth + "-01"; // First day of next month, exclusive upper bound
   const latestByItem = {};
   nwEntries.forEach(e=>{
     if(currencyFilter && (e.currency||"USD")!==currencyFilter) return;
-    if(!e.date || e.date > cutoff) return;
+    if(!e.date || e.date >= cutoff) return; // Use >= for proper exclusion
     if(!latestByItem[e.item] || e.date >= latestByItem[e.item].date) latestByItem[e.item] = e;
   });
   let assets=0, liabilities=0, incomplete=false;
