@@ -211,6 +211,15 @@
   .add-form-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
   .fab-add{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom));width:60px;height:60px;border-radius:50%;background:var(--accent);color:var(--ctatext);font-size:30px;line-height:1;border:none;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer;z-index:150;display:none;align-items:center;justify-content:center;padding:0}
   .fab-add:active{transform:translateX(-50%) scale(.93)}
+  .radial-menu-backdrop{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:140;display:flex;align-items:flex-end;justify-content:center;padding-bottom:calc(86px + env(safe-area-inset-bottom))}
+  .radial-menu{position:relative;width:300px;height:300px;pointer-events:none}
+  .radial-item{position:absolute;width:70px;height:70px;border-radius:50%;background:var(--accent);color:var(--ctatext);border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-shadow:0 6px 18px rgba(0,0,0,.35);font-size:18px;font-weight:700;z-index:151;pointer-events:auto;transition:transform .2s ease,background .12s;font-family:inherit}
+  .radial-item:active{transform:scale(.9)}
+  .radial-icon{font-size:24px;line-height:1}
+  .radial-label{font-size:11px;font-weight:600;white-space:nowrap}
+  .radial-item[data-angle="0"]{left:50%;top:-100px;transform:translateX(-50%)}
+  .radial-item[data-angle="120"]{left:-50px;top:75px;transform:translate(0,0)}
+  .radial-item[data-angle="240"]{right:-50px;top:75px;transform:translate(0,0)}
   .cat-picker-list{overflow-y:auto;flex:1;padding:8px 14px calc(24px + env(safe-area-inset-bottom))}
   .cat-picker-row{display:flex;align-items:center;gap:14px;padding:14px 4px;border-bottom:1px solid var(--card2);cursor:pointer}
   .cat-picker-row:active{background:var(--card2)}
@@ -545,16 +554,20 @@
 
 <button type="button" class="fab-add" id="fabAddBtn" onclick="openAddPicker()">+</button>
 
-<div class="cat-picker-overlay" id="addPickerOverlay" style="display:none">
-  <div class="cat-picker-header">
-    <button type="button" class="cat-picker-back" onclick="closeAddPicker()">‹</button>
-    <div class="cat-picker-title">Add</div>
-    <div style="width:36px"></div>
-  </div>
-  <div class="cat-picker-list">
-    <div class="cat-picker-row" onclick="chooseAdd('expense')"><span class="cpr-icon">🧾</span><span class="cpr-label">Add Expense</span></div>
-    <div class="cat-picker-row" onclick="chooseAdd('income')"><span class="cpr-icon">💰</span><span class="cpr-label">Add Income</span></div>
-    <div class="cat-picker-row" onclick="chooseAdd('networth')"><span class="cpr-icon">💎</span><span class="cpr-label">Update Net Worth</span></div>
+<div id="addPickerOverlay" class="radial-menu-backdrop" style="display:none" onclick="closeAddPicker()">
+  <div class="radial-menu" onclick="event.stopPropagation()">
+    <button type="button" class="radial-item" data-angle="0" onclick="chooseAdd('expense')">
+      <div class="radial-icon">🧾</div>
+      <div class="radial-label">Expense</div>
+    </button>
+    <button type="button" class="radial-item" data-angle="120" onclick="chooseAdd('income')">
+      <div class="radial-icon">💰</div>
+      <div class="radial-label">Income</div>
+    </button>
+    <button type="button" class="radial-item" data-angle="240" onclick="chooseAdd('networth')">
+      <div class="radial-icon">💎</div>
+      <div class="radial-label">Net Worth</div>
+    </button>
   </div>
 </div>
 
