@@ -212,14 +212,14 @@
   .fab-add{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom));width:60px;height:60px;border-radius:50%;background:var(--accent);color:var(--ctatext);font-size:30px;line-height:1;border:none;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer;z-index:150;display:none;align-items:center;justify-content:center;padding:0}
   .fab-add:active{transform:translateX(-50%) scale(.93)}
   .radial-menu-backdrop{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:140;pointer-events:auto}
-  .radial-menu{position:fixed;bottom:calc(86px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:280px;height:180px;pointer-events:none}
+  .radial-menu{position:fixed;bottom:calc(160px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:150px;height:130px;pointer-events:none}
   .radial-item{position:absolute;width:70px;height:70px;border-radius:50%;background:var(--accent);color:var(--ctatext);border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;box-shadow:0 6px 18px rgba(0,0,0,.35);font-size:12px;font-weight:600;z-index:151;pointer-events:auto;transition:transform .2s ease,background .12s;font-family:inherit}
   .radial-item:active{transform:scale(.9)}
   .radial-icon{width:32px;height:32px;display:flex;align-items:center;justify-content:center;line-height:1}
   .radial-label{font-size:10px;font-weight:600;white-space:nowrap;text-align:center}
-  .radial-item[data-angle="0"]{top:0;left:50%;transform:translateX(-50%)}
-  .radial-item[data-angle="120"]{top:80px;left:0}
-  .radial-item[data-angle="240"]{top:80px;right:0}
+  .radial-item[data-angle="0"]{top:-50px;left:50%;transform:translateX(-50%)}
+  .radial-item[data-angle="120"]{top:40px;left:-30px}
+  .radial-item[data-angle="240"]{top:40px;right:-30px}
   .cat-picker-list{overflow-y:auto;flex:1;padding:8px 14px calc(24px + env(safe-area-inset-bottom))}
   .cat-picker-row{display:flex;align-items:center;gap:14px;padding:14px 4px;border-bottom:1px solid var(--card2);cursor:pointer}
   .cat-picker-row:active{background:var(--card2)}
