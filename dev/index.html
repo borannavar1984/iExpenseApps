@@ -1,0 +1,2736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="iExpense">
+<meta name="theme-color" content="#121712">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<title>iExpense</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  /* Warm, rounded theme — a vibrant lime primary accent + deep forest-green
+     secondary, on a soft cream (light) / warm near-black (dark) surface,
+     replacing the previous cool blue/navy palette. Same CSS-variable
+     architecture as before, so every component just re-skins automatically. */
+  :root{
+    --bg:#121712; --card:#1b231c; --card2:#242d25; --border:#37443a;
+    --text:#f1eee6; --muted:#9caa9e; --accent:#a3e635; --accent2:#1b4332;
+    --green:#4ade80; --red:#fb7185; --amber:#fbbf24; --purple:#c084fc;
+    --ctatext:#14210a;
+  }
+  :root[data-theme="light"]{
+    --bg:#fbf6ec; --card:#ffffff; --card2:#f4eedf; --border:#e7dfc9;
+    --text:#2b2a20; --muted:#8a836e; --accent:#6b9c1b; --accent2:#1b4332;
+    --green:#15803d; --red:#dc2626; --amber:#c2790a; --purple:#8b5cf6;
+    --ctatext:#14210a;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{-webkit-font-smoothing:antialiased}
+  body{
+    background:var(--bg);color:var(--text);
+    font-family:'Poppins',-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    padding:calc(14px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) calc(90px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left));
+    max-width:520px;margin:0 auto;
+  }
+  header{
+    display:flex;justify-content:space-between;align-items:center;
+    position:sticky;top:env(safe-area-inset-top);z-index:20;background:var(--bg);
+    margin:0 -14px 14px;
+    padding:14px 14px 12px;
+    border-bottom:1px solid var(--border);
+  }
+  h1{font-size:22px;font-weight:700;letter-spacing:-.2px}
+  h1 span{color:var(--accent)}
+  .badge{background:var(--card2);border:1px solid var(--border);color:var(--muted);font-size:12px;padding:4px 10px;border-radius:20px;white-space:nowrap}
+  .badge b{color:var(--amber)}
+  /* On very narrow phones the month-total badge can crowd the header —
+     drop the leading label and just keep the number so the header stays
+     comfortably in one row alongside the settings gear. */
+  @media (max-width:359px){
+    .badge#monthTotalBadge{font-size:11.5px;padding:3px 8px}
+    .badge#monthTotalBadge > span{display:none}
+  }
+  .label{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:16px 0 8px}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .chip-row{display:flex;flex-wrap:wrap;gap:8px}
+  .chip-wrap{position:relative;display:inline-flex}
+  .chip-remove{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;border:2px solid var(--bg);font-size:12px;line-height:1;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;z-index:1}
+  .chip-remove:active{transform:scale(.9)}
+  .store-field-wrap{position:relative}
+  .store-suggest{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:50;max-height:260px;overflow-y:auto}
+  .store-suggest-row{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;border-bottom:1px solid var(--card2)}
+  .store-suggest-row:last-child{border-bottom:none}
+  .store-suggest-row:active{background:var(--card2)}
+  .store-suggest-row .ssr-label{flex:1;font-size:15px}
+  .store-suggest-row .ssr-remove{background:var(--red);color:#fff;border:none;width:22px;height:22px;border-radius:50%;font-size:13px;line-height:1;cursor:pointer;flex:none;font-weight:700;padding:0}
+  button.opt{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:16px;padding:12px 6px;font-size:13.5px;font-weight:500;cursor:pointer;transition:transform .1s ease,background .12s,border-color .12s}
+  button.opt.sel{background:var(--accent2);border-color:var(--accent2);color:#fff;font-weight:700}
+  button.opt:active{transform:scale(.95)}
+  .chip-row button.opt{padding:10px 14px;border-radius:999px;flex:0 0 auto}
+  .grid button.opt{position:relative;padding:8px 5px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.1;font-size:12px}
+  .grid button.opt[data-icon]::before{
+    content:attr(data-icon);font-size:13px;width:22px;height:22px;
+    display:flex;align-items:center;justify-content:center;border-radius:50%;
+    background:color-mix(in srgb, var(--accent) 18%, var(--card2));
+  }
+  .grid button.opt.sel[data-icon]::before{background:color-mix(in srgb, #fff 20%, transparent)}
+  input[type=text],input[type=date],input[type=tel]{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:16px;padding:13px 14px;font-size:16px;outline:none;transition:border-color .12s,box-shadow .12s}
+  input:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent)}
+  .amount-wrap{position:relative}
+  .amount-wrap::before{content:var(--cur-sym,"$");position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:18px}
+  #nwAmountWrap::before{content:var(--nw-sym,var(--cur-sym,"$"))}
+  select.ob-select{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:16px;padding:13px 14px;font-size:16px;outline:none;appearance:none;-webkit-appearance:none}
+  .ob-body{padding:16px 18px calc(24px + env(safe-area-inset-bottom));overflow-y:auto;flex:1}
+  .ob-intro{font-size:14px;color:var(--muted);line-height:1.5;margin:2px 0 6px}
+  .amount-wrap input{padding-left:32px;font-size:22px;font-weight:700}
+  .fx-manual-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+  .fx-manual-row input[type=tel]{width:90px;padding:10px 12px;font-size:15px}
+  .fx-manual-row .fx-label{font-size:13px;color:var(--muted)}
+  .fx-manual-row .btn-fx{background:var(--accent2);color:#fff;border:none;border-radius:999px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer}
+  .link-btn{background:none;border:none;color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;padding:0;margin-left:4px;text-decoration:underline}
+  .btn{width:100%;border:none;border-radius:999px;padding:16px;font-size:17px;font-weight:700;cursor:pointer;margin-top:18px;transition:transform .1s ease,opacity .1s ease}
+  .btn:active{transform:scale(.97);opacity:.85}
+  .btn-save{background:var(--accent);color:var(--ctatext)}
+  .btn-export{background:var(--green);color:#06281c;margin-top:10px}
+  .btn-ghost{background:var(--card2);color:var(--muted);font-size:14px;padding:12px;margin-top:10px;border-radius:999px}
+  .entry{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;font-size:14px;cursor:pointer;transition:transform .1s ease,border-color .12s}
+  .entry:active{transform:scale(.98)}
+  .entry.editing{border-color:var(--accent);background:var(--card2)}
+  .entry .cat{font-weight:600}
+  .entry .sub{color:var(--muted);font-size:12px;margin-top:2px}
+  .entry .amt{font-weight:700;font-size:16px;margin-right:10px}
+  .entry .del{color:var(--red);background:none;border:none;font-size:18px;padding:4px 6px;cursor:pointer}
+  .toast{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:var(--green);color:#06281c;padding:12px 22px;border-radius:24px;font-weight:700;font-size:14px;display:none;z-index:99;box-shadow:0 6px 24px rgba(0,0,0,.35);max-width:calc(100% - 48px);text-align:center}
+  .tabs{display:flex;gap:6px;margin-bottom:16px}
+  .tabs button{flex:1;background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:16px;padding:10px 4px;font-size:12.5px;font-weight:600;cursor:pointer;transition:transform .1s ease,background .12s,border-color .12s}
+  .tabs button:active{transform:scale(.96)}
+  .tabs button.sel{background:var(--accent2);border-color:var(--accent2);color:#fff}
+  .tabs button.sel#tabIncomeBtn{background:var(--green);border-color:var(--green);color:#06281c}
+  .tabs button.sel#tabNetWorthBtn{background:var(--purple);border-color:var(--purple);color:#fff}
+  .cloud-status{font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.5}
+  .cloud-status.on{color:var(--green)}
+  .cloud-status.off{color:var(--amber)}
+
+  /* ===== Settings view =====
+     Grouped-section layout — each card is a labelled block of controls,
+     so the screen reads as a settings screen rather than a wall of
+     ghost buttons. Sections use the same card treatment as .chart-card
+     for visual consistency across the app. */
+  #settingsView{padding-bottom:12px}
+  .settings-header{margin-bottom:14px}
+  /* Header row is a two-column layout: title + sub-heading on the left,
+     the big Done button on the right. `align-items:flex-start` keeps the
+     button lined up with the top of the title even when the sub-heading
+     makes the left column taller. */
+  .settings-header-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+  .settings-title-block{flex:1;min-width:0}
+  .settings-title{font-size:22px;font-weight:800;letter-spacing:-.2px;margin:0 0 4px}
+  .settings-sub{font-size:13px;color:var(--muted);line-height:1.45}
+  /* Done button: filled with the primary accent, pill-shaped, big enough
+     to be an obvious tap target on a phone. Sticks visually to the title
+     row so the exit-this-screen affordance is impossible to miss. */
+  .settings-done-btn{flex:none;background:var(--accent);color:var(--ctatext);border:none;border-radius:999px;padding:10px 22px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 4px 12px rgba(0,0,0,.18);transition:transform .1s ease,opacity .1s ease;letter-spacing:.2px}
+  .settings-done-btn:active{transform:scale(.95);opacity:.9}
+  .settings-done-btn:hover{opacity:.94}
+  .settings-section{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:14px 16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(20,30,15,.05)}
+  .settings-section-label{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:700;margin-bottom:10px}
+  .settings-row{width:100%;display:flex;align-items:center;gap:12px;background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:12px 14px;text-align:left;cursor:pointer;color:var(--text);font-family:inherit;transition:transform .1s ease,background .12s}
+  .settings-row:active{transform:scale(.99)}
+  .settings-row:hover{background:color-mix(in srgb, var(--accent2) 6%, var(--card2))}
+  .settings-row-main{flex:1;min-width:0}
+  .settings-row-title{font-size:15px;font-weight:700;margin-bottom:2px}
+  .settings-row-sub{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .settings-row-chev{color:var(--muted);font-size:22px;line-height:1;flex:none}
+  .settings-theme-row{display:flex;gap:10px}
+  .settings-theme-row button.opt{flex:1;padding:14px 6px;font-size:14px;font-weight:600}
+  .settings-hint{margin-top:8px;font-size:12px;color:var(--muted);line-height:1.5}
+  .settings-section .btn,.settings-section .btn-ghost{margin-top:10px}
+  .settings-section input[type=text],.settings-section input[type=password]{margin-top:0}
+  .settings-footer{display:flex;justify-content:space-between;align-items:center;padding:8px 4px 4px;font-size:11.5px;color:var(--muted)}
+  .settings-env{padding:3px 10px;border-radius:999px;background:var(--card2);border:1px solid var(--border);font-weight:700;letter-spacing:.4px;text-transform:uppercase;font-size:10.5px}
+  .settings-env.dev{color:var(--amber);border-color:color-mix(in srgb, var(--amber) 40%, var(--border))}
+  .dash-month{display:flex;gap:8px;align-items:center;margin-bottom:14px}
+  .dash-month select{flex:1;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:16px;padding:12px;font-size:15px}
+  .dash-total{font-size:28px;font-weight:700;margin-bottom:18px}
+  .dash-row{margin-bottom:10px}
+  .dash-row .dr-top{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}
+  .dash-row .dr-bar{height:8px;background:var(--card2);border-radius:6px;overflow:hidden}
+  .dash-row .dr-fill{height:100%;background:var(--accent2);border-radius:6px}
+  .dash-empty{color:var(--muted);font-size:14px;text-align:center;padding:30px 0}
+  /* Header menu button. Uses the hamburger glyph (☰) at font-size 18 with
+     weight 700 so the three horizontal bars read cleanly on a phone — the
+     bare Unicode character is thinner than the old gear emoji and needed
+     the extra weight to keep the same optical presence. */
+  .theme-toggle{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:20px;font-size:18px;font-weight:700;cursor:pointer;line-height:1;font-family:inherit}
+  .entry.income .amt{color:var(--green)}
+  .dash-tabs{display:flex;gap:8px;margin-bottom:16px}
+  .dash-tabs button{flex:1;background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:16px;padding:8px;font-size:13px;font-weight:600;cursor:pointer;transition:transform .1s ease}
+  .dash-tabs button:active{transform:scale(.96)}
+  .dash-tabs button.sel{background:var(--accent2);border-color:var(--accent2);color:#fff}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:14px;border-left:4px solid var(--accent2);transition:transform .12s ease,box-shadow .12s ease;box-shadow:0 2px 10px rgba(20,30,15,.05)}
+  .card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.12)}
+  .card.green{border-left-color:var(--green)}
+  .card.orange{border-left-color:var(--red)}
+  .card.purple{border-left-color:var(--purple)}
+  .card-label{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700}
+  .card-value{font-size:19px;font-weight:700;margin:4px 0 2px}
+  .card-sub{font-size:11px;color:var(--muted)}
+  .chart-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:14px;margin-bottom:16px;box-shadow:0 2px 10px rgba(20,30,15,.05)}
+  .chart-card h4{font-size:12px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.4px;font-weight:700}
+  .dtable-wrap{background:var(--card);border:1px solid var(--border);border-radius:18px;overflow-x:auto;margin-bottom:16px;box-shadow:0 2px 10px rgba(20,30,15,.05)}
+  .dtable-wrap table{width:100%;border-collapse:collapse;font-size:12px;min-width:420px}
+  .dtable-wrap th{background:var(--card2);padding:8px 10px;text-align:left;font-size:10px;text-transform:uppercase;color:var(--muted);letter-spacing:.4px;white-space:nowrap}
+  .dtable-wrap td{padding:8px 10px;border-bottom:1px solid var(--card2);white-space:nowrap}
+  .tw-head{padding:10px 12px;font-weight:700;font-size:13px;border-bottom:1px solid var(--border)}
+  .entry-row{cursor:pointer}
+  .entry-row:hover td{background:var(--card2)}
+  .row-del{color:var(--red);background:none;border:none;font-size:15px;padding:2px 6px;cursor:pointer}
+
+  /* ===== Category field + full-screen picker (tap the field, pick from a
+     list with a checkmark on the current selection), instead of an always-
+     visible grid of buttons — frees up screen space for a field you only
+     touch once per entry. ===== */
+  .cat-field{width:100%;display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:13px 14px;font-size:16px;color:var(--text);cursor:pointer;text-align:left;font-family:inherit}
+  .cat-field-label{flex:1}
+  .cat-field-placeholder{color:var(--muted)}
+  .cat-field-chevron{color:var(--muted);font-size:20px;line-height:1}
+  .cat-picker-overlay{position:fixed;inset:0;background:var(--bg);z-index:200;display:flex;flex-direction:column}
+  .cat-picker-header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:calc(14px + env(safe-area-inset-top)) 14px 12px;border-bottom:1px solid var(--border);background:var(--bg)}
+  .cat-picker-back{background:var(--card2);border:1px solid var(--border);color:var(--text);width:36px;height:36px;min-width:36px;border-radius:50%;font-size:20px;cursor:pointer;line-height:1}
+  .cat-picker-title{font-weight:700;font-size:17px}
+  .add-form-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .fab-add{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom));width:60px;height:60px;border-radius:50%;background:var(--accent);color:var(--ctatext);font-size:30px;line-height:1;border:none;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer;z-index:150;display:none;align-items:center;justify-content:center;padding:0;transition:background .2s ease}
+  .fab-add:active{transform:translateX(-50%) scale(.93)}
+  .fab-add.active{background:var(--secondary,#888)}
+  .radial-menu-backdrop{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:140}
+  .radial-menu{position:fixed;bottom:calc(86px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:240px;height:120px}
+  .radial-item{position:absolute;width:70px;height:70px;border-radius:50%;background:var(--accent);color:var(--ctatext);border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;box-shadow:0 6px 18px rgba(0,0,0,.35);font-size:11px;font-weight:600;z-index:151;pointer-events:auto;transition:transform .2s ease,background .12s;font-family:inherit}
+  .radial-item:active{transform:scale(.9)}
+  .radial-icon{width:32px;height:32px;display:flex;align-items:center;justify-content:center;line-height:1}
+  .radial-label{font-size:10px;font-weight:600;white-space:nowrap}
+  .radial-item[data-angle="0"]{top:-30px;left:50%;transform:translateX(-50%)}
+  .radial-item[data-angle="120"]{top:25px;left:0}
+  .radial-item[data-angle="240"]{top:25px;right:0}
+  .cat-picker-list{overflow-y:auto;flex:1;padding:8px 14px calc(24px + env(safe-area-inset-bottom))}
+  .cat-picker-row{display:flex;align-items:center;gap:14px;padding:14px 4px;border-bottom:1px solid var(--card2);cursor:pointer}
+  .cat-picker-row:active{background:var(--card2)}
+  .cat-picker-row .cpr-icon{font-size:19px;width:24px;text-align:center;flex:none}
+  .cat-picker-row .cpr-label{flex:1;font-size:16px}
+  .cat-picker-row .cpr-check{color:var(--accent);font-size:18px;font-weight:700;width:20px;text-align:center}
+
+  /* ===== Tablet/desktop layout — the app is mobile-first by default; these
+     rules only add extra room and reflow at wider viewports. Pure CSS, no
+     HTML/JS restructuring, so touch targets and the mobile layout itself
+     are completely unchanged below 700px. ===== */
+  @media (min-width:700px){
+    body{max-width:680px}
+    .grid{grid-template-columns:repeat(4,1fr)}
+  }
+  @media (min-width:1024px){
+    html{background:var(--card2)}
+    body{
+      max-width:1100px;
+      margin:24px auto;
+      border:1px solid var(--border);
+      border-radius:20px;
+      box-shadow:0 12px 48px rgba(0,0,0,.18);
+    }
+    .grid{grid-template-columns:repeat(6,1fr)}
+
+    /* chart-cards pair up two-per-row on wide screens; everything else in a
+       dashboard view (summary cards, filter selects, tables) still spans
+       the full width so it doesn't get squeezed into a half column */
+    #dashOverviewView, #dashMonthlyView, #nwRegionUSView, #nwRegionINView, #nwRegionTotalView{
+      display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start;
+    }
+    #dashOverviewView > *, #dashMonthlyView > *, #nwRegionUSView > *, #nwRegionINView > *, #nwRegionTotalView > *{
+      grid-column:1 / -1;
+    }
+    #dashOverviewView > .chart-card, #dashMonthlyView > .chart-card, #nwRegionUSView > .chart-card, #nwRegionINView > .chart-card, #nwRegionTotalView > .chart-card{
+      grid-column:span 1;
+    }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>i<span>Expense</span></h1>
+    <div id="helloName" style="display:none;font-size:11.5px;color:var(--muted);font-weight:600;margin-top:1px"></div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="badge" id="monthTotalBadge"><span>This Month Total: </span><b id="monthTotal">$0</b></div>
+    <!-- Header “menu” button: opens the Settings screen. Uses the hamburger
+         glyph (☰) because that's the shape users expect for “app menu.”
+         Behavior is unchanged from the gear icon — same onclick, same route
+         to Settings, same big Done button to come back. -->
+    <button class="theme-toggle" id="settingsHeaderBtn" onclick="showMainTab('settings')" title="Menu" aria-label="Open menu">☰</button>
+  </div>
+</header>
+
+<div class="tabs" style="display:none">
+  <button class="sel" id="tabExpenseBtn" onclick="showMainTab('expense')">🧾 Expense</button>
+  <button id="tabIncomeBtn" onclick="showMainTab('income')">💰 Income</button>
+  <button id="tabNetWorthBtn" onclick="showMainTab('networth')">💎 Net Worth</button>
+  <button id="tabDashboardBtn" onclick="showMainTab('dashboard')">📊 Dashboard</button>
+</div>
+
+<div id="entriesView">
+
+<div class="add-form-header">
+  <button type="button" class="cat-picker-back" onclick="closeAddForm()">‹</button>
+  <div class="cat-picker-title" id="entriesFormTitle">Add Expense</div>
+</div>
+
+<div class="label">Amount</div>
+<div class="amount-wrap"><input type="tel" id="fAmount" inputmode="decimal" placeholder="0.00" autofocus></div>
+
+<div class="label">Category</div>
+<button type="button" class="cat-field" id="catFieldBtn" onclick="openCatPicker()">
+  <span class="cpr-icon" id="catFieldIcon"></span>
+  <span class="cat-field-label cat-field-placeholder" id="catFieldLabel">Select category</span>
+  <span class="cat-field-chevron">›</span>
+</button>
+
+<div class="label" id="storeLabel">Store / Merchant</div>
+<div class="store-field-wrap">
+  <input type="text" id="fStore" placeholder="e.g. Costco" autocomplete="off">
+  <div class="store-suggest" id="storeSuggest" style="display:none"></div>
+</div>
+
+<div class="label">Date</div>
+<input type="date" id="fDate">
+
+<div id="paymentSection">
+  <div class="label">Payment Method</div>
+  <div class="chip-row" id="payRow"></div>
+</div>
+
+<div class="label">Note (optional)</div>
+<input type="text" id="fNote" placeholder="">
+
+<button class="btn btn-save" id="saveBtn" onclick="saveEntry()">Save Expense</button>
+<button class="btn btn-ghost" id="cancelEditBtn" style="display:none" onclick="closeAddForm()">Cancel edit</button>
+
+<div class="label" style="margin-top:22px">📝 Today's Entries</div>
+<div style="font-size:12px;color:var(--muted);margin-bottom:8px">Tap an entry to edit it. Past days live in Dashboard → Monthly Detail.</div>
+<div id="entryList"></div>
+
+</div>
+
+<div id="netWorthView" style="display:none">
+
+<div class="add-form-header">
+  <button type="button" class="cat-picker-back" onclick="closeAddForm()">‹</button>
+  <div class="cat-picker-title">Update Net Worth</div>
+</div>
+
+<div class="label">Category</div>
+<button type="button" class="cat-field" id="nwCatFieldBtn" onclick="openNWCatPicker()">
+  <span class="cpr-icon" id="nwCatFieldIcon"></span>
+  <span class="cat-field-label cat-field-placeholder" id="nwCatFieldLabel">Select category</span>
+  <span class="cat-field-chevron">›</span>
+</button>
+
+<div class="label">Item Name</div>
+<div class="store-field-wrap">
+  <input type="text" id="nwItem" placeholder="e.g. Fidelity 401k" autocomplete="off">
+  <div class="store-suggest" id="nwItemSuggest" style="display:none"></div>
+</div>
+
+<div class="label">Date</div>
+<input type="date" id="nwDate">
+
+<div class="label" id="nwRegionLabel">Asset Region</div>
+<div class="chip-row" id="nwCurrencyRow"></div>
+
+<div class="label">Current Value</div>
+<div class="amount-wrap" id="nwAmountWrap"><input type="tel" id="nwValue" inputmode="decimal" placeholder="0.00"></div>
+
+<div class="label">Annual Growth Rate % (optional)</div>
+<input type="tel" id="nwGrowth" inputmode="decimal" placeholder="e.g. 7 — used for projections">
+
+<button class="btn btn-save" id="nwSaveBtn" onclick="saveNW()">Save Net Worth Entry</button>
+<button class="btn btn-ghost" id="nwCancelEditBtn" style="display:none" onclick="closeAddForm()">Cancel edit</button>
+
+<div class="label" style="margin-top:22px">📋 Your Items</div>
+<div style="font-size:12px;color:var(--muted);margin-bottom:8px">Shows the latest value for each item. Log a fresh entry each month (same item name, new value) to track its growth over time.</div>
+<div id="nwItemList"></div>
+
+</div>
+
+<div id="dashboardView" style="display:none">
+  <div class="dash-tabs">
+    <button class="sel" id="dashMonthlyBtn" onclick="showDashTab('monthly')">Monthly Detail</button>
+    <button id="dashOverviewBtn" onclick="showDashTab('overview')">Summary</button>
+    <button id="dashNetWorthBtn" onclick="showDashTab('networth')">Net Worth</button>
+  </div>
+
+  <div id="dashMonthlyView">
+    <div class="dash-month">
+      <select id="dashMonthSel" onchange="renderMonthlyDetail()"></select>
+    </div>
+    <div class="cards" id="monCards"></div>
+    <div class="chart-card">
+      <h4>Spend by Category — This Month</h4>
+      <canvas id="monCatChart" height="220"></canvas>
+      <div class="dash-empty" id="monCatEmpty" style="display:none">📊 No expenses to chart for this month</div>
+    </div>
+    <div class="dtable-wrap"><div class="tw-head" id="monIncomeHead">Income</div><div id="monIncomeTable"></div></div>
+    <div class="dtable-wrap"><div class="tw-head" id="monExpenseHead">Expenses</div><div id="monExpenseTable"></div></div>
+    <div class="dash-month">
+      <select id="monCategoryFilter" onchange="setDashCategoryFilter(this.value)"></select>
+    </div>
+    <div class="chart-card"><h4 id="monCatTrendTitle">Category Trend — Month by Month</h4><canvas id="monCatTrendChart" height="200"></canvas><div class="dash-empty" id="monCatTrendChartEmpty" style="display:none"></div></div>
+  </div>
+
+  <div id="dashOverviewView" style="display:none">
+    <div class="cards" id="ovCards"></div>
+    <div class="chart-card"><h4>Income vs Expenses by Month</h4><canvas id="barChart" height="180"></canvas><div class="dash-empty" id="barChartEmpty" style="display:none"></div></div>
+    <div class="chart-card"><h4>Net Savings Trend</h4><canvas id="lineChart" height="180"></canvas><div class="dash-empty" id="lineChartEmpty" style="display:none"></div></div>
+    <div class="dash-month">
+      <select id="ovCategoryFilter" onchange="setDashCategoryFilter(this.value)"></select>
+    </div>
+    <div class="chart-card"><h4 id="ovCatTrendTitle">Spend by Category — Month by Month</h4><canvas id="ovCatTrendChart" height="220"></canvas><div class="dash-empty" id="ovCatTrendChartEmpty" style="display:none"></div></div>
+    <div class="dtable-wrap"><div class="tw-head">Monthly Comparison</div><div id="ovMonthlyTable"></div></div>
+    <div class="dtable-wrap"><div class="tw-head">Category Breakdown — All Months</div><div id="ovCategoryTable"></div></div>
+  </div>
+
+  <div id="dashNetWorthView" style="display:none">
+    <div class="dash-tabs" style="margin-bottom:14px" id="nwRegionTabs">
+      <button id="nwRegionUSBtn" onclick="showNWRegion('US')">US Assets</button>
+      <button id="nwRegionINBtn" onclick="showNWRegion('IN')">IN Assets</button>
+      <button class="sel" id="nwRegionTotalBtn" onclick="showNWRegion('total')">🌐 Total</button>
+    </div>
+
+    <div id="nwRegionUSView" style="display:none">
+      <div class="cards" id="nwCardsUS"></div>
+      <div class="chart-card"><h4>Net Worth Trend</h4><canvas id="nwTrendChartUS" height="180"></canvas><div class="dash-empty" id="nwTrendChartUSEmpty" style="display:none"></div></div>
+      <div class="chart-card"><h4>Breakdown by Category</h4><canvas id="nwCatChartUS" height="220"></canvas><div class="dash-empty" id="nwCatChartUSEmpty" style="display:none"></div></div>
+      <div class="chart-card"><h4>Net Worth Growth Projection</h4><canvas id="nwProjectionChartUS" height="200"></canvas><div class="dash-empty" id="nwProjectionChartUSEmpty" style="display:none"></div><div style="font-size:12px;color:var(--muted);margin-top:6px" id="nwProjectionChartUSWarn"></div></div>
+      <div class="dash-month">
+        <select id="nwFilterCatUS" onchange="nwSetFilter('US','cat',this.value)"></select>
+        <select id="nwFilterItemUS" onchange="nwSetFilter('US','item',this.value)"></select>
+      </div>
+      <div class="dtable-wrap"><div class="tw-head" id="nwItemsTableUSHead">Your US Accounts &amp; Assets</div><div id="nwItemsTableUS"></div></div>
+      <div class="dtable-wrap" id="nwHistoryWrapUS" style="display:none"><div class="tw-head" id="nwHistoryHeadUS"></div><div id="nwHistoryTableUS"></div></div>
+      <div class="dtable-wrap"><div class="tw-head">Growth Projections</div><div id="nwProjectionsTableUS"></div></div>
+    </div>
+
+    <div id="nwRegionINView" style="display:none">
+      <div class="cards" id="nwCardsIN"></div>
+      <div class="chart-card"><h4>Net Worth Trend</h4><canvas id="nwTrendChartIN" height="180"></canvas><div class="dash-empty" id="nwTrendChartINEmpty" style="display:none"></div></div>
+      <div class="chart-card"><h4>Breakdown by Category</h4><canvas id="nwCatChartIN" height="220"></canvas><div class="dash-empty" id="nwCatChartINEmpty" style="display:none"></div></div>
+      <div class="chart-card"><h4>Net Worth Growth Projection</h4><canvas id="nwProjectionChartIN" height="200"></canvas><div class="dash-empty" id="nwProjectionChartINEmpty" style="display:none"></div><div style="font-size:12px;color:var(--muted);margin-top:6px" id="nwProjectionChartINWarn"></div></div>
+      <div class="dash-month">
+        <select id="nwFilterCatIN" onchange="nwSetFilter('IN','cat',this.value)"></select>
+        <select id="nwFilterItemIN" onchange="nwSetFilter('IN','item',this.value)"></select>
+      </div>
+      <div class="dtable-wrap"><div class="tw-head" id="nwItemsTableINHead">Your India Accounts &amp; Assets</div><div id="nwItemsTableIN"></div></div>
+      <div class="dtable-wrap" id="nwHistoryWrapIN" style="display:none"><div class="tw-head" id="nwHistoryHeadIN"></div><div id="nwHistoryTableIN"></div></div>
+      <div class="dtable-wrap"><div class="tw-head">Growth Projections</div><div id="nwProjectionsTableIN"></div></div>
+    </div>
+
+    <div id="nwRegionTotalView">
+      <div class="dash-month">
+        <div class="chip-row" id="nwDisplayCurrencyRow" style="flex:1"></div>
+      </div>
+      <div class="fx-manual-row" id="fxManualRow" style="display:none">
+        <span class="fx-label" id="fxFromLabel">$1 =</span>
+        <input type="tel" id="nwManualRateInput" inputmode="decimal" placeholder="e.g. 95">
+        <span class="fx-label" id="fxToLabel">₹ today</span>
+        <button class="btn-fx" id="nwSaveRateBtn" onclick="saveManualFxRate()">Set Rate</button>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px" id="nwRateStatus"></div>
+      <div class="cards" id="nwCards"></div>
+      <div class="chart-card"><h4>Net Worth Trend</h4><canvas id="nwTrendChart" height="180"></canvas><div class="dash-empty" id="nwTrendChartEmpty" style="display:none"></div></div>
+      <div class="chart-card"><h4>Breakdown by Category</h4><canvas id="nwCatChart" height="220"></canvas><div class="dash-empty" id="nwCatChartEmpty" style="display:none"></div></div>
+      <div class="chart-card"><h4>Net Worth Growth Projection</h4><canvas id="nwProjectionChart" height="200"></canvas><div class="dash-empty" id="nwProjectionChartEmpty" style="display:none"></div><div style="font-size:12px;color:var(--muted);margin-top:6px" id="nwProjectionChartWarn"></div></div>
+      <div class="dash-month">
+        <select id="nwFilterCat" onchange="nwSetFilter('','cat',this.value)"></select>
+        <select id="nwFilterItem" onchange="nwSetFilter('','item',this.value)"></select>
+      </div>
+      <div class="dtable-wrap"><div class="tw-head">Your Accounts &amp; Assets</div><div id="nwItemsTable"></div></div>
+      <div class="dtable-wrap" id="nwHistoryWrap" style="display:none"><div class="tw-head" id="nwHistoryHead"></div><div id="nwHistoryTable"></div></div>
+      <div class="dtable-wrap"><div class="tw-head">Growth Projections</div><div id="nwProjectionsTable"></div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- =====================================================================
+     Settings view — everything that isn't day-to-day data lives here now:
+     profile (name + currency), appearance (dark/light), cloud sync setup,
+     backup/restore, and Excel export. All of these used to be piled at
+     the bottom of the Dashboard tab, which made the Dashboard feel like a
+     settings screen the moment you scrolled past the charts.
+     ================================================================= -->
+<div id="settingsView" style="display:none">
+  <!-- Settings header: title on the left, a big prominent “Done” button on
+       the right. The Done button is the primary exit affordance for this
+       screen — large, clearly labeled, unmissable, right-aligned so it
+       sits under the thumb on a phone. Tapping it returns to the
+       Dashboard, the app’s home screen. -->
+  <div class="settings-header">
+    <div class="settings-header-row">
+      <div class="settings-title-block">
+        <h2 class="settings-title">Settings</h2>
+        <div class="settings-sub">Everything you’d normally only touch once. Data-entry tabs at the bottom.</div>
+      </div>
+      <button type="button" class="settings-done-btn" onclick="showMainTab('dashboard')" aria-label="Done — back to Dashboard">Done</button>
+    </div>
+  </div>
+
+  <!-- Profile: identity + currency. Tapping the row opens the same
+       full-screen prefs sheet used by first-run onboarding. -->
+  <div class="settings-section">
+    <div class="settings-section-label">👤 Profile</div>
+    <button type="button" class="settings-row" onclick="openPrefs()">
+      <div class="settings-row-main">
+        <div class="settings-row-title" id="settingsProfileName">Your name</div>
+        <div class="settings-row-sub" id="settingsProfileCur">USD only</div>
+      </div>
+      <div class="settings-row-chev">›</div>
+    </button>
+  </div>
+
+  <!-- Appearance: theme picker as two tile buttons. Big, clearly-labelled,
+       obviously a toggle — the old ☰ menu hid this behind an icon. -->
+  <div class="settings-section">
+    <div class="settings-section-label">🎨 Appearance</div>
+    <div class="settings-theme-row">
+      <button type="button" class="opt" id="settingsDarkBtn" onclick="setTheme('dark')">🌙 Dark</button>
+      <button type="button" class="opt" id="settingsLightBtn" onclick="setTheme('light')">☀️ Light</button>
+    </div>
+  </div>
+
+  <!-- Cloud Sync: same three inputs + connect/disconnect flow as before,
+       just no longer at the tail of the Dashboard. -->
+  <div class="settings-section">
+    <div class="settings-section-label">☁️ Cloud Sync</div>
+    <div class="cloud-status" id="cloudStatus">Not connected — saving on this device only</div>
+    <div id="cloudSetup">
+      <input type="text" id="cloudOwner" placeholder="GitHub username" autocomplete="off">
+      <input type="text" id="cloudRepo" placeholder="Private data repo name (e.g. iExpense-data)" autocomplete="off" style="margin-top:8px">
+      <input type="password" id="cloudToken" placeholder="Personal access token" autocomplete="off" style="margin-top:8px">
+      <button class="btn btn-export" onclick="cloudConnect()">Connect &amp; Sync</button>
+    </div>
+    <div id="cloudControls" style="display:none">
+      <button class="btn btn-ghost" onclick="cloudDisconnect()">Disconnect</button>
+    </div>
+    <div class="settings-hint">Your data stays in your own private GitHub repo. No third party sees it.</div>
+  </div>
+
+  <!-- Backup + Restore + Excel export. Backup/Restore is hidden on the
+       /dev/ preview because dev has its own cloud target and the JSON
+       backup would only cause confusion; Excel export always stays. -->
+  <div class="settings-section" id="backupSection">
+    <div class="settings-section-label">💾 Backup &amp; Export</div>
+    <div id="jsonBackupSection">
+      <button class="btn btn-ghost" onclick="backupData()">Backup all data (.json)</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('restoreFile').click()">Restore from backup</button>
+      <input type="file" id="restoreFile" accept="application/json" style="display:none" onchange="restoreData(event)">
+    </div>
+    <button class="btn btn-ghost" onclick="exportExcel()" style="margin-top:8px">📊 Export Excel report (.xlsx)</button>
+    <div class="settings-hint">Monthly summary, category breakdown, all entries &amp; net worth — build your own charts/pivot tables in Excel.</div>
+  </div>
+
+  <!-- Footer: version + environment badge. Cheap way to answer "am I on
+       prod or dev right now?" without inspecting the URL bar. -->
+  <div class="settings-footer">
+    <div class="settings-env" id="settingsEnvBadge">Production</div>
+    <div class="settings-version">iExpense · <span id="settingsVersion">v1</span></div>
+  </div>
+</div>
+
+<button type="button" class="fab-add" id="fabAddBtn" onclick="openAddPicker()">+</button>
+
+<div id="addPickerOverlay" class="radial-menu-backdrop" style="display:none" onclick="closeAddPicker()">
+  <div class="radial-menu" onclick="event.stopPropagation()">
+    <button type="button" class="radial-item" data-angle="0" onclick="chooseAdd('expense')">
+      <div class="radial-icon">
+        <svg viewBox="0 0 32 32" fill="currentColor"><path d="M26 8H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2zm-1 10h-2v2h-2v-2h-4v2h-2v-2h-2v4h12v-4zm0-6H7v2h18v-2z"/></svg>
+      </div>
+      <div class="radial-label">Expense</div>
+    </button>
+    <button type="button" class="radial-item" data-angle="120" onclick="chooseAdd('income')">
+      <div class="radial-icon">
+        <svg viewBox="0 0 32 32" fill="currentColor"><path d="M16 2C8.3 2 2 8.3 2 16s6.3 14 14 14 14-6.3 14-14S23.7 2 16 2zm0 26C9.4 28 4 22.6 4 16S9.4 4 16 4s12 5.4 12 12-5.4 12-12 12zm4-14h-3v-2h-2v2h-3v2h3v3h2v-3h3v-2z"/></svg>
+      </div>
+      <div class="radial-label">Income</div>
+    </button>
+    <button type="button" class="radial-item" data-angle="240" onclick="chooseAdd('networth')">
+      <div class="radial-icon">
+        <svg viewBox="0 0 32 32" fill="currentColor"><path d="M28 4H4a2 2 0 0 0-2 2v20a2 2 0 0 0 2 2h24a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zM8 20h2v4H8zm6-4h2v8h-2zm6-3h2v11h-2zm6-2h2v13h-2z"/></svg>
+      </div>
+      <div class="radial-label">Net Worth</div>
+    </button>
+  </div>
+</div>
+
+<div class="cat-picker-overlay" id="catPickerOverlay" style="display:none">
+  <div class="cat-picker-header">
+    <button type="button" class="cat-picker-back" onclick="closeCatPicker()">‹</button>
+    <div class="cat-picker-title">Category</div>
+    <div style="width:36px"></div>
+  </div>
+  <div class="cat-picker-list" id="catPickerList"></div>
+</div>
+
+<div class="cat-picker-overlay" id="nwCatPickerOverlay" style="display:none">
+  <div class="cat-picker-header">
+    <button type="button" class="cat-picker-back" onclick="closeNWCatPicker()">‹</button>
+    <div class="cat-picker-title">Category</div>
+    <div style="width:36px"></div>
+  </div>
+  <div style="padding:10px 14px 0">
+    <input type="text" id="nwCatSearch" placeholder="Search categories..." autocomplete="off" oninput="renderNWCatPickerList()">
+  </div>
+  <div class="cat-picker-list" id="nwCatPickerList"></div>
+</div>
+
+<div class="cat-picker-overlay" id="onboardOverlay" style="display:none">
+  <div class="cat-picker-header">
+    <div style="width:36px"></div>
+    <div class="cat-picker-title" id="obTitle">Welcome to iExpense 👋</div>
+    <div style="width:36px"></div>
+  </div>
+  <div class="ob-body">
+    <div class="ob-intro" id="obIntro">Let's set up your preferences — takes 30 seconds, saved only on this device.</div>
+    <div class="label">Your name</div>
+    <input type="text" id="obName" placeholder="e.g. Deepak" autocomplete="off">
+    <div class="label">Main currency</div>
+    <select class="ob-select" id="obPrimary" onchange="obSyncSecondaryOptions()"></select>
+    <div class="label">Track assets in another currency too?</div>
+    <div class="ob-intro">If some of your accounts or assets are in a different currency (say you live in the US but also have accounts in India), pick Yes and you'll get separate tracking for each currency plus a combined total.</div>
+    <div class="chip-row">
+      <button type="button" class="opt sel" id="obSecNo" onclick="obSetSecondary(false)">No — just one</button>
+      <button type="button" class="opt" id="obSecYes" onclick="obSetSecondary(true)">Yes</button>
+    </div>
+    <div id="obSecondaryWrap" style="display:none">
+      <div class="label">Second currency</div>
+      <select class="ob-select" id="obSecondary"></select>
+    </div>
+    <button class="btn btn-save" id="obSaveBtn" onclick="finishOnboarding()">Get Started</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// when this same file is served from a "/dev/" preview path (see the develop
+// branch's auto-deployed preview), use separate storage keys and show a DEV
+// badge so testing can never read or overwrite real production data — the
+// production site at the root path keeps using the original, unsuffixed keys
+const IS_DEV_PREVIEW = location.pathname.includes("/dev/");
+function nsKey(key){ return IS_DEV_PREVIEW ? key+"_dev" : key; }
+if(IS_DEV_PREVIEW){
+  document.title = "iExpense (DEV)";
+  document.querySelector("header h1").insertAdjacentHTML("beforeend",
+    ' <span style="font-size:11px;background:var(--amber);color:#3a2a00;padding:2px 8px;border-radius:10px;vertical-align:middle;font-weight:800;">DEV</span>');
+}
+const EXP_CATS = ["Rent","Home","Travel","Gas","Transport","Automotive","Groceries","Kids/Activities","Shopping","Gifts & Donations","Health","Education","Personal","Utilities/Phone","Subscriptions","Entertainment","Dining Out","Remittance","Others"];
+const INC_CATS = ["Salary","Dividends","Bonus","Interest","Gift","Other"];
+const CAT_ICONS = {
+  Rent:"🏠", Home:"🏡", Travel:"✈️", Gas:"⛽", Transport:"🚕", Automotive:"🔧", Groceries:"🛒", "Kids/Activities":"🧸", Shopping:"🛍️", "Gifts & Donations":"🎁",
+  Health:"💊", Education:"🎓", Personal:"🧑", "Utilities/Phone":"💡", Subscriptions:"🔁", Entertainment:"🎬", "Dining Out":"🍽️", Remittance:"💱", Others:"📦",
+  Salary:"💼", Dividends:"📈", Bonus:"🎁", Interest:"🏦", Gift:"🎀", Other:"❔"
+};
+function catIcon(cat){ return CAT_ICONS[cat] ? CAT_ICONS[cat]+" " : ""; }
+const DEFAULT_PAY = ["Credit","Cash"];
+const DEFAULT_STORES = ["Costco","Target","Walmart"];
+const LS_KEY = nsKey("iexpense_entries_v1");
+
+// ===== Net Worth: what you own (assets) minus what you owe (liabilities) =====
+const NW_CATS = ["Cash & Bank","Retirement (401k/IRA)","Investments (Stocks)","Real Estate","Other Assets","Liabilities/Debt"];
+const NW_CAT_ICONS = {
+  "Cash & Bank":"🏦", "Retirement (401k/IRA)":"🏛️", "Investments (Stocks)":"📈",
+  "Real Estate":"🏡", "Other Assets":"💎", "Liabilities/Debt":"💳"
+};
+function nwCatIcon(cat){ return NW_CAT_ICONS[cat] ? NW_CAT_ICONS[cat]+" " : ""; }
+function isLiability(cat){ return cat === "Liabilities/Debt"; }
+const NW_LS_KEY = nsKey("iexpense_networth_v1");
+
+// ===== Per-user preferences (name + currencies), set once on first launch =====
+// Stored only on this device — never part of the cloud-sync payload, so every
+// person the app link is shared with gets their own name/currency setup while
+// the entries/networth data model stays exactly the same.
+const PREFS_KEY = nsKey("iexpense_prefs_v1");
+const CURRENCY_INFO = {
+  USD:{sym:"$",  label:"US Dollar"},
+  INR:{sym:"₹",  label:"Indian Rupee"},
+  EUR:{sym:"€",  label:"Euro"},
+  GBP:{sym:"£",  label:"British Pound"},
+  CAD:{sym:"C$", label:"Canadian Dollar"},
+  AUD:{sym:"A$", label:"Australian Dollar"},
+  JPY:{sym:"¥",  label:"Japanese Yen"},
+  SGD:{sym:"S$", label:"Singapore Dollar"},
+  AED:{sym:"د.إ",label:"UAE Dirham"},
+  CHF:{sym:"CHF ",label:"Swiss Franc"},
+  CNY:{sym:"¥",  label:"Chinese Yuan"},
+  MXN:{sym:"Mex$",label:"Mexican Peso"}
+};
+function curSym(cur){ return CURRENCY_INFO[cur] ? CURRENCY_INFO[cur].sym : cur+" "; }
+function loadPrefs(){ try{ return JSON.parse(localStorage.getItem(PREFS_KEY)||"null"); }catch(e){ return null; } }
+function savePrefs(){ try{ localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); }catch(e){} }
+let prefs = loadPrefs();
+// Anyone already using the app before preferences existed keeps today's exact
+// behavior (USD primary + INR secondary) without ever seeing the onboarding
+// screen — only a truly fresh install (no data at all) gets asked.
+if(!prefs){
+  const hasData = !!(localStorage.getItem(LS_KEY) || localStorage.getItem(NW_LS_KEY) || localStorage.getItem(nsKey("iexpense_cloud_cfg")));
+  if(hasData){
+    prefs = { name:"", primaryCurrency:"USD", secondaryCurrency:"INR", onboarded:true, migrated:true };
+    savePrefs();
+  }
+}
+let PRIMARY_CUR = prefs ? prefs.primaryCurrency : "USD";
+let SECONDARY_CUR = prefs ? prefs.secondaryCurrency : "INR";
+let NW_CURRENCIES = SECONDARY_CUR ? [PRIMARY_CUR, SECONDARY_CUR] : [PRIMARY_CUR];
+// Lakh/crore grouping (1,00,000 / 1,00,00,000) reads much easier than long
+// digit strings once rupee amounts get large, so INR switches to
+// "X.XX L" / "X.XX Cr" past those thresholds — this is specifically an
+// Indian numbering convention, so USD always uses standard grouping.
+function nwFmtNum(value, cur){
+  const abs = Math.abs(value);
+  if(cur==="INR"){
+    if(abs >= 1e7) return (value/1e7).toFixed(2).replace(/\.?0+$/,"") + " Cr";
+    if(abs >= 1e5) return (value/1e5).toFixed(2).replace(/\.?0+$/,"") + " L";
+  }
+  return value.toLocaleString("en-US", { minimumFractionDigits:2, maximumFractionDigits:2 });
+}
+function nwFmtAmount(value, cur){ return curSym(cur) + nwFmtNum(value, cur); }
+const FX_CACHE_KEY = nsKey("iexpense_fx_rate");
+const FX_MANUAL_KEY = nsKey("iexpense_fx_manual");
+
+let sel = {cat:null, pay:null};
+let entries = load();
+let editIndex = null;
+let formType = "expense";
+let nwSel = {cat:null, currency:PRIMARY_CUR};
+let nwEntries = loadNW();
+let nwUpdatingItem = null;
+let nwDisplayCurrency = PRIMARY_CUR;
+// which region tab of the Net Worth dashboard is showing — "US" and "IN" are
+// always single-currency (no conversion involved), "total" is the combined
+// view with the USD/INR display toggle, kept as the default so switching to
+// Net Worth behaves exactly as it always has unless a region tab is picked
+let nwActiveRegion = "total";
+// per-region filter state (category + item) for the "Your Accounts & Assets"
+// detail table and its history drill-down — keyed by the same suffix used
+// throughout nwComputeAndRender ("US", "IN", or "" for Total)
+let nwFilters = { US:{cat:"",item:""}, IN:{cat:"",item:""}, "":{cat:"",item:""} };
+function nwSetFilter(suffix, kind, value){
+  if(kind==="cat"){ nwFilters[suffix].cat = value; nwFilters[suffix].item = ""; }
+  else nwFilters[suffix].item = value;
+  renderDashNetWorth();
+}
+
+function load(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||"[]"); }catch(e){ return []; } }
+function genId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
+function ensureIds(){ entries.forEach(e=>{ if(!e.id) e.id=genId(); }); }
+function persist(){ ensureIds(); try{ localStorage.setItem(LS_KEY, JSON.stringify(entries)); }catch(e){} }
+persist(); // backfill ids on any pre-existing data
+function loadNW(){ try{ return JSON.parse(localStorage.getItem(NW_LS_KEY)||"[]"); }catch(e){ return []; } }
+function ensureNWIds(){ nwEntries.forEach(e=>{ if(!e.id) e.id=genId(); }); }
+function persistNW(){ ensureNWIds(); try{ localStorage.setItem(NW_LS_KEY, JSON.stringify(nwEntries)); }catch(e){} }
+persistNW();
+function todayStr(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+// despite the historical name, this formats in whatever the user's PRIMARY
+// currency is — kept as fmtUSD to avoid churning every call site; INR uses
+// en-IN so large amounts group lakh-style (1,00,000) as Indian users expect
+function fmtUSD(value){ return curSym(PRIMARY_CUR) + value.toLocaleString(PRIMARY_CUR==="INR"?"en-IN":"en-US", { minimumFractionDigits:2, maximumFractionDigits:2 }); }
+function toast(msg,color){
+  const t=document.getElementById("toast");
+  const icon = color==="var(--red)" ? "⚠️ " : color==="var(--amber)" ? "ℹ️ " : "✅ ";
+  t.textContent=icon+msg; t.style.background=color||"var(--green)"; t.style.display="block"; setTimeout(()=>t.style.display="none",2200);
+}
+
+// ===== Category ordering: rather than a fixed list you scroll through every
+// time, categories you actually use bubble to the top — ranked by how many
+// times you've logged them in the last few months (so a once-a-month Rent
+// payment doesn't outrank something you tap several times a week), with
+// all-time count as a tiebreak. Anything with zero activity in either window
+// keeps its original relative position at the bottom — Array.sort is a
+// stable sort, so equal-score categories never get shuffled arbitrarily. =====
+function rankCatsByFrequency(cats, items, monthsBack){
+  const today = new Date();
+  const windowMonths = new Set();
+  for(let i=0;i<monthsBack;i++){
+    const d = new Date(today.getFullYear(), today.getMonth()-i, 1);
+    windowMonths.add(d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"));
+  }
+  const windowCount={}, allCount={};
+  items.forEach(it=>{
+    const cat = it.category;
+    if(cat==null) return;
+    allCount[cat]=(allCount[cat]||0)+1;
+    if(it.date && windowMonths.has(it.date.slice(0,7))) windowCount[cat]=(windowCount[cat]||0)+1;
+  });
+  return [...cats].sort((a,b)=> (windowCount[b]||0)-(windowCount[a]||0) || (allCount[b]||0)-(allCount[a]||0));
+}
+
+const catFieldIcon=document.getElementById("catFieldIcon");
+const catFieldLabel=document.getElementById("catFieldLabel");
+let catPickerList = EXP_CATS; // whichever list (expense/income categories) is active right now
+function selectCategory(cat){
+  sel.cat=cat;
+  catFieldIcon.textContent = CAT_ICONS[cat] || "";
+  catFieldLabel.textContent = cat;
+  catFieldLabel.classList.remove("cat-field-placeholder");
+  closeCatPicker();
+}
+function renderCatGrid(type){
+  // income categories stay in their fixed order — only expense categories
+  // are frequent enough, and numerous enough, for ranking to help
+  catPickerList = type==="income" ? INC_CATS : rankCatsByFrequency(EXP_CATS, entries.filter(e=>(e.type||"expense")==="expense"), 3);
+  sel.cat = null;
+  catFieldIcon.textContent = "";
+  catFieldLabel.textContent = "Select category";
+  catFieldLabel.classList.add("cat-field-placeholder");
+}
+function openCatPicker(){
+  const list = document.getElementById("catPickerList");
+  list.innerHTML = catPickerList.map(c=>`
+    <div class="cat-picker-row" data-cat="${c}">
+      <span class="cpr-icon">${CAT_ICONS[c]||""}</span>
+      <span class="cpr-label">${c}</span>
+      <span class="cpr-check">${sel.cat===c ? "✓" : ""}</span>
+    </div>`).join("");
+  [...list.children].forEach(row=>row.onclick=()=>selectCategory(row.dataset.cat));
+  document.getElementById("catPickerOverlay").style.display="flex";
+}
+function closeCatPicker(){
+  document.getElementById("catPickerOverlay").style.display="none";
+}
+
+// ===== Add (+) entry point: Dashboard is the app's home screen; tapping the
+// floating + button is the only way to reach the Expense/Income/Net Worth
+// forms, which open as a full-screen view on top of Dashboard and return to
+// it on Save, Update, or Cancel =====
+let addMenuOpen=false;
+function openAddPicker(){
+  const overlay=document.getElementById("addPickerOverlay");
+  const btn=document.getElementById("fabAddBtn");
+  addMenuOpen=!addMenuOpen;
+  if(addMenuOpen){
+    overlay.style.display="flex";
+    btn.classList.add("active");
+  }else{
+    overlay.style.display="none";
+    btn.classList.remove("active");
+  }
+}
+function closeAddPicker(){
+  const overlay=document.getElementById("addPickerOverlay");
+  const btn=document.getElementById("fabAddBtn");
+  overlay.style.display="none";
+  btn.classList.remove("active");
+  addMenuOpen=false;
+}
+function chooseAdd(kind){
+  closeAddPicker();
+  showMainTab(kind);
+}
+function closeAddForm(){
+  if(document.getElementById("netWorthView").style.display !== "none") cancelNWEdit();
+  else cancelEdit();
+  showMainTab("dashboard");
+}
+
+const payRow=document.getElementById("payRow");
+function renderPayRow(){
+  payRow.innerHTML="";
+  DEFAULT_PAY.forEach(p=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=p;
+    b.onclick=()=>{ sel.pay=p; [...payRow.children].forEach(x=>x.classList.toggle("sel",x.textContent===p)); }; payRow.appendChild(b); });
+}
+
+const nwCatFieldIcon=document.getElementById("nwCatFieldIcon");
+const nwCatFieldLabel=document.getElementById("nwCatFieldLabel");
+function nwSelectCategory(cat){
+  nwSel.cat=cat;
+  nwCatFieldIcon.textContent = NW_CAT_ICONS[cat] || "";
+  nwCatFieldLabel.textContent = cat;
+  nwCatFieldLabel.classList.remove("cat-field-placeholder");
+  closeNWCatPicker();
+}
+// resets the field to its "nothing picked yet" placeholder state — kept the
+// name from when this rendered a button grid, since it's still called from
+// the same reset/init call sites
+function renderNWCatGrid(){
+  nwSel.cat = null;
+  nwCatFieldIcon.textContent = "";
+  nwCatFieldLabel.textContent = "Select category";
+  nwCatFieldLabel.classList.add("cat-field-placeholder");
+}
+// full-screen picker with a live search box — prefix match first, then
+// substring match, same filtering rule as the merchant autocomplete
+function renderNWCatPickerList(){
+  const query = document.getElementById("nwCatSearch").value.trim().toLowerCase();
+  const ranked = rankCatsByFrequency(NW_CATS, nwEntries, 3);
+  let matches = ranked;
+  if(query){
+    const starts = ranked.filter(c=>c.toLowerCase().startsWith(query));
+    const contains = ranked.filter(c=>!c.toLowerCase().startsWith(query) && c.toLowerCase().includes(query));
+    matches = [...starts, ...contains];
+  }
+  const list = document.getElementById("nwCatPickerList");
+  list.innerHTML = matches.map(c=>`
+    <div class="cat-picker-row" data-cat="${c}">
+      <span class="cpr-icon">${NW_CAT_ICONS[c]||""}</span>
+      <span class="cpr-label">${c}</span>
+      <span class="cpr-check">${nwSel.cat===c ? "✓" : ""}</span>
+    </div>`).join("");
+  [...list.children].forEach(row=>row.onclick=()=>nwSelectCategory(row.dataset.cat));
+}
+function openNWCatPicker(){
+  document.getElementById("nwCatSearch").value = "";
+  renderNWCatPickerList();
+  document.getElementById("nwCatPickerOverlay").style.display="flex";
+}
+function closeNWCatPicker(){
+  document.getElementById("nwCatPickerOverlay").style.display="none";
+}
+
+const nwCurrencyRow=document.getElementById("nwCurrencyRow");
+function nwSelectCurrency(cur){
+  nwSel.currency=cur;
+  [...nwCurrencyRow.children].forEach(x=>x.classList.toggle("sel",x.dataset.cur===cur));
+  document.getElementById("nwAmountWrap").style.setProperty("--nw-sym", JSON.stringify(curSym(cur)));
+}
+// the entry form asks "which region is this asset in", not "which currency" —
+// region and currency are the same underlying value (USD ⇔ US Asset,
+// INR ⇔ India Asset; any other currency pair shows its code), so no new
+// field is needed, just a clearer label than a raw currency code
+function nwRegionShort(cur){ return cur==="USD" ? "US" : cur==="INR" ? "IN" : cur; }
+function nwRegionLabel(cur){ return `${nwRegionShort(cur)} Asset (${curSym(cur).trim()})`; }
+function renderNWCurrencyRow(){
+  nwCurrencyRow.innerHTML="";
+  NW_CURRENCIES.forEach(cur=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=nwRegionLabel(cur); b.dataset.cur=cur;
+    b.onclick=()=>nwSelectCurrency(cur); nwCurrencyRow.appendChild(b); });
+  nwSelectCurrency(NW_CURRENCIES[0]);
+  // a single-currency user has nothing to choose here — hide the field
+  const single = NW_CURRENCIES.length < 2;
+  document.getElementById("nwRegionLabel").style.display = single ? "none" : "";
+  nwCurrencyRow.style.display = single ? "none" : "";
+}
+
+// which currency the Net Worth DASHBOARD totals are shown in — independent
+// of what currency any individual account was actually logged in
+function renderNWDisplayCurrencyRow(){
+  const row = document.getElementById("nwDisplayCurrencyRow"); row.innerHTML="";
+  NW_CURRENCIES.forEach(cur=>{ const b=document.createElement("button"); b.className="opt"+(cur===nwDisplayCurrency?" sel":""); b.textContent=`${curSym(cur)} ${cur}`;
+    b.onclick=()=>{ nwDisplayCurrency=cur; renderNWDisplayCurrencyRow(); renderDashNetWorth(); };
+    row.appendChild(b); });
+}
+
+function updateSaveBtnLabel(){
+  const verb = editIndex!==null ? "Update" : "Save";
+  const noun = formType==="income" ? "Income" : "Expense";
+  document.getElementById("saveBtn").textContent = `${verb} ${noun}`;
+}
+
+function setFormType(type){
+  formType = type;
+  document.getElementById("entriesView").style.display = "block";
+  document.getElementById("netWorthView").style.display = "none";
+  document.getElementById("dashboardView").style.display = "none";
+  document.getElementById("tabExpenseBtn").classList.toggle("sel", type==="expense");
+  document.getElementById("tabIncomeBtn").classList.toggle("sel", type==="income");
+  document.getElementById("tabNetWorthBtn").classList.remove("sel");
+  document.getElementById("tabDashboardBtn").classList.remove("sel");
+  document.getElementById("storeLabel").textContent = type==="expense" ? "Store / Merchant" : "Source";
+  document.getElementById("fStore").placeholder = type==="expense" ? "e.g. Costco" : "e.g. Salary";
+  document.getElementById("paymentSection").style.display = type==="expense" ? "block" : "none";
+  document.getElementById("entriesFormTitle").textContent = (editIndex!=null ? "Edit " : "Add ") + (type==="expense" ? "Expense" : "Income");
+  document.getElementById("fabAddBtn").style.display = "none";
+  sel.cat=null; sel.pay = type==="expense" ? "Credit" : null;
+  renderCatGrid(type);
+  [...payRow.children].forEach(x=>x.classList.toggle("sel", x.textContent===sel.pay));
+  updateSaveBtnLabel();
+  hideStoreSuggestions();
+}
+
+// remembers which category was last used for a given store/source, so typing
+// a known one can fill in the category automatically (scoped to the current
+// expense/income mode so they don't cross-contaminate each other's guesses)
+function guessCategoryForStore(storeName){
+  const norm=(storeName||"").trim().toLowerCase();
+  if(!norm) return null;
+  for(let i=entries.length-1;i>=0;i--){
+    const e=entries[i];
+    if((e.type||"expense")===formType && (e.store||"").trim().toLowerCase()===norm) return e.category;
+  }
+  return null;
+}
+function applyStoreCategory(storeName){
+  if(sel.cat) return;
+  const guess=guessCategoryForStore(storeName);
+  if(guess) selectCategory(guess);
+}
+document.getElementById("fStore").addEventListener("input",(e)=>{ applyStoreCategory(e.target.value); renderStoreSuggestions(); });
+document.getElementById("fStore").addEventListener("focus",()=>renderStoreSuggestions());
+document.getElementById("fStore").addEventListener("blur",()=>hideStoreSuggestions());
+document.getElementById("fStore").addEventListener("keydown",(e)=>{ if(e.key==="Escape") hideStoreSuggestions(); });
+
+// recent-store quick picks, scoped to the current expense/income mode
+const HIDDEN_CHIPS_KEY = nsKey("iexpense_hidden_chips_v1");
+function loadHiddenChips(){ try{ return JSON.parse(localStorage.getItem(HIDDEN_CHIPS_KEY)||"[]"); }catch(e){ return []; } }
+function saveHiddenChips(list){ try{ localStorage.setItem(HIDDEN_CHIPS_KEY, JSON.stringify(list)); }catch(e){} }
+function hideChip(storeName){
+  const hidden = loadHiddenChips();
+  if(!hidden.includes(storeName)) hidden.push(storeName);
+  saveHiddenChips(hidden);
+  renderStoreSuggestions();
+}
+function unhideChip(storeName){
+  const hidden = loadHiddenChips();
+  const idx = hidden.indexOf(storeName);
+  if(idx>=0){ hidden.splice(idx,1); saveHiddenChips(hidden); }
+}
+// ordered, hidden-filtered store history: real usage (most recent first) then
+// the default seeds — same source the old always-visible chip row used
+function storeHistoryList(){
+  const hidden=loadHiddenChips();
+  const seen=[]; const seenLower=new Set();
+  [...entries].reverse().forEach(e=>{
+    if((e.type||"expense")===formType && e.store && !seenLower.has(e.store.toLowerCase())){ seenLower.add(e.store.toLowerCase()); seen.push(e.store); }
+  });
+  if(formType==="expense") DEFAULT_STORES.forEach(s=>{ if(!seenLower.has(s.toLowerCase())){ seenLower.add(s.toLowerCase()); seen.push(s); } });
+  return seen.filter(s=>!hidden.includes(s));
+}
+// type-ahead dropdown under Store/Merchant: prefix matches first, then
+// substring matches, so typing a couple of letters surfaces the right
+// merchant without ever showing an always-visible wall of buttons
+function renderStoreSuggestions(){
+  const box=document.getElementById("storeSuggest");
+  const query=document.getElementById("fStore").value.trim().toLowerCase();
+  const source=storeHistoryList();
+  let matches;
+  if(!query){ matches=source; }
+  else{
+    const starts=source.filter(s=>s.toLowerCase().startsWith(query));
+    const contains=source.filter(s=>!s.toLowerCase().startsWith(query) && s.toLowerCase().includes(query));
+    matches=[...starts,...contains];
+  }
+  matches=matches.slice(0,6);
+  if(!matches.length){ box.style.display="none"; box.innerHTML=""; return; }
+  box.innerHTML = matches.map(s=>`<div class="store-suggest-row" data-store="${s.replace(/"/g,"&quot;")}">
+    <span class="ssr-label">${s}</span>
+    <button type="button" class="ssr-remove" aria-label="Remove ${s} from suggestions">×</button>
+  </div>`).join("");
+  [...box.children].forEach(row=>{
+    row.addEventListener("mousedown",e=>e.preventDefault()); // keep #fStore focused so tapping a row never blurs (and hides) the dropdown first
+    const s=row.dataset.store;
+    row.querySelector(".ssr-label").onclick=()=>{ document.getElementById("fStore").value=s; applyStoreCategory(s); hideStoreSuggestions(); };
+    row.querySelector(".ssr-remove").onclick=(ev)=>{ ev.stopPropagation(); hideChip(s); };
+  });
+  box.style.display="block";
+}
+function hideStoreSuggestions(){ document.getElementById("storeSuggest").style.display="none"; }
+
+// the home page only ever shows TODAY's entries, so it stays a short, bounded
+// list no matter how much history piles up; everything else lives in
+// Dashboard > Monthly Detail
+function renderList(){
+  const box=document.getElementById("entryList"); box.innerHTML="";
+  const today = todayStr();
+  const todays = entries.map((e,idx)=>({e,idx})).filter(o=>o.e.date===today).reverse();
+  todays.forEach(({e,idx})=>{
+    const isIncome = e.type==="income";
+    const d=document.createElement("div"); d.className="entry"+(isIncome?" income":"")+(idx===editIndex?" editing":"");
+    const sign = isIncome ? "+" : "";
+    d.innerHTML=`<div><div class="cat">${catIcon(e.category)}${e.category}</div><div class="sub">${e.date} · ${e.store||"—"}${!isIncome && e.payment?" · "+e.payment:""}${e.note?" · "+e.note:""}</div></div>
+      <div style="display:flex;align-items:center"><span class="amt">${sign}${fmtUSD(Number(e.amount))}</span><button class="del" onclick="delEntry(${idx},event)">✕</button></div>`;
+    d.onclick=()=>editEntry(idx);
+    box.appendChild(d);
+  });
+  if(!todays.length){ box.innerHTML='<div class="dash-empty">📭 Nothing logged today yet</div>'; }
+  const monthPrefix = today.slice(0,7);
+  const monthSum = entries.filter(e=>(e.type||"expense")==="expense" && e.date && e.date.slice(0,7)===monthPrefix).reduce((s,e)=>s+Number(e.amount||0),0);
+  document.getElementById("monthTotal").textContent = fmtUSD(monthSum);
+  hideStoreSuggestions();
+}
+
+function isDuplicate(candidate, skipIdx){
+  return entries.some((e,i)=> i!==skipIdx && (e.type||"expense")===candidate.type && e.date===candidate.date && e.category===candidate.category &&
+    Number(e.amount)===candidate.amount && (e.store||"").toLowerCase()===(candidate.store||"").toLowerCase());
+}
+
+async function saveEntry(){
+  const rawAmt = document.getElementById("fAmount").value;
+  const amt=parseFloat(rawAmt);
+  if(!sel.cat){ toast("Pick a category","var(--red)"); return; }
+  if(!amt || amt<=0){ toast("Enter an amount","var(--red)"); return; }
+  if(/\.\d{3,}/.test(rawAmt)){ toast("Amounts can have at most 2 decimal places","var(--red)"); return; }
+  const candidate = { date:document.getElementById("fDate").value||todayStr(), type:formType, category:sel.cat, amount:Math.round(amt*100)/100,
+    store:document.getElementById("fStore").value.trim(), payment:formType==="expense" ? (sel.pay||"") : "", note:document.getElementById("fNote").value.trim() };
+  if(candidate.date > todayStr()){ toast("Date can't be in the future","var(--red)"); return; }
+
+  const dupMsg = formType==="income"
+    ? "Possible duplicate: same date, category, amount and source already logged. Save anyway?"
+    : "Possible duplicate: same date, category, amount and store already logged. Save anyway?";
+  if(isDuplicate(candidate, editIndex) && !confirm(dupMsg)) return;
+
+  if(candidate.store) unhideChip(candidate.store);
+
+  const wasEdit = editIndex!==null;
+  let targetId;
+  if(wasEdit){
+    if(!confirm("Update this entry?")) return;
+    targetId = entries[editIndex].id;
+    entries[editIndex] = { ...entries[editIndex], ...candidate };
+    persist();
+    toast("Updated ✓");
+  } else {
+    targetId = genId();
+    entries.push({ ...candidate, id:targetId });
+    persist();
+    toast("Saved ✓");
+  }
+  resetForm();
+  showMainTab("dashboard");
+
+  if(cloudCfg){
+    try{
+      await cloudSyncMutation(remote=>{
+        const idx = remote.findIndex(e=>e.id===targetId);
+        if(idx>=0) remote[idx] = { ...remote[idx], ...candidate, id:targetId };
+        else remote.push({ ...candidate, id:targetId });
+        return remote;
+      });
+      setCloudStatus(true);
+    }catch(err){
+      setCloudStatus(false, "Saved locally — will retry syncing automatically");
+    }
+  }
+}
+
+function resetForm(){
+  editIndex=null;
+  document.getElementById("fAmount").value=""; document.getElementById("fStore").value=""; document.getElementById("fNote").value="";
+  document.getElementById("cancelEditBtn").style.display="none";
+  setFormType("expense");
+  renderList();
+}
+
+async function delEntry(i,evt){
+  if(evt) evt.stopPropagation();
+  if(!confirm("Delete this entry? This can't be undone.")) return;
+  const idToDelete = entries[i].id;
+  entries.splice(i,1); persist();
+  addDeletedIds(DELETED_IDS_KEY, [idToDelete]);
+  if(editIndex===i) cancelEdit();
+  else renderList();
+
+  if(cloudCfg){
+    try{
+      await cloudSyncMutation(remote=>remote.filter(e=>e.id!==idToDelete));
+      setCloudStatus(true);
+    }catch(err){
+      setCloudStatus(false, "Deleted locally — will retry syncing automatically");
+    }
+  }
+}
+
+function editEntry(i){
+  const e=entries[i];
+  editIndex=i;
+  setFormType(e.type||"expense");
+  document.getElementById("fDate").value=e.date;
+  document.getElementById("fAmount").value=e.amount;
+  document.getElementById("fStore").value=e.store||"";
+  document.getElementById("fNote").value=e.note||"";
+  sel.pay=e.payment||null;
+  selectCategory(e.category);
+  [...payRow.children].forEach(x=>x.classList.toggle("sel",x.textContent===e.payment));
+  document.getElementById("cancelEditBtn").style.display="block";
+  updateSaveBtnLabel();
+  renderList();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function cancelEdit(){
+  document.getElementById("fDate").value=todayStr(); document.getElementById("fDate").max=todayStr();
+  resetForm();
+}
+
+function backupData(){
+  // net worth history now travels with expense/income entries in the same
+  // backup file — earlier versions silently dropped nwEntries here, so a
+  // restore-round would lose every net worth snapshot the user ever logged
+  const payload = { backup:new Date().toISOString(), source:"iExpense", entries:entries, nwEntries:nwEntries };
+  const blob = new Blob([JSON.stringify(payload,null,1)],{type:"application/json"});
+  const fname = `iexpense_backup_${payload.backup.replace(/[-:T]/g,"").slice(0,14)}.json`;
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=fname; a.click();
+  toast("Backup downloaded");
+}
+
+async function restoreData(evt){
+  const file = evt.target.files[0];
+  evt.target.value = "";
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async ()=>{
+    let data;
+    try{ data = JSON.parse(reader.result); }catch(e){ toast("Invalid backup file","var(--red)"); return; }
+    // legacy backups were a bare array of expense/income entries; newer ones
+    // are { entries, nwEntries } and may or may not include nwEntries
+    const incoming = Array.isArray(data) ? data : (data.entries||[]);
+    const incomingNW = Array.isArray(data) ? [] : (data.nwEntries||[]);
+    if((!Array.isArray(incoming) || !incoming.length) && (!Array.isArray(incomingNW) || !incomingNW.length)){
+      toast("No entries found in file","var(--amber)"); return;
+    }
+    // SECURITY: Validate entry format before importing
+    function validateRestoreEntry(e) {
+      if(!e || typeof e !== 'object') return false;
+      if(!e.date || !/^\d{4}-\d{2}-\d{2}$/.test(e.date)) return false;
+      if(!e.category || typeof e.category !== 'string') return false;
+      if(e.amount == null || isNaN(Number(e.amount))) return false;
+      if(Number(e.amount) < 0) return false; // reject negative amounts
+      const amt = Number(e.amount).toString();
+      if(amt.split('.')[1]?.length > 2) return false; // reject > 2 decimal places
+      if(e.store && typeof e.store !== 'string') return false;
+      if(e.note && typeof e.note !== 'string') return false;
+      if(e.type && !['expense','income'].includes(e.type)) return false;
+      if(e.payment && !['Credit','Cash'].includes(e.payment)) return false;
+      return true;
+    }
+    const key = e => [(e.type||"expense"),e.date,e.category,e.amount,e.store,e.note].join("|");
+    const existingByKey = new Set(entries.map(key));
+    const existingIds = new Set(entries.map(e=>e.id).filter(Boolean));
+    let added = 0;
+    let rejected = 0;
+    incoming.forEach(e=>{
+      if(!validateRestoreEntry(e)) { rejected++; return; }
+      // dedupe by id first (the backup's own id, if it has one), then fall
+      // back to the composite key for legacy backups written before ids existed
+      if(e.id && existingIds.has(e.id)) return;
+      if(existingByKey.has(key(e))) return;
+      // preserve the original id so cloud merge dedupes correctly on the next
+      // sync — earlier versions stripped it, which caused restored entries to
+      // be re-inserted as brand-new rows on the cloud copy
+      const restored = { date:e.date, type:e.type||"expense", category:e.category, amount:Number(e.amount), store:e.store||"", payment:e.payment||"", note:e.note||"" };
+      if(e.id) restored.id = e.id;
+      entries.push(restored);
+      if(restored.id) existingIds.add(restored.id);
+      existingByKey.add(key(restored));
+      added++;
+    });
+
+    // net worth history: dedupe strictly by id (nwEntries always have ids in
+    // any backup produced by this app; skip entries missing an id rather than
+    // guessing an identity that could double-count real snapshots)
+    function validateRestoreNWEntry(e) {
+      if(!e || typeof e !== 'object') return false;
+      if(!e.date || !/^\d{4}-\d{2}-\d{2}$/.test(e.date)) return false;
+      if(!e.category || typeof e.category !== 'string') return false;
+      if(!e.item || typeof e.item !== 'string' || e.item.length > 100) return false;
+      if(e.value == null || isNaN(Number(e.value)) || Number(e.value) < 0) return false;
+      if(e.growthRate != null && (isNaN(Number(e.growthRate)) || Number(e.growthRate) < -100 || Number(e.growthRate) > 1000)) return false;
+      if(!e.id) return false;
+      return true;
+    }
+    const existingNWIds = new Set(nwEntries.map(e=>e.id).filter(Boolean));
+    let addedNW = 0;
+    let rejectedNW = 0;
+    incomingNW.forEach(e=>{
+      if(!validateRestoreNWEntry(e)) { rejectedNW++; return; }
+      if(existingNWIds.has(e.id)) return;
+      nwEntries.push({ date:e.date, category:e.category, item:e.item, value:Number(e.value), growthRate:e.growthRate==null?null:Number(e.growthRate), currency:e.currency||"USD", id:e.id });
+      existingNWIds.add(e.id);
+      addedNW++;
+    });
+
+    persist(); persistNW(); renderList(); renderNWItemList();
+
+    // push the restored rows up to Cloud Sync right away instead of waiting
+    // for the next save/delete — otherwise the two sides can stay silently
+    // out of sync for however long the user goes before their next action
+    if(cloudCfg && (added || addedNW)) cloudSyncNow();
+
+    const parts = [];
+    if(added) parts.push(`${added} entr${added===1?"y":"ies"}`);
+    if(addedNW) parts.push(`${addedNW} net worth snapshot${addedNW===1?"":"s"}`);
+    const msg = parts.length ? `Restored ${parts.join(" + ")}` : "Nothing new to restore";
+    const warnings = [];
+    if(rejected) warnings.push(`${rejected} malformed entry/entries skipped`);
+    if(rejectedNW) warnings.push(`${rejectedNW} invalid net worth snapshot(s) skipped`);
+    if(warnings.length) {
+      toast(`${msg}. ${warnings.join("; ")}`, "var(--amber)");
+    } else {
+      toast(msg);
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ===== Excel report export: a multi-sheet .xlsx with real, native Excel
+// charts — not static pictures — spliced into the workbook via JSZip.
+// Neither the free SheetJS build nor ExcelJS can write chart objects, so
+// after SheetJS builds the data sheets, injectChartsIntoWorkbook() adds the
+// chart XML parts (DrawingML) by hand, referencing live cells in those
+// sheets. Because they're live references, editing a number in the sheet
+// updates the chart in Excel — this is the same kind of chart object you'd
+// get from Excel's own Insert > Chart, just built without Excel. =====
+async function exportExcel(){
+  if(typeof XLSX==="undefined"){ toast("Excel library couldn't load — check your connection","var(--red)"); return; }
+
+  const months = allMonths();
+  const monthRows = months.map(m=>({ m, ...monthTotals(m) }));
+  const chartsData = []; // {title, kind:'bar'|'line'|'pie', sheet, catCol, valCols:[{col,name}], firstRow, lastRow}
+
+  const wb = XLSX.utils.book_new();
+  // "Charts" is appended first so it's the sheet Excel opens to by default —
+  // the same idea as the app's own Dashboard-as-home redesign.
+  const chartsSheet = XLSX.utils.aoa_to_sheet([["iExpense Report — Charts"]]);
+  XLSX.utils.book_append_sheet(wb, chartsSheet, "Charts");
+
+  const summarySheet = XLSX.utils.aoa_to_sheet([
+    ["Month","Income","Expenses","Net Savings","Savings Rate"],
+    ...monthRows.map(t=>[monthLabel(t.m), Number(t.income.toFixed(2)), Number(t.expenses.toFixed(2)), Number(t.net.toFixed(2)), Number((t.rate*100).toFixed(1))+"%"])
+  ]);
+  XLSX.utils.book_append_sheet(wb, summarySheet, "Monthly Summary");
+  if(months.length){
+    chartsData.push({ title:"Monthly Income vs Expenses", kind:"bar", sheet:"Monthly Summary", catCol:"A", valCols:[{col:"B"},{col:"C"}], firstRow:2, lastRow:1+months.length });
+    chartsData.push({ title:"Net Savings Trend", kind:"line", sheet:"Monthly Summary", catCol:"A", valCols:[{col:"D"}], firstRow:2, lastRow:1+months.length });
+  }
+
+  const allCats = [...new Set(entries.filter(e=>(e.type||"expense")==="expense").map(e=>e.category))];
+  const catRows = allCats.map(cat=>{
+    const perMonth = months.map(m=>entries.filter(e=>(e.type||"expense")==="expense" && e.category===cat && e.date.slice(0,7)===m).reduce((s,e)=>s+Number(e.amount||0),0));
+    const total = perMonth.reduce((a,b)=>a+b,0);
+    return { cat, perMonth, total };
+  }).sort((a,b)=>b.total-a.total);
+  const categorySheet = XLSX.utils.aoa_to_sheet([
+    ["Category", ...months.map(monthLabel), "Total"],
+    ...catRows.map(r=>[r.cat, ...r.perMonth.map(v=>Number(v.toFixed(2))), Number(r.total.toFixed(2))])
+  ]);
+  XLSX.utils.book_append_sheet(wb, categorySheet, "Category Breakdown");
+  if(catRows.length){
+    const totalCol = XLSX.utils.encode_col(1+months.length);
+    chartsData.push({ title:"Category Breakdown", kind:"bar", sheet:"Category Breakdown", catCol:"A", valCols:[{col:totalCol}], firstRow:2, lastRow:1+catRows.length });
+  }
+
+  const entriesSheet = XLSX.utils.json_to_sheet([...entries].sort((a,b)=>(a.date||"")<(b.date||"")?-1:1).map(e=>({
+    Date:e.date, Type:e.type||"expense", Category:e.category, Amount:Number(e.amount||0),
+    Store:e.store||"", Payment:e.payment||"", Note:e.note||""
+  })));
+  XLSX.utils.book_append_sheet(wb, entriesSheet, "All Entries");
+
+  if(nwEntries.length){
+    const nwCurrentSheet = XLSX.utils.json_to_sheet(nwLatestPerItem().map(({e})=>({
+      Item:e.item, Category:e.category, Value:Number(e.value||0), Currency:e.currency||"USD",
+      "Last Updated":e.date, "Growth Rate (%/yr)": e.growthRate!=null ? e.growthRate : ""
+    })));
+    const nwHistorySheet = XLSX.utils.json_to_sheet([...nwEntries].sort((a,b)=>(a.date||"")<(b.date||"")?-1:1).map(e=>({
+      Date:e.date, Item:e.item, Category:e.category, Value:Number(e.value||0), Currency:e.currency||"USD"
+    })));
+    XLSX.utils.book_append_sheet(wb, nwCurrentSheet, "Net Worth (Current)");
+    XLSX.utils.book_append_sheet(wb, nwHistorySheet, "Net Worth History");
+
+    // one "by category" + one "trend" chart per currency actually in use.
+    // Net worth items can be logged in different currencies (e.g. USD and
+    // INR accounts) and summing them without a live same-day FX rate would
+    // misreport the total, so each currency gets its own honest,
+    // unconverted chart instead of a guessed combined number.
+    const currencies = [...new Set(nwEntries.map(e=>e.currency||"USD"))].sort();
+    const nwMonths = nwAllMonths();
+    currencies.forEach(cur=>{
+      const byCat = {};
+      nwLatestPerItem().forEach(({e})=>{ if((e.currency||"USD")===cur) byCat[e.category]=(byCat[e.category]||0)+Number(e.value||0); });
+      const catEntries = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+      if(catEntries.length){
+        const sheetName = `NW by Category (${cur})`.slice(0,31);
+        const sheet = XLSX.utils.aoa_to_sheet([["Category","Value"], ...catEntries.map(([cat,val])=>[cat, Number(val.toFixed(2))])]);
+        XLSX.utils.book_append_sheet(wb, sheet, sheetName);
+        chartsData.push({ title:`Net Worth by Category (${cur})`, kind:"pie", sheet:sheetName, catCol:"A", valCols:[{col:"B"}], firstRow:2, lastRow:1+catEntries.length });
+      }
+      const trendRows = nwMonths.map(m=>({ m, ...nwValueAsOf(m, cur, null, cur) }));
+      if(trendRows.length){
+        const sheetName = `NW Trend (${cur})`.slice(0,31);
+        const sheet = XLSX.utils.aoa_to_sheet([["Month","Net Worth"], ...trendRows.map(t=>[monthLabel(t.m), Number(t.net.toFixed(2))])]);
+        XLSX.utils.book_append_sheet(wb, sheet, sheetName);
+        chartsData.push({ title:`Net Worth Trend (${cur})`, kind:"line", sheet:sheetName, catCol:"A", valCols:[{col:"B"}], firstRow:2, lastRow:1+trendRows.length });
+      }
+    });
+  }
+
+  const filename = `iexpense_report_${todayStr().replace(/-/g,"")}.xlsx`;
+  const buffer = XLSX.write(wb, { type:"array", bookType:"xlsx" });
+  try{
+    await injectChartsIntoWorkbook(buffer, chartsData, filename);
+    toast("Excel report downloaded");
+  }catch(err){
+    console.error("chart embedding failed, falling back to plain export", err);
+    XLSX.writeFile(wb, filename);
+    toast("Excel report downloaded (charts unavailable)","var(--red)");
+  }
+}
+
+function escXml(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+// builds one DrawingML chart part (chartN.xml) referencing live cells —
+// categories/values are read fresh from the sheet every time Excel opens
+// or recalculates, so these charts stay in sync if the data is edited
+function buildChartXml(c){
+  const titleXml = `<title><tx><rich><a:bodyPr/><a:p><a:pPr><a:defRPr/></a:pPr><a:r><a:t>${escXml(c.title)}</a:t></a:r></a:p></rich></tx></title>`;
+  const catRef = `'${c.sheet}'!$${c.catCol}$${c.firstRow}:$${c.catCol}$${c.lastRow}`;
+  if(c.kind==="pie"){
+    const v = c.valCols[0];
+    const valRef = `'${c.sheet}'!$${v.col}$${c.firstRow}:$${v.col}$${c.lastRow}`;
+    return `<chartSpace xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns="http://schemas.openxmlformats.org/drawingml/2006/chart"><chart>${titleXml}<plotArea><pieChart><varyColors val="1"/><ser><idx val="0"/><order val="0"/><tx><strRef><f>'${c.sheet}'!$${v.col}$1</f></strRef></tx><spPr><a:ln><a:prstDash val="solid"/></a:ln></spPr><cat><numRef><f>${catRef}</f></numRef></cat><val><numRef><f>${valRef}</f></numRef></val></ser><firstSliceAng val="0"/></pieChart></plotArea><legend><legendPos val="r"/></legend><plotVisOnly val="1"/><dispBlanksAs val="gap"/></chart></chartSpace>`;
+  }
+  const isLine = c.kind==="line";
+  const serXml = c.valCols.map((v,i)=>`<ser><idx val="${i}"/><order val="${i}"/><tx><strRef><f>'${c.sheet}'!$${v.col}$1</f></strRef></tx><spPr><a:ln><a:prstDash val="solid"/></a:ln></spPr>${isLine?'<marker><symbol val="none"/><spPr><a:ln><a:prstDash val="solid"/></a:ln></spPr></marker>':""}<cat><numRef><f>${catRef}</f></numRef></cat><val><numRef><f>'${c.sheet}'!$${v.col}$${c.firstRow}:$${v.col}$${c.lastRow}</f></numRef></val></ser>`).join("");
+  const bodyChart = isLine
+    ? `<lineChart><grouping val="standard"/>${serXml}<axId val="10"/><axId val="100"/></lineChart>`
+    : `<barChart><barDir val="col"/><grouping val="clustered"/>${serXml}<gapWidth val="150"/><axId val="10"/><axId val="100"/></barChart>`;
+  return `<chartSpace xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns="http://schemas.openxmlformats.org/drawingml/2006/chart"><chart>${titleXml}<plotArea>${bodyChart}<catAx><axId val="10"/><scaling><orientation val="minMax"/></scaling><axPos val="l"/><majorTickMark val="none"/><minorTickMark val="none"/><crossAx val="100"/><lblOffset val="100"/></catAx><valAx><axId val="100"/><scaling><orientation val="minMax"/></scaling><axPos val="l"/><majorGridlines/><majorTickMark val="none"/><minorTickMark val="none"/><crossAx val="10"/></valAx></plotArea><legend><legendPos val="r"/></legend><plotVisOnly val="1"/><dispBlanksAs val="gap"/></chart></chartSpace>`;
+}
+
+// splices chart parts into the SheetJS-built .xlsx zip, wires them to the
+// "Charts" sheet via a single drawing, and triggers the download
+async function injectChartsIntoWorkbook(buffer, chartsData, filename){
+  if(!chartsData.length || typeof JSZip==="undefined"){
+    downloadBlob(new Blob([buffer], { type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), filename);
+    return;
+  }
+  const zip = await JSZip.loadAsync(buffer);
+
+  // find which physical worksheet file backs the "Charts" sheet by name —
+  // never assume it's sheet1.xml just because it was appended first
+  const wbDoc = new DOMParser().parseFromString(await zip.file("xl/workbook.xml").async("string"), "application/xml");
+  const sheetEl = [...wbDoc.getElementsByTagName("sheet")].find(s=>s.getAttribute("name")==="Charts");
+  const rid = sheetEl.getAttributeNS("http://schemas.openxmlformats.org/officeDocument/2006/relationships","id");
+  const relsDoc = new DOMParser().parseFromString(await zip.file("xl/_rels/workbook.xml.rels").async("string"), "application/xml");
+  const relEl = [...relsDoc.getElementsByTagName("Relationship")].find(r=>r.getAttribute("Id")===rid);
+  const target = relEl.getAttribute("Target").replace(/^\//,"");
+  const sheetPath = target.startsWith("xl/") ? target : `xl/${target}`;
+  const sheetFile = sheetPath.split("/").pop();
+
+  chartsData.forEach((c,i)=>zip.file(`xl/charts/chart${i+1}.xml`, buildChartXml(c)));
+
+  const CX=7200000, CY=3200000, ROW_GAP=22; // ~7.9in x 3.5in each, stacked with room to spare
+  const anchors = chartsData.map((c,i)=>`<oneCellAnchor><from><col>0</col><colOff>0</colOff><row>${1+i*ROW_GAP}</row><rowOff>0</rowOff></from><ext cx="${CX}" cy="${CY}"/><graphicFrame><nvGraphicFramePr><cNvPr id="${i+1}" name="Chart ${i+1}"/><cNvGraphicFramePr/></nvGraphicFramePr><xfrm/><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/chart"><c:chart r:id="rId${i+1}"/></a:graphicData></a:graphic></graphicFrame><clientData/></oneCellAnchor>`).join("");
+  zip.file("xl/drawings/drawing1.xml", `<wsDr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing">${anchors}</wsDr>`);
+  zip.file("xl/drawings/_rels/drawing1.xml.rels", `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${chartsData.map((c,i)=>`<Relationship Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart" Target="/xl/charts/chart${i+1}.xml" Id="rId${i+1}"/>`).join("")}</Relationships>`);
+
+  zip.file(`xl/worksheets/_rels/${sheetFile}.rels`, `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="/xl/drawings/drawing1.xml" Id="rId1"/></Relationships>`);
+  const sheetXml = await zip.file(sheetPath).async("string");
+  zip.file(sheetPath, sheetXml.replace("</worksheet>", `<drawing r:id="rId1"/></worksheet>`));
+
+  const overrides = [`<Override PartName="/xl/drawings/drawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>`,
+    ...chartsData.map((c,i)=>`<Override PartName="/xl/charts/chart${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.drawingml.chart+xml"/>`)].join("");
+  const ctXml = await zip.file("[Content_Types].xml").async("string");
+  zip.file("[Content_Types].xml", ctXml.replace("</Types>", `${overrides}</Types>`));
+
+  const blob = await zip.generateAsync({ type:"blob", mimeType:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+  downloadBlob(blob, filename);
+}
+
+function downloadBlob(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+
+// ===== Net Worth: Item Name type-ahead, same pattern as the Merchant
+// autocomplete — search-as-you-type instead of a wall of chip buttons, and
+// scoped to whichever category is currently selected (pick "Cash & Bank"
+// first and only your bank items show up when you start typing) =====
+const NW_HIDDEN_ITEMS_KEY = nsKey("iexpense_nw_hidden_items_v1");
+function loadNWHiddenItems(){ try{ return JSON.parse(localStorage.getItem(NW_HIDDEN_ITEMS_KEY)||"[]"); }catch(e){ return []; } }
+function saveNWHiddenItems(list){ try{ localStorage.setItem(NW_HIDDEN_ITEMS_KEY, JSON.stringify(list)); }catch(e){} }
+function nwHideItem(item){
+  const hidden = loadNWHiddenItems();
+  if(!hidden.includes(item)) hidden.push(item);
+  saveNWHiddenItems(hidden);
+  renderNWItemSuggestions();
+}
+function nwUnhideItem(item){
+  const hidden = loadNWHiddenItems();
+  const idx = hidden.indexOf(item);
+  if(idx>=0){ hidden.splice(idx,1); saveNWHiddenItems(hidden); }
+}
+// ordered, hidden-filtered item history for the currently selected category
+// (falls back to every category if none is picked yet)
+function nwItemHistoryList(){
+  const hidden = loadNWHiddenItems();
+  const seen=[]; const seenLower=new Set();
+  [...nwEntries].reverse().forEach(e=>{
+    if(!e.item) return;
+    if(nwSel.cat && e.category!==nwSel.cat) return;
+    if(!seenLower.has(e.item.toLowerCase())){ seenLower.add(e.item.toLowerCase()); seen.push(e.item); }
+  });
+  return seen.filter(item=>!hidden.includes(item));
+}
+function renderNWItemSuggestions(){
+  const box=document.getElementById("nwItemSuggest");
+  const query=document.getElementById("nwItem").value.trim().toLowerCase();
+  const source=nwItemHistoryList();
+  let matches;
+  if(!query){ matches=source; }
+  else{
+    const starts=source.filter(s=>s.toLowerCase().startsWith(query));
+    const contains=source.filter(s=>!s.toLowerCase().startsWith(query) && s.toLowerCase().includes(query));
+    matches=[...starts,...contains];
+  }
+  matches=matches.slice(0,6);
+  if(!matches.length){ box.style.display="none"; box.innerHTML=""; return; }
+  box.innerHTML = matches.map(s=>`<div class="store-suggest-row" data-item="${s.replace(/"/g,"&quot;")}">
+    <span class="ssr-label">${s}</span>
+    <button type="button" class="ssr-remove" aria-label="Remove ${s} from suggestions">×</button>
+  </div>`).join("");
+  [...box.children].forEach(row=>{
+    row.addEventListener("mousedown",e=>e.preventDefault());
+    const s=row.dataset.item;
+    row.querySelector(".ssr-label").onclick=()=>{ document.getElementById("nwItem").value=s; nwPrefillFromLatest(s); hideNWItemSuggestions(); };
+    row.querySelector(".ssr-remove").onclick=(ev)=>{ ev.stopPropagation(); nwHideItem(s); };
+  });
+  box.style.display="block";
+}
+function hideNWItemSuggestions(){ document.getElementById("nwItemSuggest").style.display="none"; }
+document.getElementById("nwItem").addEventListener("input",()=>renderNWItemSuggestions());
+document.getElementById("nwItem").addEventListener("focus",()=>renderNWItemSuggestions());
+document.getElementById("nwItem").addEventListener("blur",()=>hideNWItemSuggestions());
+document.getElementById("nwItem").addEventListener("keydown",(e)=>{ if(e.key==="Escape") hideNWItemSuggestions(); });
+
+function nwLatestForItem(itemName){
+  const matches = nwEntries.filter(e=>e.item===itemName);
+  if(!matches.length) return null;
+  return matches.reduce((a,b)=> (b.date>a.date ? b : a));
+}
+function nwPrefillFromLatest(itemName){
+  const latest = nwLatestForItem(itemName);
+  if(!latest) return;
+  nwSelectCategory(latest.category);
+  nwSelectCurrency(latest.currency || PRIMARY_CUR);
+  document.getElementById("nwGrowth").value = latest.growthRate!=null ? latest.growthRate : "";
+}
+
+// one entry per snapshot (date+item+value), so re-logging the same item with
+// a new date builds a month-over-month history rather than overwriting it
+function nwLatestPerItem(){
+  const map = {};
+  // >= so that when two entries share the same date, the one logged more
+  // recently (later in the array) wins rather than whichever was pushed first
+  nwEntries.forEach((e,idx)=>{
+    if(!map[e.item] || e.date >= map[e.item].e.date) map[e.item] = { e, idx };
+  });
+  return Object.values(map);
+}
+
+function renderNWItemList(){
+  const box=document.getElementById("nwItemList"); box.innerHTML="";
+  const items = nwLatestPerItem().sort((a,b)=> b.e.value - a.e.value);
+  if(!items.length){ box.innerHTML='<div class="dash-empty">💎 No net worth items yet — add your first one above</div>'; return; }
+  items.forEach(({e,idx})=>{
+    const sign = isLiability(e.category) ? "-" : "";
+    const d=document.createElement("div"); d.className="entry";
+    const left=document.createElement("div");
+    left.innerHTML = `<div class="cat">${nwCatIcon(e.category)}${e.item}</div><div class="sub">${e.category} · updated ${e.date}${e.growthRate!=null?" · "+e.growthRate+"%/yr":""}</div>`;
+    const right=document.createElement("div"); right.style.display="flex"; right.style.alignItems="center";
+    const amt=document.createElement("span"); amt.className="amt"; amt.textContent=`${sign}${nwFmtAmount(Number(e.value), e.currency||"USD")}`;
+    const del=document.createElement("button"); del.className="del"; del.textContent="✕";
+    del.onclick=(evt)=>delNWItem(e.item,evt);
+    right.appendChild(amt); right.appendChild(del);
+    d.appendChild(left); d.appendChild(right);
+    d.onclick=()=>nwStartUpdate(e.item);
+    box.appendChild(d);
+  });
+}
+
+function resetNWForm(){
+  nwUpdatingItem=null;
+  document.getElementById("nwItem").value="";
+  document.getElementById("nwValue").value="";
+  document.getElementById("nwGrowth").value="";
+  document.getElementById("nwDate").value=todayStr(); document.getElementById("nwDate").max=todayStr();
+  document.getElementById("nwCancelEditBtn").style.display="none";
+  renderNWCatGrid();
+  nwSelectCurrency(NW_CURRENCIES[0]);
+  document.getElementById("nwSaveBtn").textContent="Save Net Worth Entry";
+  renderNWItemList();
+  hideNWItemSuggestions();
+}
+
+function cancelNWEdit(){
+  resetNWForm();
+}
+
+// tapping an existing item never mutates its history — it prefills the form
+// with that item's last known category/currency/growth rate and value, dated
+// TODAY, so you can just retype the new number and hit Update; saving always
+// appends a fresh snapshot (see saveNW), so nothing you logged before can
+// ever change. This replaced an in-place edit that used to silently
+// overwrite the previous month's value when tapping straight into an item
+// instead of using Add — exactly the bug that caused real net worth history
+// to go missing.
+function nwStartUpdate(itemName){
+  const latest = nwLatestForItem(itemName);
+  if(!latest) return;
+  nwUpdatingItem = itemName;
+  document.getElementById("nwItem").value = itemName;
+  document.getElementById("nwValue").value = latest.value;
+  document.getElementById("nwGrowth").value = latest.growthRate!=null ? latest.growthRate : "";
+  nwSelectCategory(latest.category);
+  nwSelectCurrency(latest.currency || PRIMARY_CUR);
+  document.getElementById("nwDate").value = todayStr(); document.getElementById("nwDate").max = todayStr();
+  document.getElementById("nwCancelEditBtn").style.display = "block";
+  document.getElementById("nwSaveBtn").textContent = "Update Entry";
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+async function saveNW(){
+  const rawVal = document.getElementById("nwValue").value;
+  const val=parseFloat(rawVal);
+  const item=document.getElementById("nwItem").value.trim();
+  if(!nwSel.cat){ toast("Pick a category","var(--red)"); return; }
+  if(!item){ toast("Enter an item name","var(--red)"); return; }
+  if(!val || val<=0){ toast("Enter a value","var(--red)"); return; }
+  if(/\.\d{3,}/.test(rawVal)){ toast("Amounts can have at most 2 decimal places","var(--red)"); return; }
+  const growthRaw=document.getElementById("nwGrowth").value.trim();
+  const growthRate = growthRaw ? parseFloat(growthRaw) : null;
+  const candidate = { date:document.getElementById("nwDate").value||todayStr(), category:nwSel.cat, item, value:Math.round(val*100)/100, growthRate, currency:nwSel.currency||PRIMARY_CUR };
+  if(candidate.date > todayStr()){ toast("Date can't be in the future","var(--red)"); return; }
+
+  const wasUpdate = nwUpdatingItem!==null;
+  if(wasUpdate && !confirm(`Log this month's value for "${candidate.item}"? Your previous entries stay untouched.`)) return;
+
+  // always append a brand-new snapshot — net worth history is never mutated
+  // in place, whether this is a first-time add or a monthly update of an
+  // existing item, so past months' values can never silently change
+  const targetId = genId();
+  nwEntries.push({ ...candidate, id:targetId });
+  persistNW();
+  toast(wasUpdate ? "Updated ✓" : "Saved ✓");
+  resetNWForm();
+  showMainTab("dashboard");
+
+  if(cloudCfg){
+    try{
+      await nwCloudSyncMutation(remote=>{
+        remote.push({ ...candidate, id:targetId });
+        return remote;
+      });
+    }catch(err){
+      setCloudStatus(false, "Saved locally — will retry syncing automatically");
+    }
+  }
+}
+
+// removes every snapshot for this item (i.e. "I no longer want to track this account/asset")
+async function delNWItem(itemName, evt){
+  if(evt) evt.stopPropagation();
+  if(!confirm(`Delete all history for "${itemName}"? This can't be undone.`)) return;
+  const idsToDelete = nwEntries.filter(e=>e.item===itemName).map(e=>e.id);
+  nwEntries = nwEntries.filter(e=>e.item!==itemName);
+  persistNW();
+  addDeletedIds(NW_DELETED_IDS_KEY, idsToDelete);
+  if(nwUpdatingItem===itemName) cancelNWEdit();
+  else renderNWItemList();
+
+  if(cloudCfg){
+    try{
+      await nwCloudSyncMutation(remote=>remote.filter(e=>!idsToDelete.includes(e.id)));
+    }catch(err){
+      setCloudStatus(false, "Deleted locally — will retry syncing automatically");
+    }
+  }
+}
+
+// ===== Delete tombstones: a plain union-merge can only ADD entries, so it
+// can't tell "never existed remotely" apart from "existed remotely, then
+// got deleted here" — without this, a merge (auto-sync on load, on
+// reconnect, or after a failed push retries) could silently resurrect
+// something you just deleted, because the remote copy hadn't caught up yet.
+// Recording every deleted id locally lets every merge exclude them for
+// good, and if a merge finds a tombstoned id still sitting on the remote
+// copy, it pushes a cleanup write so the remote side converges too. =====
+const DELETED_IDS_KEY = nsKey("iexpense_deleted_ids_v1");
+const NW_DELETED_IDS_KEY = nsKey("iexpense_nw_deleted_ids_v1");
+function loadDeletedIds(key){ try{ return JSON.parse(localStorage.getItem(key)||"[]"); }catch(e){ return []; } }
+function addDeletedIds(key, ids){
+  const cur = loadDeletedIds(key);
+  ids.forEach(id=>{ if(!cur.includes(id)) cur.push(id); });
+  try{ localStorage.setItem(key, JSON.stringify(cur)); }catch(e){}
+}
+
+// ===== Cloud Sync: GitHub repo (private) acts as the shared data store =====
+const CLOUD_KEY = nsKey("iexpense_cloud_cfg");
+let cloudCfg = null; // In-memory only, token never stored in localStorage
+let cloudToken = null; // PAT stored only in memory during session
+function loadCloudCfg(){
+  try{
+    const stored = JSON.parse(localStorage.getItem(CLOUD_KEY)||"null");
+    if (stored && stored.token) {
+      // SECURITY: Remove token from localStorage if present (old insecure data)
+      localStorage.removeItem(CLOUD_KEY);
+      return null; // Don't load it - token shouldn't be in localStorage
+    }
+    return stored;
+  }catch(e){ return null; }
+}
+function saveCloudCfg(cfg){
+  // SECURITY: Never store token in localStorage - save config without it
+  const toStore = {...cfg};
+  delete toStore.token; // Remove token before storage
+  localStorage.setItem(CLOUD_KEY, JSON.stringify(toStore));
+}
+function clearCloudCfg(){
+  localStorage.removeItem(CLOUD_KEY);
+  cloudToken = null; // Clear in-memory token too
+}
+cloudCfg = loadCloudCfg();
+
+function sanitizeHtml(str){ if(!str)return ""; const div=document.createElement("div"); div.textContent=String(str); return div.innerHTML; }
+function utf8ToB64(str){ return btoa(unescape(encodeURIComponent(str))); }
+function b64ToUtf8(str){ return decodeURIComponent(escape(atob(str.replace(/\n/g,"")))); }
+function cloudApiUrl(cfg, filename){ return `https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/${filename||"entries.json"}`; }
+function mergeKey(e){ return e.id || [(e.type||"expense"),e.date,e.category,e.amount,e.store,e.note].join("|"); }
+
+async function cloudFetchRemote(cfg, filename){
+  const res = await fetch(cloudApiUrl(cfg, filename), { headers:{ Authorization:`Bearer ${cfg.token}`, Accept:"application/vnd.github+json" } });
+  if(res.status===404) return { entries:[], sha:null };
+  if(!res.ok) throw new Error(`GitHub read failed (${res.status})`);
+  const data = await res.json();
+  let remoteEntries=[];
+  try{ remoteEntries = JSON.parse(b64ToUtf8(data.content)); }catch(e){ remoteEntries=[]; }
+  if(!Array.isArray(remoteEntries)) remoteEntries=[];
+  return { entries: remoteEntries, sha: data.sha };
+}
+
+async function cloudWriteRemote(cfg, newEntries, sha, filename){
+  const body = { message:"iExpense sync", content: utf8ToB64(JSON.stringify(newEntries,null,1)) };
+  if(sha) body.sha = sha;
+  const res = await fetch(cloudApiUrl(cfg, filename), {
+    method:"PUT",
+    headers:{ Authorization:`Bearer ${cfg.token}`, Accept:"application/vnd.github+json", "Content-Type":"application/json" },
+    body: JSON.stringify(body)
+  });
+  if(res.status===409){ const err=new Error("Someone else changed the cloud copy — retrying"); err.conflict=true; throw err; }
+  if(!res.ok) throw new Error(`GitHub write failed (${res.status})`);
+}
+
+// fetches the freshest remote copy right before applying each change, so two
+// devices editing minutes apart don't clobber each other; retries on conflict
+async function cloudSyncMutation(mutateFn, attempts){
+  attempts = attempts || 3;
+  if(!cloudCfg) return null;
+  let lastErr;
+  for(let i=0;i<attempts;i++){
+    try{
+      const { entries: remote, sha } = await cloudFetchRemote(cloudCfg);
+      const updated = mutateFn(remote);
+      await cloudWriteRemote(cloudCfg, updated, sha);
+      return updated;
+    }catch(err){
+      lastErr = err;
+      if(!err.conflict) throw err;
+    }
+  }
+  throw lastErr;
+}
+
+// same as above but for the separate networth.json file in the same connected repo
+async function nwCloudSyncMutation(mutateFn, attempts){
+  attempts = attempts || 3;
+  if(!cloudCfg) return null;
+  let lastErr;
+  for(let i=0;i<attempts;i++){
+    try{
+      const { entries: remote, sha } = await cloudFetchRemote(cloudCfg, "networth.json");
+      const updated = mutateFn(remote);
+      await cloudWriteRemote(cloudCfg, updated, sha, "networth.json");
+      return updated;
+    }catch(err){
+      lastErr = err;
+      if(!err.conflict) throw err;
+    }
+  }
+  throw lastErr;
+}
+
+function setCloudStatus(ok, msg){
+  const el = document.getElementById("cloudStatus");
+  if(!cloudCfg){ el.textContent="Not connected — saving on this device only"; el.className="cloud-status off"; return; }
+  if(ok){ el.textContent=`Connected to ${cloudCfg.owner}/${cloudCfg.repo} — last synced ${new Date().toLocaleTimeString()}`; el.className="cloud-status on"; }
+  else { el.textContent = msg || "Cloud sync error"; el.className="cloud-status off"; }
+}
+
+function unionMerge(remote, local, deletedIds){
+  const deleted = deletedIds && deletedIds.length ? new Set(deletedIds) : null;
+  const seen = new Set(remote.map(mergeKey));
+  let out = [...remote];
+  local.forEach(e=>{ const k=mergeKey(e); if(!seen.has(k)){ out.push(e); seen.add(k); } });
+  if(deleted) out = out.filter(e=>!deleted.has(e.id));
+  return out;
+}
+
+async function cloudConnect(){
+  const owner=document.getElementById("cloudOwner").value.trim();
+  const repo=document.getElementById("cloudRepo").value.trim();
+  const token=document.getElementById("cloudToken").value.trim();
+  if(!owner||!repo||!token){ toast("Fill in owner, repo and token","var(--red)"); return; }
+  const cfg={owner,repo,token};
+  toast("Connecting…","var(--amber)");
+  try{
+    const { entries: remote, sha } = await cloudFetchRemote(cfg);
+    const merged = unionMerge(remote, entries, loadDeletedIds(DELETED_IDS_KEY));
+    await cloudWriteRemote(cfg, merged, sha);
+    cloudCfg = cfg;
+    saveCloudCfg(cfg);
+    entries = merged;
+    persist();
+    renderList();
+    document.getElementById("cloudSetup").style.display="none";
+    document.getElementById("cloudControls").style.display="block";
+    document.getElementById("cloudToken").value="";
+    toast(`Connected — ${merged.length} entries synced`);
+    setCloudStatus(true);
+  }catch(err){
+    toast("Connect failed: "+err.message,"var(--red)");
+    setCloudStatus(false, "Not connected — check token/repo and try again");
+    return;
+  }
+  // net worth sync is best-effort — it must never undo or block the core
+  // expense/income connection that just succeeded above
+  try{
+    const { entries: nwRemote, sha: nwSha } = await cloudFetchRemote(cloudCfg, "networth.json");
+    const nwMerged = unionMerge(nwRemote, nwEntries, loadDeletedIds(NW_DELETED_IDS_KEY));
+    await cloudWriteRemote(cloudCfg, nwMerged, nwSha, "networth.json");
+    nwEntries = nwMerged;
+    persistNW();
+    renderNWItemList();
+    renderNWItemSuggestions();
+  }catch(err){ /* net worth cloud sync failed silently; core connect above already succeeded */ }
+}
+
+async function cloudSyncNow(){
+  if(!cloudCfg){ toast("Connect Cloud Sync first (in Settings)","var(--amber)"); return; }
+  toast("Syncing…","var(--amber)");
+  try{
+    const merged = await cloudSyncMutation(remote=>unionMerge(remote, entries, loadDeletedIds(DELETED_IDS_KEY)));
+    entries = merged; persist(); renderList();
+    toast("Synced ✓");
+    setCloudStatus(true);
+  }catch(err){
+    toast("Sync failed: "+err.message,"var(--red)");
+    setCloudStatus(false, "Sync failed — try again");
+    return;
+  }
+  // net worth sync is best-effort and must never override the "Synced ✓"
+  // result above, which already reflects the core expense/income sync
+  try{
+    const nwMerged = await nwCloudSyncMutation(remote=>unionMerge(remote, nwEntries, loadDeletedIds(NW_DELETED_IDS_KEY)));
+    nwEntries = nwMerged; persistNW(); renderNWItemList(); renderNWItemSuggestions();
+  }catch(err){ /* best-effort */ }
+}
+
+function cloudDisconnect(){
+  cloudCfg=null; clearCloudCfg();
+  document.getElementById("cloudSetup").style.display="block";
+  document.getElementById("cloudControls").style.display="none";
+  document.getElementById("cloudOwner").value="";
+  document.getElementById("cloudRepo").value="";
+  setCloudStatus(false);
+  toast("Disconnected — saving on this device only","var(--amber)");
+}
+
+async function cloudPullOnLoad(){
+  let needsPushBack = false;
+  try{
+    const { entries: remote } = await cloudFetchRemote(cloudCfg);
+    const deletedIds = loadDeletedIds(DELETED_IDS_KEY);
+    const merged = unionMerge(remote, entries, deletedIds);
+    const hadLocalOnly = merged.length > remote.length;
+    // a tombstoned id still on the remote copy means some earlier delete
+    // never made it back to the cloud — push the cleaned-up list up so the
+    // remote side converges instead of quietly resurrecting it on our next pull
+    const remoteHadDeleted = deletedIds.length && remote.some(e=>deletedIds.includes(e.id));
+    entries = merged; persist(); renderList();
+    setCloudStatus(true);
+    if(hadLocalOnly || remoteHadDeleted) needsPushBack = true;
+  }catch(err){
+    setCloudStatus(false, "Offline or cloud unreachable — using local copy");
+    return;
+  }
+  // net worth pull is best-effort and must never override the status set above
+  try{
+    const { entries: nwRemote } = await cloudFetchRemote(cloudCfg, "networth.json");
+    const nwDeletedIds = loadDeletedIds(NW_DELETED_IDS_KEY);
+    const nwMerged = unionMerge(nwRemote, nwEntries, nwDeletedIds);
+    if(nwDeletedIds.length && nwRemote.some(e=>nwDeletedIds.includes(e.id))) needsPushBack = true;
+    nwEntries = nwMerged; persistNW(); renderNWItemList(); renderNWItemSuggestions();
+  }catch(err){ /* best-effort */ }
+  if(needsPushBack) cloudSyncNow();
+}
+
+function showNetWorth(){
+  document.getElementById("entriesView").style.display = "none";
+  document.getElementById("dashboardView").style.display = "none";
+  document.getElementById("netWorthView").style.display = "block";
+  document.getElementById("tabExpenseBtn").classList.remove("sel");
+  document.getElementById("tabIncomeBtn").classList.remove("sel");
+  document.getElementById("tabNetWorthBtn").classList.add("sel");
+  document.getElementById("tabDashboardBtn").classList.remove("sel");
+  document.getElementById("fabAddBtn").style.display = "none";
+  renderNWItemList();
+  hideNWItemSuggestions();
+}
+
+// ===== Dashboard: all data computed entirely client-side from synced entries.
+// Dashboard is the app's permanent home screen — the floating + button is the
+// only way to reach the Expense/Income/Net Worth forms (see openAddPicker). =====
+function showMainTab(tab){
+  if(tab==="dashboard"){
+    document.getElementById("entriesView").style.display = "none";
+    document.getElementById("netWorthView").style.display = "none";
+    document.getElementById("dashboardView").style.display = "block";
+    document.getElementById("settingsView").style.display = "none";
+    document.getElementById("tabExpenseBtn").classList.remove("sel");
+    document.getElementById("tabIncomeBtn").classList.remove("sel");
+    document.getElementById("tabNetWorthBtn").classList.remove("sel");
+    document.getElementById("tabDashboardBtn").classList.add("sel");
+    document.getElementById("fabAddBtn").style.display = "flex";
+    renderDashboard();
+  } else if(tab==="networth"){
+    document.getElementById("settingsView").style.display = "none";
+    showNetWorth();
+  } else if(tab==="settings"){
+    // Settings is a first-class view now, not a modal — hide every other
+    // view, hide the floating "+" (nothing to add on the settings screen),
+    // and refresh the profile row + theme selection state so it reflects
+    // what's currently active.
+    document.getElementById("entriesView").style.display = "none";
+    document.getElementById("netWorthView").style.display = "none";
+    document.getElementById("dashboardView").style.display = "none";
+    document.getElementById("settingsView").style.display = "block";
+    document.getElementById("tabExpenseBtn").classList.remove("sel");
+    document.getElementById("tabIncomeBtn").classList.remove("sel");
+    document.getElementById("tabNetWorthBtn").classList.remove("sel");
+    document.getElementById("tabDashboardBtn").classList.remove("sel");
+    document.getElementById("fabAddBtn").style.display = "none";
+    renderSettings();
+    // Land the user at the top of the Settings screen so the back chevron
+    // is always the first thing on screen — not mid-scroll from wherever
+    // they were on the previous view. Wrapped in try/catch because some
+    // WebViews throw on the options-object form of scrollTo.
+    try{ window.scrollTo(0, 0); }catch(e){}
+  } else {
+    document.getElementById("settingsView").style.display = "none";
+    setFormType(tab);
+  }
+}
+
+// ===== Settings view render =====
+// Refresh anything on the Settings screen that depends on state — the
+// profile row (name + currency summary), the theme selection state, and
+// the environment badge. Called every time the user opens Settings so
+// the values are never stale.
+function renderSettings(){
+  const nameEl = document.getElementById("settingsProfileName");
+  const curEl  = document.getElementById("settingsProfileCur");
+  if(nameEl){
+    nameEl.textContent = (prefs && prefs.name) ? prefs.name : "Set your name";
+  }
+  if(curEl){
+    // one-currency setup shows just the primary; two-currency shows both
+    // in the same "USD + INR" shape used in the old header menu
+    if(SECONDARY_CUR) curEl.textContent = `${PRIMARY_CUR} + ${SECONDARY_CUR}`;
+    else curEl.textContent = `${PRIMARY_CUR} only`;
+  }
+  const env = document.getElementById("settingsEnvBadge");
+  if(env){
+    if(IS_DEV_PREVIEW){ env.textContent = "Dev preview"; env.classList.add("dev"); }
+    else { env.textContent = "Production"; env.classList.remove("dev"); }
+  }
+  // Restore theme selection state on the Settings buttons. setTheme() only
+  // touches these buttons if they're already in the DOM — on first load
+  // they don't exist yet, so this is where the correct ".sel" gets stamped
+  // on the first visit to the Settings screen.
+  const theme = document.documentElement.getAttribute("data-theme") || "dark";
+  const dBtn = document.getElementById("settingsDarkBtn");
+  const lBtn = document.getElementById("settingsLightBtn");
+  if(dBtn) dBtn.classList.toggle("sel", theme!=="light");
+  if(lBtn) lBtn.classList.toggle("sel", theme==="light");
+}
+
+function monthLabel(m){
+  const [y,mo]=m.split("-").map(Number);
+  return new Date(y, mo-1, 1).toLocaleString(undefined,{month:"long",year:"numeric"});
+}
+
+// every month that has data, plus the real current month, sorted oldest-first
+function allMonths(){
+  const months = [...new Set(entries.map(e=>e.date && e.date.slice(0,7)).filter(Boolean))];
+  const cur = todayStr().slice(0,7);
+  if(!months.includes(cur)) months.push(cur);
+  return months.sort();
+}
+
+function monthTotals(m, catFilter){
+  const me = entries.filter(e=>e.date && e.date.slice(0,7)===m);
+  const income = me.filter(e=>e.type==="income").reduce((s,e)=>s+Number(e.amount||0),0);
+  const expenses = me.filter(e=>(e.type||"expense")==="expense" && (!catFilter || catFilter==="all" || e.category===catFilter)).reduce((s,e)=>s+Number(e.amount||0),0);
+  return { income, expenses, net: income-expenses, rate: income>0 ? (income-expenses)/income : 0 };
+}
+
+// ===== Category Trend: a dedicated bottom-of-page section on both Overview
+// and Monthly Detail — pick a category (or "All") and see its expense total
+// for every month, as its own trend chart. Shared filter state between both
+// views, but doesn't touch any of the other cards/charts/tables above it —
+// those always show full, unfiltered totals. =====
+let dashCategoryFilter = "all";
+function renderCategoryFilterOptions(){
+  [document.getElementById("ovCategoryFilter"), document.getElementById("monCategoryFilter")].forEach(sel=>{
+    const prevVal = sel.value || dashCategoryFilter;
+    sel.innerHTML = `<option value="all">All Categories</option>` + EXP_CATS.map(c=>`<option value="${c}">${catIcon(c)}${c}</option>`).join("");
+    sel.value = EXP_CATS.includes(prevVal) ? prevVal : "all";
+  });
+}
+function setDashCategoryFilter(val){
+  dashCategoryFilter = val;
+  document.getElementById("ovCategoryFilter").value = val;
+  document.getElementById("monCategoryFilter").value = val;
+  renderCatTrend("ov");
+  renderCatTrend("mon");
+}
+function renderCatTrend(prefix){
+  document.getElementById(prefix+"CategoryFilter").value = dashCategoryFilter;
+  const label = dashCategoryFilter==="all" ? "All Categories" : catIcon(dashCategoryFilter)+dashCategoryFilter;
+  const titlePrefix = prefix==="ov" ? "Spend by Category" : "Category Trend";
+  document.getElementById(prefix+"CatTrendTitle").textContent = `${titlePrefix} — ${label} — Month by Month`;
+
+  const months = allMonths();
+  const canvasId = prefix+"CatTrendChart";
+  const chartKey = prefix+"CatTrend";
+  // Overview, with no single category picked, plots every category as its own
+  // line so trends can be compared side by side; a specific category (on
+  // either view) collapses back down to one line.
+  const multiLine = prefix==="ov" && dashCategoryFilter==="all";
+
+  let datasets;
+  if(multiLine){
+    const catsWithData = EXP_CATS.filter(cat=>entries.some(e=>(e.type||"expense")==="expense" && e.category===cat));
+    datasets = catsWithData.map((cat,i)=>({
+      label:cat,
+      data: months.map(m=>entries.filter(e=>e.date && e.date.slice(0,7)===m && (e.type||"expense")==="expense" && e.category===cat).reduce((s,e)=>s+Number(e.amount||0),0)),
+      borderColor: CHART_PALETTE[i % CHART_PALETTE.length], backgroundColor:"transparent", fill:false, tension:.3
+    }));
+  } else {
+    const data = months.map(m=>entries.filter(e=>e.date && e.date.slice(0,7)===m && (e.type||"expense")==="expense" &&
+      (dashCategoryFilter==="all" || e.category===dashCategoryFilter)).reduce((s,e)=>s+Number(e.amount||0),0));
+    datasets = [{ label, data, borderColor:themeColor("--accent"), backgroundColor:"rgba(79,140,255,0.15)", fill:true, tension:.3 }];
+  }
+
+  if(!datasets.some(ds=>ds.data.some(v=>v>0))){
+    showChartFallback(canvasId, dashCategoryFilter==="all" ? "📊 No expenses logged yet" : `📊 No ${dashCategoryFilter} expenses logged yet`);
+    return;
+  }
+  if(typeof Chart==="undefined"){
+    showChartFallback(canvasId, "📊 Chart couldn't load (check your connection)");
+    return;
+  }
+  showChartCanvas(canvasId);
+  const textColor = themeColor("--text");
+  const gridColor = themeColor("--border");
+  if(charts[chartKey]) charts[chartKey].destroy();
+  charts[chartKey] = new Chart(document.getElementById(canvasId), {
+    type:"line",
+    data:{ labels: months.map(monthLabel), datasets },
+    options:{ responsive:true, plugins:{ legend:{ display:multiLine, position:"bottom", labels:{ color:textColor, boxWidth:12, font:{ size:11 } } },
+        tooltip:{ callbacks:{ label:(ctx)=>(multiLine ? ctx.dataset.label+": " : "")+fmtUSD(ctx.parsed.y) } } },
+      scales:{ x:{ ticks:{ color:textColor }, grid:{ color:gridColor } },
+        y:{ ticks:{ color:textColor, callback:(v)=>fmtUSD(v) }, grid:{ color:gridColor } } } }
+  });
+}
+
+function showDashTab(tab){
+  // "" (not "block") when shown, so the desktop media query's display:grid
+  // isn't clobbered by a higher-specificity inline style
+  document.getElementById("dashOverviewView").style.display = tab==="overview" ? "" : "none";
+  document.getElementById("dashMonthlyView").style.display = tab==="monthly" ? "" : "none";
+  document.getElementById("dashNetWorthView").style.display = tab==="networth" ? "block" : "none";
+  document.getElementById("dashOverviewBtn").classList.toggle("sel", tab==="overview");
+  document.getElementById("dashMonthlyBtn").classList.toggle("sel", tab==="monthly");
+  document.getElementById("dashNetWorthBtn").classList.toggle("sel", tab==="networth");
+  if(tab==="overview") renderOverview();
+  else if(tab==="monthly") renderMonthlyDetail();
+  else renderDashNetWorth();
+}
+
+function showNWRegion(region){
+  nwActiveRegion = region;
+  // "" (not "block") when shown, so the desktop media query's display:grid
+  // isn't clobbered by a higher-specificity inline style
+  document.getElementById("nwRegionUSView").style.display = region==="US" ? "" : "none";
+  document.getElementById("nwRegionINView").style.display = region==="IN" ? "" : "none";
+  document.getElementById("nwRegionTotalView").style.display = region==="total" ? "" : "none";
+  document.getElementById("nwRegionUSBtn").classList.toggle("sel", region==="US");
+  document.getElementById("nwRegionINBtn").classList.toggle("sel", region==="IN");
+  document.getElementById("nwRegionTotalBtn").classList.toggle("sel", region==="total");
+  renderDashNetWorth();
+}
+
+function renderDashboard(){
+  if(document.getElementById("dashOverviewView").style.display !== "none") renderOverview();
+  else if(document.getElementById("dashMonthlyView").style.display !== "none") renderMonthlyDetail();
+  else renderDashNetWorth();
+}
+
+let charts = { bar:null, line:null, monCat:null, nwTrend:null, nwCat:null, nwProjection:null, ovCatTrend:null, monCatTrend:null,
+  nwTrendUS:null, nwCatUS:null, nwProjectionUS:null, nwTrendIN:null, nwCatIN:null, nwProjectionIN:null };
+const CHART_PALETTE = ["#4f8cff","#f87171","#34d399","#fbbf24","#a78bfa","#38bdf8","#fb923c","#f472b6","#22d3ee","#a3e635","#c084fc","#facc15"];
+
+function themeColor(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function showChartFallback(canvasId, msg){
+  document.getElementById(canvasId).style.display="none";
+  const empty = document.getElementById(canvasId+"Empty");
+  empty.textContent = msg;
+  empty.style.display = "block";
+}
+function showChartCanvas(canvasId){
+  document.getElementById(canvasId).style.display="block";
+  document.getElementById(canvasId+"Empty").style.display="none";
+}
+
+function renderOverview(){
+  renderCatTrend("ov");
+  const months = allMonths();
+  const totals = months.map(m=>({ m, ...monthTotals(m) }));
+  const totalIncome = totals.reduce((s,t)=>s+t.income,0);
+  const totalExpenses = totals.reduce((s,t)=>s+t.expenses,0);
+  const netSavings = totalIncome-totalExpenses;
+  const rate = totalIncome>0 ? netSavings/totalIncome : 0;
+
+  document.getElementById("ovCards").innerHTML = `
+    <div class="card"><div class="card-label">💰 Total Income</div><div class="card-value">${fmtUSD(totalIncome)}</div><div class="card-sub">All months</div></div>
+    <div class="card orange"><div class="card-label">💸 Total Expenses</div><div class="card-value">${fmtUSD(totalExpenses)}</div><div class="card-sub">All months</div></div>
+    <div class="card green"><div class="card-label">🏦 Net Savings</div><div class="card-value">${fmtUSD(netSavings)}</div><div class="card-sub">Income − Expenses</div></div>
+    <div class="card purple"><div class="card-label">🎯 Savings Rate</div><div class="card-value">${(rate*100).toFixed(1)}%</div><div class="card-sub">Net / Income</div></div>
+  `;
+
+  const labels = months.map(monthLabel);
+
+  if(typeof Chart!=="undefined"){
+    showChartCanvas("barChart"); showChartCanvas("lineChart");
+    const textColor = themeColor("--text");
+    const gridColor = themeColor("--border");
+
+    if(charts.bar) charts.bar.destroy();
+    charts.bar = new Chart(document.getElementById("barChart"), {
+      type:"bar",
+      data:{ labels, datasets:[
+        { label:"Income", data:totals.map(t=>t.income), backgroundColor:themeColor("--green") },
+        { label:"Expenses", data:totals.map(t=>t.expenses), backgroundColor:themeColor("--red") }
+      ]},
+      options:{ responsive:true, plugins:{ legend:{ position:"bottom", labels:{ color:textColor } } },
+        scales:{ x:{ ticks:{ color:textColor }, grid:{ color:gridColor } }, y:{ ticks:{ color:textColor }, grid:{ color:gridColor } } } }
+    });
+
+    if(charts.line) charts.line.destroy();
+    charts.line = new Chart(document.getElementById("lineChart"), {
+      type:"line",
+      data:{ labels, datasets:[{ label:"Net Savings", data:totals.map(t=>t.net), borderColor:themeColor("--accent"), backgroundColor:"rgba(79,140,255,0.15)", fill:true, tension:.3 }] },
+      options:{ responsive:true, plugins:{ legend:{ display:false } },
+        scales:{ x:{ ticks:{ color:textColor }, grid:{ color:gridColor } }, y:{ ticks:{ color:textColor }, grid:{ color:gridColor } } } }
+    });
+  } else {
+    const msg = "📊 Chart couldn't load (check your connection) — see the tables below for the numbers";
+    showChartFallback("barChart", msg);
+    showChartFallback("lineChart", msg);
+  }
+
+  document.getElementById("ovMonthlyTable").innerHTML = `<table><thead><tr><th>Month</th><th>Income</th><th>Expenses</th><th>Net</th><th>Rate</th></tr></thead><tbody>
+    ${totals.map(t=>`<tr><td>${monthLabel(t.m)}</td><td>${fmtUSD(t.income)}</td><td>${fmtUSD(t.expenses)}</td><td>${fmtUSD(t.net)}</td><td>${(t.rate*100).toFixed(1)}%</td></tr>`).join("")}
+  </tbody></table>`;
+
+  const allCats = [...new Set(entries.filter(e=>(e.type||"expense")==="expense").map(e=>e.category))];
+  const catRows = allCats.map(cat=>{
+    const perMonth = months.map(m=>entries.filter(e=>(e.type||"expense")==="expense" && e.category===cat && e.date.slice(0,7)===m).reduce((s,e)=>s+Number(e.amount||0),0));
+    const total = perMonth.reduce((a,b)=>a+b,0);
+    return { cat, perMonth, total };
+  }).sort((a,b)=>b.total-a.total);
+  const grandTotal = catRows.reduce((s,r)=>s+r.total,0) || 1;
+  document.getElementById("ovCategoryTable").innerHTML = catRows.length ? `<table><thead><tr><th>Category</th>${months.map(m=>`<th>${monthLabel(m)}</th>`).join("")}<th>Total</th><th>% of Spend</th></tr></thead><tbody>
+    ${catRows.map(r=>`<tr><td><b>${catIcon(r.cat)}${r.cat}</b></td>${r.perMonth.map(v=>`<td>${fmtUSD(v)}</td>`).join("")}<td><b>${fmtUSD(r.total)}</b></td><td>${(r.total/grandTotal*100).toFixed(1)}%</td></tr>`).join("")}
+  </tbody></table>` : `<div class="dash-empty">📊 No expenses logged yet</div>`;
+}
+
+function renderMonthlyDetail(){
+  renderCatTrend("mon");
+  const months = allMonths();
+  const sel = document.getElementById("dashMonthSel");
+  const prevVal = sel.value;
+  sel.innerHTML="";
+  months.slice().reverse().forEach(m=>{ const opt=document.createElement("option"); opt.value=m; opt.textContent=monthLabel(m); sel.appendChild(opt); });
+  const mostRecent = months[months.length-1];
+  sel.value = months.includes(prevVal) ? prevVal : mostRecent;
+
+  const month = sel.value;
+  // keep each row's real index into `entries` so tapping it can jump straight
+  // into editing, and the delete button works — this table is now the actual
+  // history browser, not just a read-only summary
+  const me = entries.map((e,idx)=>({e,idx})).filter(o=>o.e.date && o.e.date.slice(0,7)===month);
+  const byDate = (a,b)=>a.e.date.localeCompare(b.e.date);
+  const income = me.filter(o=>o.e.type==="income").sort(byDate);
+  const expenses = me.filter(o=>(o.e.type||"expense")==="expense").sort(byDate);
+  const totalIncome = income.reduce((s,o)=>s+Number(o.e.amount||0),0);
+  const totalExpenses = expenses.reduce((s,o)=>s+Number(o.e.amount||0),0);
+  const net = totalIncome-totalExpenses;
+  const rate = totalIncome>0 ? net/totalIncome : 0;
+
+  document.getElementById("monCards").innerHTML = `
+    <div class="card"><div class="card-label">💰 Income</div><div class="card-value">${fmtUSD(totalIncome)}</div></div>
+    <div class="card orange"><div class="card-label">💸 Expenses</div><div class="card-value">${fmtUSD(totalExpenses)}</div></div>
+    <div class="card ${net>=0?"green":"orange"}"><div class="card-label">🏦 Net Savings</div><div class="card-value">${fmtUSD(net)}</div></div>
+    <div class="card purple"><div class="card-label">🎯 Savings Rate</div><div class="card-value">${(rate*100).toFixed(1)}%</div></div>
+  `;
+
+  // category-wise expense breakdown for the selected month, as a column chart
+  const byCat = {};
+  expenses.forEach(o=>{ byCat[o.e.category]=(byCat[o.e.category]||0)+Number(o.e.amount||0); });
+  const catEntries = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+  const monCatCanvas = document.getElementById("monCatChart");
+  const monCatEmpty = document.getElementById("monCatEmpty");
+  if(!catEntries.length){
+    monCatCanvas.style.display="none";
+    monCatEmpty.textContent="📊 No expenses to chart for this month";
+    monCatEmpty.style.display="block";
+    if(charts.monCat){ charts.monCat.destroy(); charts.monCat=null; }
+  } else if(typeof Chart!=="undefined"){
+    monCatCanvas.style.display="block";
+    monCatEmpty.style.display="none";
+    const textColor = themeColor("--text");
+    const gridColor = themeColor("--border");
+    if(charts.monCat) charts.monCat.destroy();
+    charts.monCat = new Chart(monCatCanvas, {
+      type:"bar",
+      data:{
+        labels: catEntries.map(c=>catIcon(c[0])+c[0]),
+        datasets:[{ label:"Spend", data: catEntries.map(c=>c[1]), backgroundColor: CHART_PALETTE }]
+      },
+      options:{
+        responsive:true,
+        plugins:{ legend:{ display:false } },
+        scales:{
+          x:{ ticks:{ color:textColor, autoSkip:false, maxRotation:60, minRotation:0 }, grid:{ display:false } },
+          y:{ ticks:{ color:textColor }, grid:{ color:gridColor } }
+        }
+      }
+    });
+  } else {
+    // there IS data, but the chart library failed to load (e.g. offline) —
+    // say so explicitly rather than implying there's nothing to chart
+    monCatCanvas.style.display="none";
+    monCatEmpty.textContent="📊 Chart couldn't load (check your connection) — see the table below for the numbers";
+    monCatEmpty.style.display="block";
+  }
+
+  document.getElementById("monIncomeHead").textContent = `Income — ${monthLabel(month)} (${income.length}) — tap a row to edit`;
+  document.getElementById("monIncomeTable").innerHTML = income.length ? `<table><thead><tr><th>Source</th><th>Category</th><th>Amount</th><th></th></tr></thead><tbody>
+    ${income.map(o=>`<tr class="entry-row" onclick="editFromDashboard(${o.idx})"><td>${o.e.store||"—"}</td><td>${catIcon(o.e.category)}${o.e.category}</td><td>${fmtUSD(Number(o.e.amount))}</td><td><button class="row-del" onclick="deleteFromDashboard(${o.idx},event)">✕</button></td></tr>`).join("")}
+  </tbody></table>` : `<div class="dash-empty">💰 No income logged for this month</div>`;
+
+  document.getElementById("monExpenseHead").textContent = `Expenses — ${monthLabel(month)} (${expenses.length}) — tap a row to edit`;
+  document.getElementById("monExpenseTable").innerHTML = expenses.length ? `<table><thead><tr><th>Date</th><th>Item / Merchant</th><th>Category</th><th>Amount</th><th></th></tr></thead><tbody>
+    ${expenses.map(o=>`<tr class="entry-row" onclick="editFromDashboard(${o.idx})"><td>${o.e.date}</td><td>${o.e.store||"—"}</td><td>${catIcon(o.e.category)}${o.e.category}</td><td>${fmtUSD(Number(o.e.amount))}</td><td><button class="row-del" onclick="deleteFromDashboard(${o.idx},event)">✕</button></td></tr>`).join("")}
+  </tbody></table>` : `<div class="dash-empty">💸 No expenses logged for this month</div>`;
+}
+
+function editFromDashboard(idx){
+  editEntry(idx); // editEntry already calls setFormType(), which switches the view/tab too
+}
+
+async function deleteFromDashboard(idx, evt){
+  if(evt) evt.stopPropagation();
+  await delEntry(idx);
+  renderMonthlyDetail();
+}
+
+// ===== Net Worth dashboard: current totals, trend over time, category
+// breakdown, and simple compound-growth projections =====
+
+// every month that has a net worth entry, plus the real current month
+function nwAllMonths(){
+  const months = [...new Set(nwEntries.map(e=>e.date && e.date.slice(0,7)).filter(Boolean))];
+  const cur = todayStr().slice(0,7);
+  if(!months.includes(cur)) months.push(cur);
+  return months.sort();
+}
+
+// ===== Currency conversion for net worth: your accounts can be in USD or
+// INR; the Dashboard lets you view your total in either, converting the
+// other currency's items using that day's exchange rate. The rate is
+// fetched once per day and cached; if it's ever unavailable (offline, or
+// this network blocks it), conversion is skipped honestly rather than
+// guessed — items that can't be converted are called out, never silently
+// mixed into a wrong-looking total. =====
+function getManualFxRate(){
+  try{ return JSON.parse(localStorage.getItem(FX_MANUAL_KEY)||"null"); }catch(e){ return null; }
+}
+function saveManualFxRate(){
+  const val = Number(document.getElementById("nwManualRateInput").value);
+  // guard against nonsense that would silently produce laughable net worth
+  // totals — finite, positive, and inside a wide-but-plausible band. A
+  // sanity band this loose still rejects e.g. 0.00001 or 1e12 rate typos
+  // while covering every real-world currency pair we’d actually convert.
+  if(!isFinite(val) || val<=0){ toast("Enter a valid rate, e.g. 95","var(--red)"); return; }
+  if(val < 0.0001 || val > 100000){ toast("That rate looks off — double\u2011check it","var(--red)"); return; }
+  // stamp with the same todayStr() the rest of the app trusts; getUsdInrRate
+  // then treats this as valid only while todayStr() still matches, so a
+  // manual rate can never silently outlive its day even if the device clock
+  // rolls forward mid\u2011session
+  const fresh = { rate:val, date:todayStr(), manual:true };
+  try{ localStorage.setItem(FX_MANUAL_KEY, JSON.stringify(fresh)); }catch(e){}
+  toast("Rate saved ✓");
+  renderDashNetWorth();
+}
+function showManualRateForm(){
+  document.getElementById("fxManualRow").style.display = "flex";
+  document.getElementById("nwManualRateInput").focus();
+}
+// despite the historical name, this fetches primary→secondary for whatever
+// currency pair the user picked in onboarding; a single-currency user never
+// needs a rate at all, so it resolves to null without touching the network
+async function getUsdInrRate(){
+  if(!SECONDARY_CUR) return null;
+  const today = todayStr();
+  const manual = getManualFxRate();
+  if(manual && manual.date===today) return manual; // a rate you typed in yourself always wins for today
+  let cached = null;
+  try{ cached = JSON.parse(localStorage.getItem(FX_CACHE_KEY)||"null"); }catch(e){}
+  if(cached && cached.date===today) return cached;
+  try{
+    const res = await fetch(`https://api.frankfurter.dev/v1/latest?from=${PRIMARY_CUR}&to=${SECONDARY_CUR}`);
+    if(!res.ok) throw new Error("rate unavailable");
+    const data = await res.json();
+    const rate = data.rates && data.rates[SECONDARY_CUR];
+    if(!rate) throw new Error("no rate in response");
+    const fresh = { rate, date:today, manual:false };
+    try{ localStorage.setItem(FX_CACHE_KEY, JSON.stringify(fresh)); }catch(e){}
+    return fresh;
+  }catch(err){
+    return manual || cached; // a stale manual entry beats a stale auto one; null if neither ever existed
+  }
+}
+function nwConvert(value, fromCur, toCur, rateInfo){
+  if(fromCur===toCur) return value;
+  if(!rateInfo) return null;
+  if(fromCur===PRIMARY_CUR && toCur===SECONDARY_CUR) return value*rateInfo.rate;
+  if(fromCur===SECONDARY_CUR && toCur===PRIMARY_CUR) return value/rateInfo.rate;
+  return null; // a legacy currency outside the configured pair can't be converted honestly
+}
+
+// net worth as of the end of a given month, converted into toCur: for each
+// item, use its most recent entry dated on or before that month (items not
+// yet added by then simply don't count yet) — this is what makes the trend
+// line honest even though you don't have to re-log every account monthly
+// currencyFilter restricts this to just one region's entries (US or India
+// tabs — both single-currency, so conversion never applies); leave it unset
+// for the combined Total tab, which spans both currencies
+function nwValueAsOf(monthStr, toCur, rateInfo, currencyFilter){
+  // BUGFIX: Proper date range for month - construct first day of next month
+  const [year, month] = monthStr.split('-');
+  const nextMonth = parseInt(month) === 12 ? (parseInt(year)+1) + "-01" : year + "-" + String(parseInt(month)+1).padStart(2,"0");
+  const cutoff = nextMonth + "-01"; // First day of next month, exclusive upper bound
+  const latestByItem = {};
+  nwEntries.forEach(e=>{
+    if(currencyFilter && (e.currency||"USD")!==currencyFilter) return;
+    if(!e.date || e.date >= cutoff) return; // Use >= for proper exclusion
+    if(!latestByItem[e.item] || e.date >= latestByItem[e.item].date) latestByItem[e.item] = e;
+  });
+  let assets=0, liabilities=0, incomplete=false;
+  Object.values(latestByItem).forEach(e=>{
+    const converted = nwConvert(Number(e.value||0), e.currency||"USD", toCur, rateInfo);
+    if(converted==null){ incomplete=true; return; }
+    if(isLiability(e.category)) liabilities += converted;
+    else assets += converted;
+  });
+  return { assets, liabilities, net:assets-liabilities, incomplete };
+}
+
+// shared renderer for all three Net Worth region tabs — Total passes suffix=""
+// (keeping the original unsuffixed element ids so nothing about that tab's
+// behavior or tests changes) and spans both currencies via rateInfo/toCur;
+// the US/India tabs pass a suffix, a currency-filtered item list, and a toCur
+// that always matches every item's own currency, so conversion becomes a
+// no-op and the FX-rate UI is skipped entirely (opts.showRateUI=false)
+function nwComputeAndRender(suffix, itemsWithIdx, toCur, rateInfo, opts){
+  const items = itemsWithIdx.map(o=>o.e);
+  const currencyFilter = opts.currencyFilterForTrend;
+
+  if(opts.showRateUI){
+    const anyForeign = items.some(e=>(e.currency||"USD")!==toCur);
+    const fxManualRow = document.getElementById("fxManualRow");
+    if(rateInfo){
+      const pSym = curSym(PRIMARY_CUR).trim(), sSym = curSym(SECONDARY_CUR||"").trim();
+      const rateText = toCur===PRIMARY_CUR ? `${sSym}${rateInfo.rate.toFixed(2)} = ${pSym}1` : `${pSym}1 = ${sSym}${rateInfo.rate.toFixed(2)}`;
+      const source = rateInfo.manual ? "set by you" : `as of ${rateInfo.date}`;
+      document.getElementById("nwRateStatus").innerHTML = anyForeign
+        ? `Using ${rateText} (rate ${source}) <button class="link-btn" id="nwEditRateBtn" onclick="showManualRateForm()">Edit</button>`
+        : "";
+      fxManualRow.style.display = "none";
+    } else if(anyForeign){
+      document.getElementById("nwRateStatus").textContent = "⚠️ Couldn't fetch today's exchange rate — enter it manually below, or items in a different currency are excluded from the totals";
+      fxManualRow.style.display = "flex";
+    } else {
+      document.getElementById("nwRateStatus").textContent = "";
+      fxManualRow.style.display = "none";
+    }
+    const rateInput = document.getElementById("nwManualRateInput");
+    if(document.activeElement !== rateInput) rateInput.value = rateInfo ? rateInfo.rate : "";
+  }
+
+  let totalAssets=0, totalLiabilities=0, currentIncomplete=false;
+  items.forEach(e=>{
+    const converted = nwConvert(Number(e.value||0), e.currency||"USD", toCur, rateInfo);
+    if(converted==null){ currentIncomplete=true; return; }
+    if(isLiability(e.category)) totalLiabilities += converted;
+    else totalAssets += converted;
+  });
+  const netWorth = totalAssets - totalLiabilities;
+  const investable = items.filter(e=>!isLiability(e.category));
+
+  const months = nwAllMonths();
+  const trend = months.map(m=>({ m, ...nwValueAsOf(m, toCur, rateInfo, currencyFilter) }));
+  const curIdx = trend.length-1;
+  const changeThisMonth = curIdx>0 ? trend[curIdx].net - trend[curIdx-1].net : null;
+
+  document.getElementById("nwCards"+suffix).innerHTML = `
+    <div class="card"><div class="card-label">💎 Total Net Worth${currentIncomplete?" ⚠️":""}</div><div class="card-value">${nwFmtAmount(netWorth, toCur)}</div><div class="card-sub">Assets − Liabilities</div></div>
+    <div class="card green"><div class="card-label">📈 Total Assets</div><div class="card-value">${nwFmtAmount(totalAssets, toCur)}</div></div>
+    <div class="card orange"><div class="card-label">💳 Total Liabilities</div><div class="card-value">${nwFmtAmount(totalLiabilities, toCur)}</div></div>
+    <div class="card purple"><div class="card-label">🎯 Change This Month</div><div class="card-value">${changeThisMonth==null ? "N/A" : (changeThisMonth>=0?"+":"") + nwFmtAmount(changeThisMonth, toCur)}</div>${changeThisMonth==null ? '<div class="card-sub">Not enough history yet</div>' : ""}</div>
+  `;
+
+  const labels = months.map(monthLabel);
+  if(typeof Chart!=="undefined"){
+    showChartCanvas("nwTrendChart"+suffix);
+    const textColor = themeColor("--text");
+    const gridColor = themeColor("--border");
+
+    if(charts["nwTrend"+suffix]) charts["nwTrend"+suffix].destroy();
+    charts["nwTrend"+suffix] = new Chart(document.getElementById("nwTrendChart"+suffix), {
+      type:"line",
+      data:{ labels, datasets:[{ label:"Net Worth", data:trend.map(t=>t.net), borderColor:themeColor("--accent"), backgroundColor:"rgba(79,140,255,0.15)", fill:true, tension:.3 }] },
+      options:{ responsive:true, plugins:{ legend:{ display:false },
+          tooltip:{ callbacks:{ label:(ctx)=>nwFmtAmount(ctx.parsed.y, toCur) } } },
+        scales:{ x:{ ticks:{ color:textColor }, grid:{ color:gridColor } },
+          y:{ ticks:{ color:textColor, callback:(value)=>nwFmtAmount(value, toCur) }, grid:{ color:gridColor } } } }
+    });
+
+    const byCat = {};
+    items.forEach(e=>{
+      const converted = nwConvert(Number(e.value||0), e.currency||"USD", toCur, rateInfo);
+      if(converted==null) return;
+      byCat[e.category]=(byCat[e.category]||0)+converted;
+    });
+    const catEntries = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+    if(!catEntries.length){
+      showChartFallback("nwCatChart"+suffix, "💎 No net worth items yet — add your first one in the Net Worth tab");
+    } else {
+      showChartCanvas("nwCatChart"+suffix);
+      if(charts["nwCat"+suffix]) charts["nwCat"+suffix].destroy();
+      charts["nwCat"+suffix] = new Chart(document.getElementById("nwCatChart"+suffix), {
+        type:"pie",
+        data:{ labels:catEntries.map(c=>nwCatIcon(c[0])+c[0]), datasets:[{ data:catEntries.map(c=>c[1]), backgroundColor:CHART_PALETTE }] },
+        options:{ responsive:true, plugins:{ legend:{ position:"right", labels:{ boxWidth:12, font:{ size:11 }, color:textColor } },
+          tooltip:{ callbacks:{ label:(ctx)=>`${ctx.label}: ${nwFmtAmount(ctx.parsed, toCur)}` } } } }
+      });
+    }
+
+    const horizons = [1,3,5,10,15];
+    let projectionIncomplete = currentIncomplete; // today's totals already partial ⇒ projections built on them are too
+    const horizonTotals = horizons.map(yrs=>{
+      let total = 0;
+      investable.forEach(e=>{
+        const cur = e.currency||"USD";
+        const baseValue = nwConvert(Number(e.value||0), cur, toCur, rateInfo);
+        if(baseValue==null){ projectionIncomplete = true; return; }
+        const rate = (e.growthRate!=null && !isNaN(e.growthRate)) ? Number(e.growthRate) : 0;
+        total += baseValue * Math.pow(1 + rate/100, yrs);
+      });
+      return total - totalLiabilities; // liabilities modeled flat — no paydown-rate concept exists in this app
+    });
+
+    if(!investable.length){
+      showChartFallback("nwProjectionChart"+suffix, "💎 Add an asset in the Net Worth tab to see growth projections here");
+    } else {
+      showChartCanvas("nwProjectionChart"+suffix);
+      if(charts["nwProjection"+suffix]) charts["nwProjection"+suffix].destroy();
+      charts["nwProjection"+suffix] = new Chart(document.getElementById("nwProjectionChart"+suffix), {
+        type:"bar",
+        data:{ labels: horizons.map(y=>`${y} yr`), datasets:[{ label:"Projected Net Worth", data:horizonTotals, backgroundColor:themeColor("--accent") }] },
+        options:{ responsive:true, plugins:{ legend:{ display:false },
+            tooltip:{ callbacks:{ label:(ctx)=>nwFmtAmount(ctx.parsed.y, toCur) } } },
+          scales:{ x:{ ticks:{ color:textColor }, grid:{ color:gridColor } },
+            y:{ ticks:{ color:textColor, callback:(value)=>nwFmtAmount(value, toCur) }, grid:{ color:gridColor } } } }
+      });
+    }
+    document.getElementById("nwProjectionChart"+suffix+"Warn").textContent = (investable.length && projectionIncomplete)
+      ? "⚠️ Some items are excluded from this projection — no exchange rate available for their currency" : "";
+  } else {
+    const msg = "📊 Chart couldn't load (check your connection) — see the tables below for the numbers";
+    showChartFallback("nwTrendChart"+suffix, msg);
+    showChartFallback("nwCatChart"+suffix, msg);
+    showChartFallback("nwProjectionChart"+suffix, msg);
+  }
+
+  // ===== Sort: highest value first; when a view mixes currencies (Total),
+  // group primary-currency items before secondary-currency ones rather than
+  // interleaving by raw number, so "US first, then India" holds regardless
+  // of exchange rate =====
+  const sortedItemsWithIdx = [...itemsWithIdx].sort((a,b)=>{
+    const curA = a.e.currency||PRIMARY_CUR, curB = b.e.currency||PRIMARY_CUR;
+    if(curA!==curB) return curA===PRIMARY_CUR ? -1 : 1;
+    return b.e.value - a.e.value;
+  });
+
+  // ===== Filter: narrow the detail table to one category and/or one item,
+  // and when a single item is picked, show its full history below so you
+  // can see exactly how that item has changed over time =====
+  const filt = nwFilters[suffix] || (nwFilters[suffix]={cat:"",item:""});
+  const catsPresent = [...new Set(items.map(e=>e.category))];
+  const catSel = document.getElementById("nwFilterCat"+suffix);
+  catSel.innerHTML = '<option value="">All Categories</option>' + catsPresent.map(c=>`<option value="${c}"${c===filt.cat?" selected":""}>${nwCatIcon(c)}${c}</option>`).join("");
+  const itemsForCat = items.filter(e=>!filt.cat || e.category===filt.cat);
+  const itemNamesPresent = [...new Set(itemsForCat.map(e=>e.item))].sort();
+  const itemSel = document.getElementById("nwFilterItem"+suffix);
+  itemSel.innerHTML = '<option value="">All Items</option>' + itemNamesPresent.map(it=>`<option value="${it}"${it===filt.item?" selected":""}>${it}</option>`).join("");
+
+  const filteredItemsWithIdx = sortedItemsWithIdx.filter(({e})=> (!filt.cat || e.category===filt.cat) && (!filt.item || e.item===filt.item));
+
+  document.getElementById("nwItemsTable"+suffix).innerHTML = filteredItemsWithIdx.length ? `<table><thead><tr><th>Item</th><th>Category</th><th>Value</th><th>Updated</th><th></th></tr></thead><tbody>
+    ${filteredItemsWithIdx.map(({e,idx})=>{
+      const cur = e.currency||"USD";
+      const native = nwFmtAmount(Number(e.value), cur);
+      let valueCell = `${isLiability(e.category)?"-":""}${native}`;
+      if(cur!==toCur){
+        const converted = nwConvert(Number(e.value||0), cur, toCur, rateInfo);
+        valueCell = converted==null ? `${native} (⚠️ no rate to convert)` : `${isLiability(e.category)?"-":""}${nwFmtAmount(converted, toCur)} <span style="color:var(--muted)">(${native})</span>`;
+      }
+      return `<tr class="entry-row" onclick="editFromNWDashboard(${idx})"><td>${e.item}</td><td>${nwCatIcon(e.category)}${e.category}</td><td>${valueCell}</td><td>${e.date}</td><td><button class="row-del" onclick="deleteFromNWDashboard(${idx},event)">✕</button></td></tr>`;
+    }).join("")}
+  </tbody></table>` : `<div class="dash-empty">💎 No net worth items match this filter</div>`;
+
+  const historyWrap = document.getElementById("nwHistoryWrap"+suffix);
+  if(filt.item){
+    const history = nwEntries.filter(e=>e.item===filt.item).sort((a,b)=> a.date<b.date?-1:1);
+    document.getElementById("nwHistoryHead"+suffix).textContent = `${filt.item} — History`;
+    document.getElementById("nwHistoryTable"+suffix).innerHTML = `<table><thead><tr><th>Date</th><th>Value</th><th>Category</th><th>Growth</th></tr></thead><tbody>
+      ${history.map(e=>`<tr><td>${e.date}</td><td>${isLiability(e.category)?"-":""}${nwFmtAmount(Number(e.value), e.currency||PRIMARY_CUR)}</td><td>${nwCatIcon(e.category)}${e.category}</td><td>${e.growthRate!=null?e.growthRate+"%/yr":"—"}</td></tr>`).join("")}
+    </tbody></table>`;
+    historyWrap.style.display = "";
+  } else {
+    historyWrap.style.display = "none";
+  }
+
+  document.getElementById("nwProjectionsTable"+suffix).innerHTML = investable.length ? `<table><thead><tr><th>Item</th><th>Current</th><th>Rate</th><th>1 yr</th><th>5 yr</th><th>10 yr</th></tr></thead><tbody>
+    ${investable.map(e=>{
+      const cur = e.currency||"USD";
+      const baseValue = nwConvert(Number(e.value||0), cur, toCur, rateInfo);
+      if(baseValue==null){
+        return `<tr><td>${e.item}</td><td colspan="5">⚠️ No exchange rate available to project this ${cur} item in ${toCur}</td></tr>`;
+      }
+      const rate = (e.growthRate!=null && !isNaN(e.growthRate)) ? Number(e.growthRate) : 0;
+      const r = rate/100;
+      const p1 = baseValue*Math.pow(1+r,1), p5 = baseValue*Math.pow(1+r,5), p10 = baseValue*Math.pow(1+r,10);
+      return `<tr><td>${e.item}</td><td>${nwFmtAmount(baseValue, toCur)}</td><td>${rate}%/yr</td><td>${nwFmtAmount(p1, toCur)}</td><td>${nwFmtAmount(p5, toCur)}</td><td>${nwFmtAmount(p10, toCur)}</td></tr>`;
+    }).join("")}
+  </tbody></table>` : `<div class="dash-empty">💎 Add an asset in the Net Worth tab to see growth projections here</div>`;
+}
+
+async function renderDashNetWorth(){
+  const rateInfo = await getUsdInrRate();
+  const allItemsWithIdx = nwLatestPerItem();
+
+  if(SECONDARY_CUR && nwActiveRegion==="US"){
+    const usItemsWithIdx = allItemsWithIdx.filter(o=>(o.e.currency||"USD")===PRIMARY_CUR);
+    nwComputeAndRender("US", usItemsWithIdx, PRIMARY_CUR, rateInfo, { showRateUI:false, currencyFilterForTrend:PRIMARY_CUR });
+  } else if(SECONDARY_CUR && nwActiveRegion==="IN"){
+    const inItemsWithIdx = allItemsWithIdx.filter(o=>(o.e.currency||"USD")===SECONDARY_CUR);
+    nwComputeAndRender("IN", inItemsWithIdx, SECONDARY_CUR, rateInfo, { showRateUI:false, currencyFilterForTrend:SECONDARY_CUR });
+  } else {
+    // single-currency users only ever have the Total view — no region tabs,
+    // no display-currency toggle, no FX involved
+    nwComputeAndRender("", allItemsWithIdx, nwDisplayCurrency, rateInfo, { showRateUI:!!SECONDARY_CUR, currencyFilterForTrend:null });
+  }
+}
+
+function editFromNWDashboard(idx){
+  nwStartUpdate(nwEntries[idx].item);
+  showNetWorth();
+}
+
+async function deleteFromNWDashboard(idx, evt){
+  if(evt) evt.stopPropagation();
+  const itemName = nwEntries[idx].item;
+  await delNWItem(itemName, evt);
+  renderDashNetWorth();
+}
+
+// ===== Light / dark theme, persisted =====
+// The theme toggles now live in the Settings view, not in a header menu.
+// setTheme keeps the selection state in sync on those buttons if they're
+// currently on-screen; use querySelector-with-null-guard because the
+// buttons only exist inside #settingsView, and setTheme is also called
+// on initial page load before any view has rendered.
+function setTheme(theme){
+  document.documentElement.setAttribute("data-theme", theme);
+  const dBtn = document.getElementById("settingsDarkBtn");
+  const lBtn = document.getElementById("settingsLightBtn");
+  if(dBtn) dBtn.classList.toggle("sel", theme!=="light");
+  if(lBtn) lBtn.classList.toggle("sel", theme==="light");
+  try{ localStorage.setItem(nsKey("iexpense_theme"), theme); }catch(e){}
+  if(document.getElementById("dashboardView").style.display !== "none") renderDashboard();
+}
+
+// ===== Preferences → UI: everything currency-shaped in the app derives from
+// the two prefs currencies, so this runs once at startup and again whenever
+// preferences are saved =====
+function applyPrefs(){
+  PRIMARY_CUR = prefs ? prefs.primaryCurrency : "USD";
+  SECONDARY_CUR = prefs ? prefs.secondaryCurrency : "INR";
+  NW_CURRENCIES = SECONDARY_CUR ? [PRIMARY_CUR, SECONDARY_CUR] : [PRIMARY_CUR];
+  if(!NW_CURRENCIES.includes(nwDisplayCurrency)) nwDisplayCurrency = PRIMARY_CUR;
+  if(!NW_CURRENCIES.includes(nwSel.currency)) nwSel.currency = PRIMARY_CUR;
+  document.documentElement.style.setProperty("--cur-sym", JSON.stringify(curSym(PRIMARY_CUR)));
+
+  const hello = document.getElementById("helloName");
+  if(prefs && prefs.name){ hello.textContent = "👋 " + prefs.name; hello.style.display = ""; }
+  else hello.style.display = "none";
+
+  const tabs = document.getElementById("nwRegionTabs");
+  if(SECONDARY_CUR){
+    tabs.style.display = "";
+    document.getElementById("nwRegionUSBtn").textContent = `${nwRegionShort(PRIMARY_CUR)} Assets`;
+    document.getElementById("nwRegionINBtn").textContent = `${nwRegionShort(SECONDARY_CUR)} Assets`;
+    document.getElementById("nwItemsTableUSHead").textContent = `Your ${nwRegionShort(PRIMARY_CUR)} Accounts & Assets`;
+    document.getElementById("nwItemsTableINHead").textContent = `Your ${SECONDARY_CUR==="INR" ? "India" : nwRegionShort(SECONDARY_CUR)} Accounts & Assets`;
+    document.getElementById("fxFromLabel").textContent = `${curSym(PRIMARY_CUR).trim()}1 =`;
+    document.getElementById("fxToLabel").textContent = `${curSym(SECONDARY_CUR).trim()} today`;
+  } else {
+    // one currency → no regions to split by: force the Total view and hide
+    // the tab row plus the display-currency toggle entirely
+    tabs.style.display = "none";
+    nwActiveRegion = "total";
+    document.getElementById("nwRegionUSView").style.display = "none";
+    document.getElementById("nwRegionINView").style.display = "none";
+    document.getElementById("nwRegionTotalView").style.display = "";
+    document.getElementById("nwRegionUSBtn").classList.remove("sel");
+    document.getElementById("nwRegionINBtn").classList.remove("sel");
+    document.getElementById("nwRegionTotalBtn").classList.add("sel");
+  }
+  document.getElementById("nwDisplayCurrencyRow").parentElement.style.display = SECONDARY_CUR ? "" : "none";
+  renderNWCurrencyRow();
+  renderNWDisplayCurrencyRow();
+  // If the Settings screen is currently visible, refresh its profile row so
+  // the name/currency summary updates immediately after a Preferences save.
+  const settingsView = document.getElementById("settingsView");
+  if(settingsView && settingsView.style.display !== "none") renderSettings();
+}
+
+// ===== First-run onboarding (also reachable later as the Preferences screen) =====
+function obCurOption(c){ return `<option value="${c}">${c} — ${CURRENCY_INFO[c].label} (${curSym(c).trim()})</option>`; }
+function obSyncSecondaryOptions(){
+  const primary = document.getElementById("obPrimary").value;
+  const sec = document.getElementById("obSecondary");
+  const prev = sec.value;
+  sec.innerHTML = Object.keys(CURRENCY_INFO).filter(c=>c!==primary).map(obCurOption).join("");
+  sec.value = [...sec.options].some(o=>o.value===prev) ? prev : (primary==="INR" ? "USD" : "INR");
+}
+function obSetSecondary(yes){
+  document.getElementById("obSecYes").classList.toggle("sel", yes);
+  document.getElementById("obSecNo").classList.toggle("sel", !yes);
+  document.getElementById("obSecondaryWrap").style.display = yes ? "" : "none";
+}
+function openPrefs(){
+  const returning = !!prefs;
+  document.getElementById("obTitle").textContent = returning ? "Preferences" : "Welcome to iExpense 👋";
+  document.getElementById("obIntro").textContent = returning
+    ? "Changing currency only changes how things are displayed — none of your saved entries are modified."
+    : "Let's set up your preferences — takes 30 seconds, saved only on this device.";
+  document.getElementById("obSaveBtn").textContent = returning ? "Save Preferences" : "Get Started";
+  document.getElementById("obPrimary").innerHTML = Object.keys(CURRENCY_INFO).map(obCurOption).join("");
+  document.getElementById("obPrimary").value = returning ? prefs.primaryCurrency : "USD";
+  obSyncSecondaryOptions();
+  document.getElementById("obName").value = returning ? (prefs.name||"") : "";
+  obSetSecondary(returning && !!prefs.secondaryCurrency);
+  if(returning && prefs.secondaryCurrency) document.getElementById("obSecondary").value = prefs.secondaryCurrency;
+  document.getElementById("onboardOverlay").style.display = "flex";
+}
+function finishOnboarding(){
+  const name = document.getElementById("obName").value.trim();
+  if(!name){ toast("Please enter your name","var(--red)"); return; }
+  const primary = document.getElementById("obPrimary").value;
+  const wantSec = document.getElementById("obSecYes").classList.contains("sel");
+  const secondary = wantSec ? document.getElementById("obSecondary").value : null;
+  const firstTime = !prefs;
+  prefs = Object.assign({}, prefs||{}, { name, primaryCurrency:primary, secondaryCurrency:secondary, onboarded:true });
+  savePrefs();
+  applyPrefs();
+  document.getElementById("onboardOverlay").style.display = "none";
+  renderList();
+  renderNWItemList();
+  if(document.getElementById("dashboardView").style.display !== "none") renderDashboard();
+  toast(firstTime ? `Welcome, ${name}! You're all set` : "Preferences saved ✓");
+}
+
+renderPayRow();
+document.getElementById("fDate").value=todayStr(); document.getElementById("fDate").max=todayStr();
+setFormType("expense");
+renderList();
+renderCategoryFilterOptions();
+renderNWCatGrid();
+applyPrefs();
+document.getElementById("nwDate").value=todayStr(); document.getElementById("nwDate").max=todayStr();
+renderNWItemList();
+if(cloudCfg){
+  document.getElementById("cloudSetup").style.display="none";
+  document.getElementById("cloudControls").style.display="block";
+  document.getElementById("cloudOwner").value=cloudCfg.owner;
+  document.getElementById("cloudRepo").value=cloudCfg.repo;
+  cloudPullOnLoad();
+} else {
+  setCloudStatus(false);
+}
+// every add/update/delete already syncs itself immediately (see saveEntry,
+// delEntry, saveNW, delNWItem) — this just catches changes made from
+// *another* device while this tab was in the background, so there's never
+// a manual "Sync Now" button to remember to tap
+document.addEventListener("visibilitychange", ()=>{
+  if(document.visibilityState==="visible" && cloudCfg) cloudPullOnLoad();
+});
+if(IS_DEV_PREVIEW){
+  // dev already has its own Cloud Sync connected to expense-data-dev, so the
+  // JSON Backup/Restore flow is redundant there — but Excel export is a real
+  // reporting feature, not just a backup mechanism, so it always stays visible
+  document.getElementById("jsonBackupSection").style.display = "none";
+}
+(function initTheme(){
+  let saved="dark";
+  try{ saved = localStorage.getItem(nsKey("iexpense_theme")) || "dark"; }catch(e){}
+  setTheme(saved);
+})();
+showMainTab("dashboard"); // Dashboard is the app's home screen; the + button is the only way to log an expense/income/net worth entry
+// a truly fresh install (no prefs, no data — see the migration block up top)
+// starts with the one-time welcome/preferences screen
+if(!prefs) openPrefs();
+</script>
+</body>
+</html>
