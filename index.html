@@ -209,8 +209,9 @@
   .cat-picker-back{background:var(--card2);border:1px solid var(--border);color:var(--text);width:36px;height:36px;min-width:36px;border-radius:50%;font-size:20px;cursor:pointer;line-height:1}
   .cat-picker-title{font-weight:700;font-size:17px}
   .add-form-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-  .fab-add{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom));width:60px;height:60px;border-radius:50%;background:var(--accent);color:var(--ctatext);font-size:30px;line-height:1;border:none;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer;z-index:150;display:none;align-items:center;justify-content:center;padding:0}
+  .fab-add{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom));width:60px;height:60px;border-radius:50%;background:var(--accent);color:var(--ctatext);font-size:30px;line-height:1;border:none;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer;z-index:150;display:none;align-items:center;justify-content:center;padding:0;transition:background .2s ease}
   .fab-add:active{transform:translateX(-50%) scale(.93)}
+  .fab-add.active{background:var(--secondary,#888)}
   .radial-menu-backdrop{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:140}
   .radial-menu{position:fixed;bottom:calc(86px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:240px;height:120px}
   .radial-item{position:absolute;width:70px;height:70px;border-radius:50%;background:var(--accent);color:var(--ctatext);border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;box-shadow:0 6px 18px rgba(0,0,0,.35);font-size:11px;font-weight:600;z-index:151;pointer-events:auto;transition:transform .2s ease,background .12s;font-family:inherit}
@@ -817,11 +818,25 @@ function closeCatPicker(){
 // floating + button is the only way to reach the Expense/Income/Net Worth
 // forms, which open as a full-screen view on top of Dashboard and return to
 // it on Save, Update, or Cancel =====
+let addMenuOpen=false;
 function openAddPicker(){
-  document.getElementById("addPickerOverlay").style.display="flex";
+  const overlay=document.getElementById("addPickerOverlay");
+  const btn=document.getElementById("fabAddBtn");
+  addMenuOpen=!addMenuOpen;
+  if(addMenuOpen){
+    overlay.style.display="flex";
+    btn.classList.add("active");
+  }else{
+    overlay.style.display="none";
+    btn.classList.remove("active");
+  }
 }
 function closeAddPicker(){
-  document.getElementById("addPickerOverlay").style.display="none";
+  const overlay=document.getElementById("addPickerOverlay");
+  const btn=document.getElementById("fabAddBtn");
+  overlay.style.display="none";
+  btn.classList.remove("active");
+  addMenuOpen=false;
 }
 function chooseAdd(kind){
   closeAddPicker();
