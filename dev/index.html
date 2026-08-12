@@ -1939,12 +1939,12 @@ function mergeKey(e){ return e.id || [(e.type||"expense"),e.date,e.category,e.am
 
 async function cloudFetchRemote(cfg, filename){
   const res = await fetch(cloudApiUrl(cfg, filename), { headers:{ Authorization:`Bearer ${cfg.token}`, Accept:"application/vnd.github+json" } });
-  if(res.status===404) return { entries:[], sha:null };
+  if(res.status===404) return { entries:filename==="networth.json" ? {} : [], sha:null };
   if(!res.ok) throw new Error(`GitHub read failed (${res.status})`);
   const data = await res.json();
-  let remoteEntries=[];
-  try{ remoteEntries = JSON.parse(b64ToUtf8(data.content)); }catch(e){ remoteEntries=[]; }
-  if(!Array.isArray(remoteEntries)) remoteEntries=[];
+  let remoteEntries=filename==="networth.json" ? {} : [];
+  try{ remoteEntries = JSON.parse(b64ToUtf8(data.content)); }catch(e){ remoteEntries=filename==="networth.json" ? {} : []; }
+  if(filename!=="networth.json" && !Array.isArray(remoteEntries)) remoteEntries=[];
   return { entries: remoteEntries, sha: data.sha };
 }
 
