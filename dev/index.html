@@ -2045,8 +2045,8 @@ async function cloudConnect(){
   // expense/income connection that just succeeded above
   try{
     const { entries: nwRemote, sha: nwSha } = await cloudFetchRemote(cloudCfg, "networth.json");
-    const remoteSnapshots = nwRemote.snapshots || nwRemote || [];
-    const remoteChangeLog = nwRemote.changeLog || [];
+    const remoteSnapshots = (nwRemote && nwRemote.snapshots) ? nwRemote.snapshots : [];
+    const remoteChangeLog = (nwRemote && nwRemote.changeLog) ? nwRemote.changeLog : [];
     const mergedSnapshots = unionMerge(remoteSnapshots, nwSnapshots, loadDeletedIds(NW_DELETED_IDS_KEY));
     const existingLogIds = new Set(nwChangeLog.map(log=>log.id));
     remoteChangeLog.forEach(log=>{
@@ -2061,7 +2061,8 @@ async function cloudConnect(){
     persistNW();
     renderNWItemList();
     renderNWItemSuggestions();
-  }catch(err){ /* net worth cloud sync failed silently; core connect above already succeeded */ }
+    if(remoteSnapshots.length > 0) toast(`✓ Net worth: ${remoteSnapshots.length} items synced`);
+  }catch(err){ console.error("Net worth cloud sync error:", err); toast("⚠️ Net worth sync failed (non-critical): "+err.message, "var(--amber)"); }
 }
 
 async function cloudSyncNow(){
@@ -2081,8 +2082,8 @@ async function cloudSyncNow(){
   // result above, which already reflects the core expense/income sync
   try{
     const nwMerged = await nwCloudSyncMutation(remote=>{
-      const remoteSnapshots = remote.snapshots || remote || [];
-      const remoteChangeLog = remote.changeLog || [];
+      const remoteSnapshots = (remote && remote.snapshots) ? remote.snapshots : [];
+      const remoteChangeLog = (remote && remote.changeLog) ? remote.changeLog : [];
       const mergedSnapshots = unionMerge(remoteSnapshots, nwSnapshots, loadDeletedIds(NW_DELETED_IDS_KEY));
       const existingLogIds = new Set(nwChangeLog.map(log=>log.id));
       remoteChangeLog.forEach(log=>{
@@ -2096,7 +2097,7 @@ async function cloudSyncNow(){
     nwSnapshots = nwMerged.snapshots;
     nwChangeLog = nwMerged.changeLog;
     persistNW(); renderNWItemList(); renderNWItemSuggestions();
-  }catch(err){ /* best-effort */ }
+  }catch(err){ console.error("Net worth sync mutation failed:", err); }
 }
 
 function cloudDisconnect(){
@@ -2131,8 +2132,8 @@ async function cloudPullOnLoad(){
   try{
     const { entries: nwRemote } = await cloudFetchRemote(cloudCfg, "networth.json");
     const nwDeletedIds = loadDeletedIds(NW_DELETED_IDS_KEY);
-    const remoteSnapshots = nwRemote.snapshots || nwRemote || [];
-    const remoteChangeLog = nwRemote.changeLog || [];
+    const remoteSnapshots = (nwRemote && nwRemote.snapshots) ? nwRemote.snapshots : [];
+    const remoteChangeLog = (nwRemote && nwRemote.changeLog) ? nwRemote.changeLog : [];
     const nwMerged = unionMerge(remoteSnapshots, nwSnapshots, nwDeletedIds);
     if(nwDeletedIds.length && remoteSnapshots.some(e=>nwDeletedIds.includes(e.id))) needsPushBack = true;
     const existingLogIds = new Set(nwChangeLog.map(log=>log.id));
@@ -2144,7 +2145,7 @@ async function cloudPullOnLoad(){
     });
     nwSnapshots = nwMerged;
     persistNW(); renderNWItemList(); renderNWItemSuggestions();
-  }catch(err){ /* best-effort */ }
+  }catch(err){ console.error("Net worth pull error:", err); }
   if(needsPushBack) cloudSyncNow();
 }
 
