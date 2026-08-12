@@ -1,0 +1,3119 @@
+{
+ "backup": "2026-08-12T22:27:17.123Z",
+ "source": "iExpense (Production → Dev Sync)",
+ "entries": [
+  {
+   "date": "2026-05-01",
+   "category": "Groceries",
+   "amount": 95,
+   "store": "Patel Brothers",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftd1e037aasn",
+   "type": "expense"
+  },
+  {
+   "date": "2026-05-01",
+   "category": "Subscriptions",
+   "amount": 20,
+   "store": "Cary Fitness Center",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftgbhj2fgd0y"
+  },
+  {
+   "date": "2026-05-02",
+   "category": "Dining Out",
+   "amount": 186,
+   "store": "AZB Restaurant",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfth6zrlcyu81"
+  },
+  {
+   "date": "2026-05-02",
+   "category": "Shopping",
+   "amount": 7,
+   "store": "Target",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfth7l73z43pe"
+  },
+  {
+   "date": "2026-05-04",
+   "category": "Rent",
+   "amount": 1543,
+   "store": "House Rent",
+   "payment": "Cash",
+   "note": "Paid via bank account/ACH; original category: Housing",
+   "id": "mrfth8ho5wtrmd"
+  },
+  {
+   "date": "2026-05-04",
+   "category": "Groceries",
+   "amount": 34,
+   "store": "Wegmans Grocery",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfth9osdo9uoj"
+  },
+  {
+   "date": "2026-05-06",
+   "category": "Utilities/Phone",
+   "amount": 159,
+   "store": "Duke Energy (Electricity)",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthaw9q17hgt"
+  },
+  {
+   "date": "2026-05-04",
+   "category": "Shopping",
+   "amount": 30,
+   "store": "Target",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfth9zqlr0hxm"
+  },
+  {
+   "date": "2026-05-09",
+   "category": "Shopping",
+   "amount": 25,
+   "store": "Walmart",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthce1zb74f4"
+  },
+  {
+   "date": "2026-05-02",
+   "category": "Subscriptions",
+   "amount": 5,
+   "store": "Ring Bell subscription",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfth7ahpeho2y"
+  },
+  {
+   "date": "2026-05-03",
+   "category": "Gas",
+   "amount": 46,
+   "store": "BJ's Gas",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfth7vzofhgxk"
+  },
+  {
+   "date": "2026-05-03",
+   "category": "Groceries",
+   "amount": 265,
+   "store": "BJ's Grocery & Clothes",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfth86v5dn7c0"
+  },
+  {
+   "date": "2026-05-04",
+   "category": "Remittance",
+   "amount": 1858,
+   "store": "Ria Money Transfer (to India)",
+   "payment": "Credit",
+   "note": "Original category: Money Transfer",
+   "id": "mrfth8sff7t6ba",
+   "type": "expense"
+  },
+  {
+   "date": "2026-05-04",
+   "category": "Others",
+   "amount": 58,
+   "store": "Liberty Mutual (Rental Insurance)",
+   "payment": "Credit",
+   "note": "Original category: Insurance",
+   "id": "mrfth939emo35r"
+  },
+  {
+   "date": "2026-05-04",
+   "category": "Health",
+   "amount": 20,
+   "store": "CVS Pharmacy",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfth9e088mvid"
+  },
+  {
+   "date": "2026-05-05",
+   "category": "Shopping",
+   "amount": 10,
+   "store": "Amazon (belt)",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthaako3m8h3"
+  },
+  {
+   "date": "2026-05-06",
+   "category": "Shopping",
+   "amount": 65,
+   "store": "Amazon (kitchen)",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthald5ut88s"
+  },
+  {
+   "date": "2026-05-07",
+   "category": "Health",
+   "amount": 25,
+   "store": "LabCorp Bill",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthb6z16qntd"
+  },
+  {
+   "date": "2026-05-07",
+   "category": "Groceries",
+   "amount": 72,
+   "store": "Suvidha Indian Grocery",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthbhqowasj2"
+  },
+  {
+   "date": "2026-05-08",
+   "category": "Subscriptions",
+   "amount": 18,
+   "store": "Ticktalk Wireless",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthbsjtxw7a3"
+  },
+  {
+   "date": "2026-05-09",
+   "category": "Shopping",
+   "amount": 25.16,
+   "store": "Walmart",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthc3balod8b"
+  },
+  {
+   "date": "2026-05-10",
+   "category": "Utilities/Phone",
+   "amount": 40,
+   "store": "Spectrum (Internet)",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthcou20918b"
+  },
+  {
+   "date": "2026-05-11",
+   "category": "Others",
+   "amount": 395,
+   "store": "Capital One member fee",
+   "payment": "Credit",
+   "note": "Original category: Fees",
+   "id": "mrfthczqg8sclm"
+  },
+  {
+   "date": "2026-05-12",
+   "category": "Groceries",
+   "amount": 132,
+   "store": "Suvidha Indian Grocery",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthdaham5byg"
+  },
+  {
+   "date": "2026-05-12",
+   "category": "Health",
+   "amount": 191,
+   "store": "Internal Med + PCID",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthdl8tzlzuz"
+  },
+  {
+   "date": "2026-05-14",
+   "category": "Kids/Activities",
+   "amount": 65.33,
+   "store": "Dev school supply",
+   "payment": "Credit",
+   "note": "Original category: Education",
+   "id": "mrfthdvzmfwqo0"
+  },
+  {
+   "date": "2026-05-14",
+   "category": "Health",
+   "amount": 23.79,
+   "store": "CVS Pharmacy",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthe6uq91gdp"
+  },
+  {
+   "date": "2026-05-14",
+   "category": "Others",
+   "amount": 20,
+   "store": "Target Gift Card (B'Day)",
+   "payment": "Credit",
+   "note": "Original category: Gifts",
+   "id": "mrfthehkyuelb2"
+  },
+  {
+   "date": "2026-05-15",
+   "category": "Shopping",
+   "amount": 300,
+   "store": "Costco shopping",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthesb8gya8d"
+  },
+  {
+   "date": "2026-05-15",
+   "category": "Gas",
+   "amount": 55,
+   "store": "Gas 7/11 (Odyssey)",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthf32p1lnn8"
+  },
+  {
+   "date": "2026-05-15",
+   "category": "Subscriptions",
+   "amount": 7,
+   "store": "Gym subscription",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthfdxtzev29"
+  },
+  {
+   "date": "2026-05-16",
+   "category": "Shopping",
+   "amount": 22,
+   "store": "Lowe's",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthfoqvpz87r"
+  },
+  {
+   "date": "2026-05-16",
+   "category": "Groceries",
+   "amount": 21.48,
+   "store": "Grand India Mart",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthfzgac5mec"
+  },
+  {
+   "date": "2026-05-16",
+   "category": "Shopping",
+   "amount": 38.69,
+   "store": "Walmart",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthga64z4dad"
+  },
+  {
+   "date": "2026-05-16",
+   "category": "Dining Out",
+   "amount": 5,
+   "store": "Swagat India Restaurant",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthgkz5kdphh"
+  },
+  {
+   "date": "2026-05-18",
+   "category": "Health",
+   "amount": 207,
+   "store": "Internal Med & Pediatric",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthgvxkupquw"
+  },
+  {
+   "date": "2026-05-19",
+   "category": "Subscriptions",
+   "amount": 134,
+   "store": "Anthropic subscription",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthh6nccdzu0"
+  },
+  {
+   "date": "2026-05-21",
+   "category": "Dining Out",
+   "amount": 11,
+   "store": "Dutch Brothers Smoothie",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthhhpd4v16l"
+  },
+  {
+   "date": "2026-05-21",
+   "category": "Kids/Activities",
+   "amount": 240,
+   "store": "Triangle Badminton Academy",
+   "payment": "Credit",
+   "note": "Original category: Education",
+   "id": "mrfthhsi8z0hdp"
+  },
+  {
+   "date": "2026-05-22",
+   "category": "Dining Out",
+   "amount": 15,
+   "store": "Panera Bread",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthi39y2jllv"
+  },
+  {
+   "date": "2026-05-23",
+   "category": "Groceries",
+   "amount": 22,
+   "store": "Grand India Mart",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthie4k9bgr1"
+  },
+  {
+   "date": "2026-05-23",
+   "category": "Shopping",
+   "amount": 45,
+   "store": "Walmart",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthip0trjjah"
+  },
+  {
+   "date": "2026-05-25",
+   "category": "Groceries",
+   "amount": 8,
+   "store": "Trader Joe's",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthizsoe3bco"
+  },
+  {
+   "date": "2026-05-27",
+   "category": "Shopping",
+   "amount": 70,
+   "store": "Costco",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthjamscxhak"
+  },
+  {
+   "date": "2026-05-27",
+   "category": "Gas",
+   "amount": 53,
+   "store": "Costco Gas (Odyssey)",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthjlf7mebf8"
+  },
+  {
+   "date": "2026-05-27",
+   "category": "Groceries",
+   "amount": 20,
+   "store": "Food Lion",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthjwa1wd7g6"
+  },
+  {
+   "date": "2026-05-28",
+   "category": "Shopping",
+   "amount": 26.37,
+   "store": "Walmart",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrfthk7474i2vp"
+  },
+  {
+   "date": "2026-06-01",
+   "category": "Health",
+   "amount": 16,
+   "store": "Cary Fitness Center (MetLife)",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftyjuansf6x8"
+  },
+  {
+   "date": "2026-06-01",
+   "category": "Subscriptions",
+   "amount": 2.99,
+   "store": "Apple iCloud Storage",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftyk506it13n"
+  },
+  {
+   "date": "2026-06-02",
+   "category": "Gas",
+   "amount": 63.3,
+   "store": "Sheetz Gas – Odyssey",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftykfxuev07h"
+  },
+  {
+   "date": "2026-06-02",
+   "category": "Groceries",
+   "amount": 33.15,
+   "store": "Suvidha Indian Grocery",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftykqvrtlz0a"
+  },
+  {
+   "date": "2026-06-02",
+   "category": "Groceries",
+   "amount": 44.78,
+   "store": "Wegmans Grocery",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftyl1rwcdt0f"
+  },
+  {
+   "date": "2026-06-02",
+   "category": "Kids/Activities",
+   "amount": 704,
+   "store": "Triangle Badminton Club – Summer Camp",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftylciqx9ob7"
+  },
+  {
+   "date": "2026-06-02",
+   "category": "Rent",
+   "amount": 1542,
+   "store": "Palm Associates (House Rent)",
+   "payment": "Cash",
+   "note": "Paid via bank account/ACH",
+   "id": "mrftylnbui82rz"
+  },
+  {
+   "date": "2026-06-02",
+   "category": "Utilities/Phone",
+   "amount": 109,
+   "store": "Duke Energy",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftyly2m9pzgm"
+  },
+  {
+   "date": "2026-06-03",
+   "category": "Shopping",
+   "amount": 1.61,
+   "store": "Dollar Shop",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftym8tequ2yn"
+  },
+  {
+   "date": "2026-06-03",
+   "category": "Travel",
+   "amount": 3128,
+   "store": "Delta Airlines (Air Tickets)",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftymjk3r1y72"
+  },
+  {
+   "date": "2026-06-03",
+   "category": "Subscriptions",
+   "amount": 5,
+   "store": "Ring Subscription",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftymudtf0qu3"
+  },
+  {
+   "date": "2026-06-04",
+   "category": "Gas",
+   "amount": 35.45,
+   "store": "Sheetz Gas – Elentra",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftyn54adea89"
+  },
+  {
+   "date": "2026-06-04",
+   "category": "Shopping",
+   "amount": 8.85,
+   "store": "Five Below",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftynfyekvyra"
+  },
+  {
+   "date": "2026-06-05",
+   "category": "Shopping",
+   "amount": 21.94,
+   "store": "Temu",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftynqo8mjdim"
+  },
+  {
+   "date": "2026-06-06",
+   "category": "Groceries",
+   "amount": 348.79,
+   "store": "BJ's Wholesale Club",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftyo1f9vhcpq"
+  },
+  {
+   "date": "2026-06-06",
+   "category": "Shopping",
+   "amount": 130,
+   "store": "Dick's Sporting Goods",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftyoc4zukmsv"
+  },
+  {
+   "date": "2026-06-07",
+   "category": "Entertainment",
+   "amount": 100,
+   "store": "Sylvan Heights Bird Park",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftyomw8i1m5o"
+  },
+  {
+   "date": "2026-06-07",
+   "category": "Utilities/Phone",
+   "amount": 17.14,
+   "store": "Tictalk Wireless Plan",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftyoxo3k837d"
+  },
+  {
+   "date": "2026-06-09",
+   "category": "Groceries",
+   "amount": 15.57,
+   "store": "Walmart",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftyp8luiuf0m"
+  },
+  {
+   "date": "2026-06-09",
+   "category": "Groceries",
+   "amount": 28.72,
+   "store": "Grand India Mart",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftypjddhx73b"
+  },
+  {
+   "date": "2026-06-10",
+   "category": "Health",
+   "amount": 12.5,
+   "store": "CVS Pharmacy",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftypu5r3cmxf"
+  },
+  {
+   "date": "2026-06-11",
+   "category": "Health",
+   "amount": 85,
+   "store": "Mint Leaf Dentistry",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftyq4yca1ns5"
+  },
+  {
+   "date": "2026-06-11",
+   "category": "Health",
+   "amount": 40,
+   "store": "Wakemed Pediatrics",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftyqfpr2r61r"
+  },
+  {
+   "date": "2026-06-12",
+   "category": "Shopping",
+   "amount": 36,
+   "store": "Amazon – Diya's Roller Skates",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftyqqhr3bdbw"
+  },
+  {
+   "date": "2026-06-13",
+   "category": "Dining Out",
+   "amount": 8,
+   "store": "McDonald's Vanilla Smoothie",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftyr1aw4bo75"
+  },
+  {
+   "date": "2026-06-13",
+   "category": "Groceries",
+   "amount": 40,
+   "store": "Walmart",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftyrc1x1bq0s"
+  },
+  {
+   "date": "2026-06-13",
+   "category": "Groceries",
+   "amount": 58,
+   "store": "Grand India Mart",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftyrms63jqbk"
+  },
+  {
+   "date": "2026-06-14",
+   "category": "Groceries",
+   "amount": 31,
+   "store": "Walmart",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftyrxj02wwsz"
+  },
+  {
+   "date": "2026-06-15",
+   "category": "Gas",
+   "amount": 61.15,
+   "store": "Sheetz Gas – Odyssey",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftys8dtrvmay"
+  },
+  {
+   "date": "2026-06-17",
+   "category": "Shopping",
+   "amount": 50,
+   "store": "Wayfair – Badminton Net",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftysj4lgu4io"
+  },
+  {
+   "date": "2026-06-18",
+   "category": "Shopping",
+   "amount": 50,
+   "store": "HomeGoods Gift Card",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftystwb6dj31"
+  },
+  {
+   "date": "2026-06-18",
+   "category": "Health",
+   "amount": 190,
+   "store": "Internal Med & PeID",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftyt4p07s37v"
+  },
+  {
+   "date": "2026-06-19",
+   "category": "Groceries",
+   "amount": 75,
+   "store": "Walmart",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftytfi2t5o0o"
+  },
+  {
+   "date": "2026-06-19",
+   "category": "Remittance",
+   "amount": 3000,
+   "store": "Ria Money Transfer",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftytqat38wp8",
+   "type": "expense"
+  },
+  {
+   "date": "2026-06-20",
+   "category": "Shopping",
+   "amount": 129,
+   "store": "Shoes – Pace Yourself",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftyu13lbmkl7"
+  },
+  {
+   "date": "2026-06-20",
+   "category": "Health",
+   "amount": 5,
+   "store": "Walgreens",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftyubvd388uz"
+  },
+  {
+   "date": "2026-06-20",
+   "category": "Groceries",
+   "amount": 30,
+   "store": "Costco",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftyumqegkqlf"
+  },
+  {
+   "date": "2026-06-22",
+   "category": "Health",
+   "amount": 36,
+   "store": "Amazon – Knee Sleeves",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftyuxlcet3j8"
+  },
+  {
+   "date": "2026-06-24",
+   "category": "Groceries",
+   "amount": 84,
+   "store": "Suvidha Store – Indian Grocery",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftyv8d8fjppd"
+  },
+  {
+   "date": "2026-06-24",
+   "category": "Health",
+   "amount": 54,
+   "store": "Raleigh Radiology",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftyvj5yw68nz"
+  },
+  {
+   "date": "2026-06-25",
+   "category": "Groceries",
+   "amount": 75,
+   "store": "Walmart",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftyvtyqk1mg7"
+  },
+  {
+   "date": "2026-06-26",
+   "category": "Health",
+   "amount": 36,
+   "store": "Amazon – Knee Sleeve",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftyw4sbz013w"
+  },
+  {
+   "date": "2026-06-26",
+   "category": "Health",
+   "amount": 145,
+   "store": "Wakemed Urgent Care",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftywfshgffve"
+  },
+  {
+   "date": "2026-06-27",
+   "category": "Shopping",
+   "amount": 22,
+   "store": "Table for Work (Cash)",
+   "payment": "Cash",
+   "note": "",
+   "id": "mrftywqpn5l5el"
+  },
+  {
+   "date": "2026-06-27",
+   "category": "Health",
+   "amount": 389,
+   "store": "Saleeby Proctology Doctor",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftyx1hjhwg93"
+  },
+  {
+   "date": "2026-06-27",
+   "category": "Gas",
+   "amount": 43,
+   "store": "Sheetz Gas – Elentra",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftyxc9a7l26e"
+  },
+  {
+   "date": "2026-06-28",
+   "category": "Shopping",
+   "amount": 7,
+   "store": "Target",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrftyxn2xdnhww"
+  },
+  {
+   "date": "2026-06-30",
+   "type": "income",
+   "category": "Salary",
+   "amount": 6977,
+   "store": "Deepak Salary",
+   "payment": "",
+   "note": "",
+   "id": "mrfux8z4iqterc"
+  },
+  {
+   "date": "2026-06-30",
+   "type": "income",
+   "category": "Salary",
+   "amount": 3894,
+   "store": "Deepali Salary",
+   "payment": "",
+   "note": "",
+   "id": "mrfuxp7d5v7ww6"
+  },
+  {
+   "date": "2026-06-30",
+   "type": "income",
+   "category": "Dividends",
+   "amount": 100,
+   "store": "DCU Dividend",
+   "payment": "",
+   "note": "",
+   "id": "mrfuxywmtjma14"
+  },
+  {
+   "date": "2026-06-30",
+   "type": "income",
+   "category": "Dividends",
+   "amount": 350,
+   "store": "Fifth Third Bank Dividend",
+   "payment": "",
+   "note": "",
+   "id": "mrfuy86sg8jtcl"
+  },
+  {
+   "date": "2026-05-31",
+   "type": "income",
+   "category": "Salary",
+   "amount": 6977,
+   "store": "Deepak Salary",
+   "payment": "",
+   "note": "",
+   "id": "mrfuyhpoyza7e2"
+  },
+  {
+   "date": "2026-05-31",
+   "type": "income",
+   "category": "Salary",
+   "amount": 3894,
+   "store": "Deepali Salary",
+   "payment": "",
+   "note": "",
+   "id": "mrfuyuykz6et8p"
+  },
+  {
+   "date": "2026-05-31",
+   "type": "income",
+   "category": "Dividends",
+   "amount": 90,
+   "store": "DCU Dividend",
+   "payment": "",
+   "note": "",
+   "id": "mrfuz4jwqlrbas"
+  },
+  {
+   "date": "2026-07-02",
+   "type": "expense",
+   "category": "Rent",
+   "amount": 1545,
+   "store": "Palm Associates",
+   "payment": "",
+   "note": "House Rent",
+   "id": "mrgtmxis1cfnzl"
+  },
+  {
+   "date": "2026-07-12",
+   "type": "expense",
+   "category": "Others",
+   "amount": 30,
+   "store": "SportsClip",
+   "payment": "Credit",
+   "note": "Haitcut",
+   "id": "mrhz1ohvtgvn6s"
+  },
+  {
+   "date": "2026-07-12",
+   "type": "expense",
+   "category": "Groceries",
+   "amount": 66,
+   "store": "SpicehHut",
+   "payment": "",
+   "note": "Indian  Grocery",
+   "id": "mri40t6xfl5gm2"
+  },
+  {
+   "date": "2026-07-01",
+   "type": "expense",
+   "category": "Others",
+   "amount": 852,
+   "store": "GEICO",
+   "payment": "",
+   "note": "Auto Insurance",
+   "id": "mriln9mrxlhsjc"
+  },
+  {
+   "date": "2026-07-02",
+   "type": "expense",
+   "category": "Subscriptions",
+   "amount": 130,
+   "store": "Costco",
+   "payment": "",
+   "note": "Costco Membersship",
+   "id": "mrilp51bypkndo"
+  },
+  {
+   "date": "2026-07-03",
+   "type": "expense",
+   "category": "Groceries",
+   "amount": 200,
+   "store": "Costco",
+   "payment": "",
+   "note": "Cotsco groceries",
+   "id": "mrilqm2741cm43"
+  },
+  {
+   "date": "2026-07-03",
+   "type": "expense",
+   "category": "Groceries",
+   "amount": 22,
+   "store": "SpicehHut",
+   "payment": "",
+   "note": "",
+   "id": "mrilri0ouinuhv"
+  },
+  {
+   "date": "2026-07-03",
+   "type": "expense",
+   "category": "Gas",
+   "amount": 19,
+   "store": "Costco",
+   "payment": "",
+   "note": "Elentra",
+   "id": "mrilshouzhz20w"
+  },
+  {
+   "date": "2026-07-03",
+   "type": "expense",
+   "category": "Dining Out",
+   "amount": 12,
+   "store": "Panera  Bred",
+   "payment": "",
+   "note": "",
+   "id": "mriltdg3dsswu2"
+  },
+  {
+   "date": "2026-07-03",
+   "type": "expense",
+   "category": "Subscriptions",
+   "amount": 95,
+   "store": "NordVpn",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrilu8hfrydu82"
+  },
+  {
+   "date": "2026-07-05",
+   "type": "expense",
+   "category": "Shopping",
+   "amount": 58,
+   "store": "Crocs",
+   "payment": "Credit",
+   "note": "Dev crocs",
+   "id": "mrilvxpv7zhyfv"
+  },
+  {
+   "date": "2026-07-07",
+   "type": "expense",
+   "category": "Subscriptions",
+   "amount": 5,
+   "store": "Ring",
+   "payment": "",
+   "note": "Ring cam",
+   "id": "mrilwhpu8cm4e6"
+  },
+  {
+   "date": "2026-07-06",
+   "type": "expense",
+   "category": "Groceries",
+   "amount": 5,
+   "store": "Target",
+   "payment": "",
+   "note": "",
+   "id": "mrilx4rv1tmzhe"
+  },
+  {
+   "date": "2026-07-06",
+   "type": "expense",
+   "category": "Health",
+   "amount": 35,
+   "store": "CVS",
+   "payment": "",
+   "note": "Flonase med",
+   "id": "mrily3b2xe0d9c"
+  },
+  {
+   "date": "2026-07-06",
+   "type": "income",
+   "category": "Other",
+   "amount": 120,
+   "store": "Shoes return",
+   "payment": "",
+   "note": "Shoes Return",
+   "id": "mrim2f15k8qwd1"
+  },
+  {
+   "date": "2026-07-07",
+   "type": "expense",
+   "category": "Subscriptions",
+   "amount": 18,
+   "store": "Metlife",
+   "payment": "",
+   "note": "Gym membership",
+   "id": "mrim3igde4iymv"
+  },
+  {
+   "date": "2026-07-08",
+   "type": "expense",
+   "category": "Health",
+   "amount": 48,
+   "store": "Mint Leaf Dentistry",
+   "payment": "",
+   "note": "Mint Dentistry",
+   "id": "mrim4sbhmlh5pu"
+  },
+  {
+   "date": "2026-07-08",
+   "type": "expense",
+   "category": "Utilities/Phone",
+   "amount": 200,
+   "store": "US MOBILE",
+   "payment": "",
+   "note": "Deepak phone for year",
+   "id": "mrim5lt9xxocaq"
+  },
+  {
+   "date": "2026-07-08",
+   "type": "expense",
+   "category": "Groceries",
+   "amount": 20,
+   "store": "Walmart",
+   "payment": "",
+   "note": "",
+   "id": "mrim686vi9zyc5"
+  },
+  {
+   "date": "2026-07-08",
+   "type": "expense",
+   "category": "Entertainment",
+   "amount": 8,
+   "store": "MacD",
+   "payment": "Credit",
+   "note": "MacD for dev and diya",
+   "id": "mrim7s59uzejri"
+  },
+  {
+   "date": "2026-07-08",
+   "type": "expense",
+   "category": "Utilities/Phone",
+   "amount": 20,
+   "store": "US mobile",
+   "payment": "",
+   "note": "Dev Watch Subscription",
+   "id": "mrim8pg00z1xi5"
+  },
+  {
+   "date": "2026-07-10",
+   "type": "expense",
+   "category": "Utilities/Phone",
+   "amount": 40,
+   "store": "Spectrum",
+   "payment": "",
+   "note": "Deepak phone bill",
+   "id": "mrima5kqedpk89"
+  },
+  {
+   "date": "2026-07-15",
+   "type": "income",
+   "category": "Salary",
+   "amount": 3220,
+   "store": "Deepak Salary",
+   "payment": "",
+   "note": "Byweekly Pay",
+   "id": "mrmpba19hdv7pr"
+  },
+  {
+   "date": "2026-07-15",
+   "type": "income",
+   "category": "Other",
+   "amount": 92,
+   "store": "Amazon return",
+   "payment": "",
+   "note": "",
+   "id": "mrmpcoe4lm1c36"
+  },
+  {
+   "date": "2026-07-15",
+   "type": "income",
+   "category": "Other",
+   "amount": 17.17,
+   "store": "TilkTalk Watch plan return",
+   "payment": "",
+   "note": "",
+   "id": "mrmpdj6fj0agxs"
+  },
+  {
+   "date": "2026-07-11",
+   "type": "expense",
+   "category": "Others",
+   "amount": 30,
+   "store": "SportsClip",
+   "payment": "Credit",
+   "note": "Haircut",
+   "id": "mrmvius2epuilf"
+  },
+  {
+   "date": "2026-07-12",
+   "type": "expense",
+   "category": "Groceries",
+   "amount": 65,
+   "store": "Spicehut",
+   "payment": "Credit",
+   "note": "Indian Grocery",
+   "id": "mrmvlxiz379a01"
+  },
+  {
+   "date": "2026-07-12",
+   "type": "income",
+   "category": "Salary",
+   "amount": 1935,
+   "store": "Deepali Salary",
+   "payment": "",
+   "note": "By weekly salary",
+   "id": "mrmw84yw5xu90z"
+  },
+  {
+   "date": "2026-07-16",
+   "type": "expense",
+   "category": "Groceries",
+   "amount": 15,
+   "store": "Walmart",
+   "payment": "Credit",
+   "note": "",
+   "id": "mro5idbxpiqotk"
+  },
+  {
+   "date": "2026-07-16",
+   "type": "expense",
+   "category": "Groceries",
+   "amount": 15,
+   "store": "Grand India",
+   "payment": "Credit",
+   "note": "Grand India Mart",
+   "id": "mro5vkzk4nb385"
+  },
+  {
+   "date": "2026-07-16",
+   "type": "expense",
+   "category": "Utilities/Phone",
+   "amount": 80,
+   "store": "US Mobile",
+   "payment": "Credit",
+   "note": "Diya cell plan purchase for year",
+   "id": "mroa5y5xkzr0uk"
+  },
+  {
+   "date": "2026-07-17",
+   "type": "expense",
+   "category": "Dining Out",
+   "amount": 21,
+   "store": "Dominos",
+   "payment": "Credit",
+   "note": "Pizza",
+   "id": "mrqlzd3lcy7x4c"
+  },
+  {
+   "date": "2026-07-18",
+   "type": "expense",
+   "category": "Dining Out",
+   "amount": 75,
+   "store": "BLR CURRY",
+   "payment": "Credit",
+   "note": "Breakfast",
+   "id": "mrqm0aqxojbye9"
+  },
+  {
+   "date": "2026-07-18",
+   "type": "expense",
+   "category": "Gas",
+   "amount": 60,
+   "store": "Cotsco",
+   "payment": "Credit",
+   "note": "Gas for Odyssey car",
+   "id": "mrsb7w4dy7xuda"
+  },
+  {
+   "date": "2026-07-18",
+   "type": "expense",
+   "category": "Groceries",
+   "amount": 228,
+   "store": "Cotsco",
+   "payment": "Credit",
+   "note": "Cotsco groceries",
+   "id": "mrsb97n7jul021"
+  },
+  {
+   "date": "2026-07-18",
+   "type": "expense",
+   "category": "Utilities/Phone",
+   "amount": 22,
+   "store": "STARLINK",
+   "payment": "Credit",
+   "note": "Internet starlink shipping",
+   "id": "mrsbcbobjuzgf8"
+  },
+  {
+   "date": "2026-07-15",
+   "type": "expense",
+   "category": "Utilities/Phone",
+   "amount": 55,
+   "store": "US Mobile",
+   "payment": "Credit",
+   "note": "Starling Order",
+   "id": "mrsbfhoclbof84"
+  },
+  {
+   "date": "2026-07-19",
+   "type": "expense",
+   "category": "Shopping",
+   "amount": 121,
+   "store": "Ross",
+   "payment": "Credit",
+   "note": "Ross clothing",
+   "id": "mrsbjyi0om9vlf"
+  },
+  {
+   "date": "2026-07-21",
+   "type": "expense",
+   "category": "Subscriptions",
+   "amount": 22,
+   "store": "Claude Subscription",
+   "payment": "Credit",
+   "note": "Claude Subscripti",
+   "id": "mrv9hh5su8jmwt"
+  },
+  {
+   "date": "2026-07-23",
+   "type": "expense",
+   "category": "Groceries",
+   "amount": 25,
+   "store": "Walmart",
+   "payment": "Credit",
+   "note": "Walmart",
+   "id": "mry4bpzgd6johh"
+  },
+  {
+   "date": "2026-07-23",
+   "type": "expense",
+   "category": "Groceries",
+   "amount": 25,
+   "store": "Grand India Mart",
+   "payment": "Credit",
+   "note": "Grand India mart",
+   "id": "mry4ccwoy96jb8"
+  },
+  {
+   "date": "2026-07-23",
+   "type": "expense",
+   "category": "Health",
+   "amount": 19,
+   "store": "Labcorp",
+   "payment": "Credit",
+   "note": "Labcorp blood work",
+   "id": "mry7b9pnj18x4h"
+  },
+  {
+   "date": "2026-07-23",
+   "type": "income",
+   "category": "Bonus",
+   "amount": 45,
+   "store": "Cotsco membership ceedit",
+   "payment": "",
+   "note": "Membership credit",
+   "id": "mry7clow19se8a"
+  },
+  {
+   "date": "2026-07-23",
+   "type": "income",
+   "category": "Other",
+   "amount": 52,
+   "store": "Proctology credit",
+   "payment": "",
+   "note": "Proctology Credit hospital bill",
+   "id": "mry7dnaxwlcu7r"
+  },
+  {
+   "date": "2026-07-23",
+   "type": "expense",
+   "category": "Remittance",
+   "amount": 1000,
+   "store": "Remittance",
+   "payment": "Credit",
+   "note": "To India for Investment",
+   "id": "mry7yz6n7wqhyl"
+  },
+  {
+   "date": "2026-07-24",
+   "type": "expense",
+   "category": "Utilities/Phone",
+   "amount": 73,
+   "store": "PalmAssosiates",
+   "payment": "Credit",
+   "note": "",
+   "id": "mrz2zzqy31yfpe"
+  },
+  {
+   "date": "2026-07-25",
+   "type": "expense",
+   "category": "Groceries",
+   "amount": 8,
+   "store": "Walmart",
+   "payment": "Credit",
+   "note": "Walmart",
+   "id": "ms3r800xvmdl4u"
+  },
+  {
+   "date": "2026-07-28",
+   "type": "expense",
+   "category": "Subscriptions",
+   "amount": 3,
+   "store": "Apple iCloud Storage",
+   "payment": "Credit",
+   "note": "",
+   "id": "ms576fps1f1r7x"
+  },
+  {
+   "date": "2026-07-28",
+   "type": "income",
+   "category": "Dividends",
+   "amount": 450,
+   "store": "FIFTH THIRD BANK BONUS",
+   "payment": "",
+   "note": "",
+   "id": "ms5f8ycf22rpuj"
+  },
+  {
+   "date": "2026-07-30",
+   "type": "expense",
+   "category": "Groceries",
+   "amount": 38,
+   "store": "Walmart",
+   "payment": "Credit",
+   "note": "Walmart",
+   "id": "ms8b7ats0kz33x"
+  },
+  {
+   "date": "2026-07-23",
+   "type": "income",
+   "category": "Dividends",
+   "amount": 427,
+   "store": "Fifth Third Bank Dividend",
+   "payment": "",
+   "note": "",
+   "id": "ms8b9zdh6zcjpp"
+  },
+  {
+   "date": "2026-07-23",
+   "type": "income",
+   "category": "Salary",
+   "amount": 1947,
+   "store": "Deepali Salary",
+   "payment": "",
+   "note": "",
+   "id": "ms8bbn9yf4cjrg"
+  },
+  {
+   "date": "2026-07-30",
+   "type": "income",
+   "category": "Salary",
+   "amount": 3220,
+   "store": "Deepak Salary",
+   "payment": "",
+   "note": "",
+   "id": "ms8bg6k6mxh8n4"
+  },
+  {
+   "date": "2026-08-01",
+   "type": "expense",
+   "category": "Others",
+   "amount": 5,
+   "store": "Amazon",
+   "payment": "Credit",
+   "note": "",
+   "id": "msbxnh5t3fw5ep"
+  },
+  {
+   "date": "2026-08-01",
+   "type": "expense",
+   "category": "Groceries",
+   "amount": 10,
+   "store": "Wegmans",
+   "payment": "Credit",
+   "note": "",
+   "id": "msbxo66sedm7mj"
+  },
+  {
+   "date": "2026-08-01",
+   "type": "expense",
+   "category": "Rent",
+   "amount": 1467,
+   "store": "Palm Associates (House Rent)",
+   "payment": "Credit",
+   "note": "Rent",
+   "id": "msbxt1vxojp1os"
+  },
+  {
+   "date": "2026-08-02",
+   "type": "expense",
+   "category": "Gas",
+   "amount": 40,
+   "store": "Cotsco",
+   "payment": "Credit",
+   "note": "",
+   "id": "msch3masaytvby"
+  },
+  {
+   "date": "2026-08-02",
+   "type": "expense",
+   "category": "Groceries",
+   "amount": 250,
+   "store": "Cotsco",
+   "payment": "Credit",
+   "note": "Cotsco",
+   "id": "msch5lkm1z41dv"
+  },
+  {
+   "date": "2026-08-03",
+   "type": "income",
+   "category": "Salary",
+   "amount": 1948,
+   "store": "Deepali Salary",
+   "payment": "",
+   "note": "",
+   "id": "msdw9y3p9u8gvg"
+  },
+  {
+   "date": "2026-08-04",
+   "type": "expense",
+   "category": "Subscriptions",
+   "amount": 20,
+   "store": "Perpelixity",
+   "payment": "Credit",
+   "note": "",
+   "id": "msej980j56we58"
+  },
+  {
+   "date": "2026-08-04",
+   "type": "expense",
+   "category": "Subscriptions",
+   "amount": 16,
+   "store": "Cary Fitness Center (MetLife)",
+   "payment": "Credit",
+   "note": "",
+   "id": "msf04fszjhdpni"
+  },
+  {
+   "date": "2026-08-04",
+   "type": "expense",
+   "category": "Dining Out",
+   "amount": 7,
+   "store": "Metlife Cafe",
+   "payment": "Credit",
+   "note": "",
+   "id": "msf0570c7tm94i"
+  },
+  {
+   "date": "2026-08-05",
+   "type": "expense",
+   "category": "Shopping",
+   "amount": 17,
+   "store": "Amazon",
+   "payment": "Credit",
+   "note": "",
+   "id": "msg0p9y1tpxkjy"
+  },
+  {
+   "date": "2026-08-05",
+   "type": "expense",
+   "category": "Utilities/Phone",
+   "amount": 218,
+   "store": "Duke Energy",
+   "payment": "Credit",
+   "note": "",
+   "id": "msg4rbqey0nmv3"
+  },
+  {
+   "date": "2026-08-05",
+   "type": "expense",
+   "category": "Shopping",
+   "amount": 32.15,
+   "store": "TJ Max",
+   "payment": "Credit",
+   "note": "",
+   "id": "msgqx7o7qp02gi"
+  },
+  {
+   "date": "2026-08-05",
+   "type": "expense",
+   "category": "Kids/Activities",
+   "amount": 6,
+   "store": "Five Below",
+   "payment": "Credit",
+   "note": "",
+   "id": "msgqxof5g067ek"
+  },
+  {
+   "date": "2026-08-06",
+   "type": "expense",
+   "category": "Gas",
+   "amount": 41,
+   "store": "Sheetz Gas – Elentra",
+   "payment": "Credit",
+   "note": "",
+   "id": "mshsun4uz3q9xm"
+  },
+  {
+   "date": "2026-08-03",
+   "type": "expense",
+   "category": "Shopping",
+   "amount": 366,
+   "store": "Apple Watch",
+   "payment": "Credit",
+   "note": "Watch for Diya",
+   "id": "mshtrf2blo3qc4"
+  },
+  {
+   "date": "2026-08-03",
+   "type": "expense",
+   "category": "Gifts & Donations",
+   "amount": 50,
+   "store": "Birthday Patry",
+   "payment": "Credit",
+   "note": "",
+   "id": "mshtqq4m78gxnf"
+  },
+  {
+   "date": "2026-08-08",
+   "type": "expense",
+   "category": "Kids/Activities",
+   "amount": 50,
+   "store": "Triangle Rock Climbing club",
+   "payment": "Credit",
+   "note": "",
+   "id": "msl4q2rojb16ru"
+  },
+  {
+   "date": "2026-08-08",
+   "type": "expense",
+   "category": "Kids/Activities",
+   "amount": 28,
+   "store": "School Cash",
+   "payment": "Credit",
+   "note": "",
+   "id": "mslp9nn0wblemq"
+  },
+  {
+   "date": "2026-08-09",
+   "type": "expense",
+   "category": "Groceries",
+   "amount": 26,
+   "store": "Walmart",
+   "payment": "Credit",
+   "note": "",
+   "id": "mslwhjld8o4fc0"
+  },
+  {
+   "date": "2026-08-09",
+   "type": "expense",
+   "category": "Groceries",
+   "amount": 200,
+   "store": "BJ's Grocery & Clothes",
+   "payment": "Credit",
+   "note": "",
+   "id": "msmf77ly0e1kw1"
+  },
+  {
+   "date": "2026-08-09",
+   "type": "expense",
+   "category": "Gas",
+   "amount": 20,
+   "store": "BJ's Gas",
+   "payment": "Credit",
+   "note": "",
+   "id": "msmf7p3qma4fen"
+  },
+  {
+   "date": "2026-08-11",
+   "type": "expense",
+   "category": "Dining Out",
+   "amount": 2.02,
+   "store": "Metlife Cafe",
+   "payment": "Credit",
+   "note": "",
+   "id": "msoxl5u3e10x79"
+  }
+ ],
+ "nwSnapshots": [
+  {
+   "id": "mro05lfkzmb0yy",
+   "date": "2026-07-16",
+   "category": "Retirement (401k/IRA)",
+   "item": "Metlife - 401k",
+   "value": 168688,
+   "growthRate": 11,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "mro06js5p6l44u",
+   "date": "2026-08-01",
+   "category": "Retirement (401k/IRA)",
+   "item": "Metlife - Retirement Fund",
+   "value": 24732,
+   "growthRate": null,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "bf92b431tz7ula",
+   "date": "2026-07-16",
+   "category": "Retirement (401k/IRA)",
+   "item": "Metlife - Retirement Fund",
+   "value": 25000,
+   "growthRate": null,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "mro092bqrpjkds",
+   "date": "2026-07-16",
+   "category": "Investments (Stocks)",
+   "item": "Fidelity Investments - Total Assets",
+   "value": 20557,
+   "growthRate": null,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "mro0bn4ptaacfr",
+   "date": "2026-07-16",
+   "category": "Cash & Bank",
+   "item": "Bank FifthThird - USA",
+   "value": 123459,
+   "growthRate": 3.5,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "mro0ttrjw5ee3s",
+   "date": "2026-07-16",
+   "category": "Real Estate",
+   "item": "House - Pune",
+   "value": 4500000,
+   "growthRate": 3.5,
+   "currency": "INR",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "mro1xacwtx4uqj",
+   "date": "2026-08-01",
+   "category": "Retirement (401k/IRA)",
+   "item": "Metlife - Heath care FSA",
+   "value": 11497,
+   "growthRate": 8,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "bf92b4320nvoti",
+   "date": "2026-07-18",
+   "category": "Retirement (401k/IRA)",
+   "item": "Metlife - Heath care FSA",
+   "value": 10000,
+   "growthRate": 8,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "mrp2dnghcfkvvt",
+   "date": "2026-08-01",
+   "category": "Investments (Stocks)",
+   "item": "Mutual Funds  - India",
+   "value": 13478287,
+   "growthRate": 15,
+   "currency": "INR",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "bf92b43299b6ni",
+   "date": "2026-07-17",
+   "category": "Investments (Stocks)",
+   "item": "Mutual Funds  - India",
+   "value": 13483050,
+   "growthRate": 15,
+   "currency": "INR",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "mrp3g3x8371jp2",
+   "date": "2026-07-17",
+   "category": "Other Assets",
+   "item": "TredCred - India",
+   "value": 625000,
+   "growthRate": 10,
+   "currency": "INR",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "mrp3p33tsgi27x",
+   "date": "2026-07-17",
+   "category": "Other Assets",
+   "item": "PPF Account (SBI) - India",
+   "value": 2100000,
+   "growthRate": 7,
+   "currency": "INR",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "mrp3pwslw28s5s",
+   "date": "2026-07-17",
+   "category": "Other Assets",
+   "item": "SAA Account for Diya - India",
+   "value": 1400000,
+   "growthRate": 7.2,
+   "currency": "INR",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "mrp3vcwp66fqmh",
+   "date": "2026-07-17",
+   "category": "Real Estate",
+   "item": "Land Anandpur - India",
+   "value": 2500000,
+   "growthRate": 2,
+   "currency": "INR",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "mrp5angqrd3qe3",
+   "date": "2026-07-17",
+   "category": "Other Assets",
+   "item": "Cars In -  USA",
+   "value": 50000,
+   "growthRate": 0,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "mrp5dmugr2oe12",
+   "date": "2026-07-17",
+   "category": "Cash & Bank",
+   "item": "Bank DCU  - USA",
+   "value": 1300,
+   "growthRate": 3,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "mrp5gcnosyw9ua",
+   "date": "2026-07-17",
+   "category": "Cash & Bank",
+   "item": "Bank BoFA - USA",
+   "value": 3800,
+   "growthRate": 0.1,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "mrp5h4yddo7uo0",
+   "date": "2026-07-17",
+   "category": "Cash & Bank",
+   "item": "Bank First Horizon - USA",
+   "value": 5500,
+   "growthRate": 0.1,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "mrpkbt29g2gy8x",
+   "date": "2026-07-17",
+   "category": "Liabilities/Debt",
+   "item": "BofA - Credit Card Bill",
+   "value": 2225,
+   "growthRate": 0,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "mrpqrqfh5beo80",
+   "date": "2026-07-17",
+   "category": "Other Assets",
+   "item": "Gold",
+   "value": 2400000,
+   "growthRate": 10,
+   "currency": "INR",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "mrtgu4bz5obe1r",
+   "date": "2026-04-30",
+   "category": "Other Assets",
+   "item": "To Adil",
+   "value": 15000,
+   "growthRate": 4,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "lwm392j4m8jr8f",
+   "date": "2026-07-24",
+   "category": "Real Estate",
+   "item": "House - Pune",
+   "value": 4500000,
+   "growthRate": 3.5,
+   "currency": "INR",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "makjsidq2v9jv1",
+   "date": "2026-08-01",
+   "category": "Cash & Bank",
+   "item": "Bank First Horizon - USA",
+   "value": 6110,
+   "growthRate": 0.1,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "bf92b432yjf49d",
+   "date": "2026-07-24",
+   "category": "Cash & Bank",
+   "item": "Bank First Horizon - USA",
+   "value": 5500,
+   "growthRate": 0.1,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "peeldvj0wszeeu",
+   "date": "2026-08-01",
+   "category": "Liabilities/Debt",
+   "item": "BofA - Credit Card Bill",
+   "value": 2365,
+   "growthRate": 0,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "bf92b4322lfyf1",
+   "date": "2026-07-24",
+   "category": "Liabilities/Debt",
+   "item": "BofA - Credit Card Bill",
+   "value": 2225,
+   "growthRate": 0,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "yk7jusxmqykwe3",
+   "date": "2026-07-24",
+   "category": "Investments (Stocks)",
+   "item": "Fidelity Investments - Total Assets",
+   "value": 20557,
+   "growthRate": null,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "b0jemav8b78pp0",
+   "date": "2026-07-24",
+   "category": "Cash & Bank",
+   "item": "Bank FifthThird - USA",
+   "value": 123459,
+   "growthRate": 3.5,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "dfvu9tfgph5jjj",
+   "date": "2026-08-01",
+   "category": "Retirement (401k/IRA)",
+   "item": "Metlife - 401k",
+   "value": 169599,
+   "growthRate": 11,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "bf92b43244q8fm",
+   "date": "2026-07-24",
+   "category": "Retirement (401k/IRA)",
+   "item": "Metlife - 401k",
+   "value": 168688,
+   "growthRate": 11,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "ptgwryrlg9a3b2",
+   "date": "2026-07-24",
+   "category": "Other Assets",
+   "item": "Cars In -  USA",
+   "value": 44000,
+   "growthRate": 0,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "1d0wraeo373o6p",
+   "date": "2026-07-24",
+   "category": "Cash & Bank",
+   "item": "Bank BoFA - USA",
+   "value": 3800,
+   "growthRate": 0.1,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "msan8z7n258au6",
+   "date": "2026-08-01",
+   "category": "Cash & Bank",
+   "item": "Bank BoFA - USA",
+   "value": 6914,
+   "growthRate": 0.1,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "msanav058azdo1",
+   "date": "2026-08-01",
+   "category": "Cash & Bank",
+   "item": "Bank FifthThird - USA",
+   "value": 123887,
+   "growthRate": 3.5,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "msanc99ox5a1oy",
+   "date": "2026-08-01",
+   "category": "Investments (Stocks)",
+   "item": "Fidelity Investments - Total Assets",
+   "value": 21794,
+   "growthRate": null,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "mse29fx38h39of",
+   "date": "2026-08-03",
+   "category": "Investments (Stocks)",
+   "item": "Mutual Funds  - India",
+   "value": 13650064,
+   "growthRate": 15,
+   "currency": "INR",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "msl4v91utieamm",
+   "date": "2026-08-08",
+   "category": "Other Assets",
+   "item": "Fixed Deposit",
+   "value": 30000,
+   "growthRate": 5,
+   "currency": "INR",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "msmfhvrga9l7xu",
+   "date": "2026-08-09",
+   "category": "Other Assets",
+   "item": "TredCred - India",
+   "value": 664821,
+   "growthRate": 10,
+   "currency": "INR",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "msmfjoajzvy0qn",
+   "date": "2026-08-09",
+   "category": "Investments (Stocks)",
+   "item": "Mutual Funds  - India",
+   "value": 13878529,
+   "growthRate": 15,
+   "currency": "INR",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "msmg44f680ftax",
+   "date": "2026-08-09",
+   "category": "Investments (Stocks)",
+   "item": "Fidelity Investments - Total Assets",
+   "value": 28381,
+   "growthRate": 7,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "msmg7u6agbji1w",
+   "date": "2026-08-09",
+   "category": "Cash & Bank",
+   "item": "Bank BoFA - USA",
+   "value": 3800,
+   "growthRate": 0.1,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "msmge2aawna3e5",
+   "date": "2026-08-09",
+   "category": "Liabilities/Debt",
+   "item": "BofA - Credit Card Bill",
+   "value": 3400,
+   "growthRate": 0,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "mso4cqu3w8p37o",
+   "date": "2026-08-10",
+   "category": "Cash & Bank",
+   "item": "Bank FifthThird - USA",
+   "value": 125835,
+   "growthRate": 3.5,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "mspcsgtfduj2bg",
+   "date": "2026-08-11",
+   "category": "Retirement (401k/IRA)",
+   "item": "Metlife - 401k",
+   "value": 175215,
+   "growthRate": 14,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  },
+  {
+   "id": "mspcv9ygk74dkl",
+   "date": "2026-08-11",
+   "category": "Retirement (401k/IRA)",
+   "item": "Metlife - Retirement Fund",
+   "value": 25243,
+   "growthRate": null,
+   "currency": "USD",
+   "createdAt": "2026-08-12T22:27:17.123Z",
+   "source": "legacy",
+   "correctionOf": null
+  }
+ ],
+ "nwChangeLog": [
+  {
+   "id": "hla4hgx0brrcl80qrj5gr4",
+   "snapshotId": "mro05lfkzmb0yy",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "mro05lfkzmb0yy",
+    "date": "2026-07-16",
+    "category": "Retirement (401k/IRA)",
+    "item": "Metlife - 401k",
+    "value": 168688,
+    "growthRate": 11,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "1aq7c7jpqr4htfrq748d4jf",
+   "snapshotId": "mro06js5p6l44u",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "mro06js5p6l44u",
+    "date": "2026-08-01",
+    "category": "Retirement (401k/IRA)",
+    "item": "Metlife - Retirement Fund",
+    "value": 24732,
+    "growthRate": null,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "2nei0eoefmvgcfagl0zpbf",
+   "snapshotId": "bf92b431tz7ula",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "bf92b431tz7ula",
+    "date": "2026-07-16",
+    "category": "Retirement (401k/IRA)",
+    "item": "Metlife - Retirement Fund",
+    "value": 25000,
+    "growthRate": null,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "ft9pqh9pz95o3fca0l624s",
+   "snapshotId": "mro092bqrpjkds",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "mro092bqrpjkds",
+    "date": "2026-07-16",
+    "category": "Investments (Stocks)",
+    "item": "Fidelity Investments - Total Assets",
+    "value": 20557,
+    "growthRate": null,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "nszw6phg0t0zbctpr5fnw",
+   "snapshotId": "mro0bn4ptaacfr",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "mro0bn4ptaacfr",
+    "date": "2026-07-16",
+    "category": "Cash & Bank",
+    "item": "Bank FifthThird - USA",
+    "value": 123459,
+    "growthRate": 3.5,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "o6uljrijfcjadm1p3sqpvj",
+   "snapshotId": "mro0ttrjw5ee3s",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "mro0ttrjw5ee3s",
+    "date": "2026-07-16",
+    "category": "Real Estate",
+    "item": "House - Pune",
+    "value": 4500000,
+    "growthRate": 3.5,
+    "currency": "INR",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "vnko5gmdpsi29n42zjqsul",
+   "snapshotId": "mro1xacwtx4uqj",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "mro1xacwtx4uqj",
+    "date": "2026-08-01",
+    "category": "Retirement (401k/IRA)",
+    "item": "Metlife - Heath care FSA",
+    "value": 11497,
+    "growthRate": 8,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "jdbj6qj0r9n1qxopmvbwhj",
+   "snapshotId": "bf92b4320nvoti",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "bf92b4320nvoti",
+    "date": "2026-07-18",
+    "category": "Retirement (401k/IRA)",
+    "item": "Metlife - Heath care FSA",
+    "value": 10000,
+    "growthRate": 8,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "ypi5bptli7m9bk2mzkpo5u",
+   "snapshotId": "mrp2dnghcfkvvt",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "mrp2dnghcfkvvt",
+    "date": "2026-08-01",
+    "category": "Investments (Stocks)",
+    "item": "Mutual Funds  - India",
+    "value": 13478287,
+    "growthRate": 15,
+    "currency": "INR",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "4y9lp23a8lli7gobte3sa",
+   "snapshotId": "bf92b43299b6ni",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "bf92b43299b6ni",
+    "date": "2026-07-17",
+    "category": "Investments (Stocks)",
+    "item": "Mutual Funds  - India",
+    "value": 13483050,
+    "growthRate": 15,
+    "currency": "INR",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "kv601ei81bhr45un6tjtmh",
+   "snapshotId": "mrp3g3x8371jp2",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "mrp3g3x8371jp2",
+    "date": "2026-07-17",
+    "category": "Other Assets",
+    "item": "TredCred - India",
+    "value": 625000,
+    "growthRate": 10,
+    "currency": "INR",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "07qnkwx70o9327t90x7h915",
+   "snapshotId": "mrp3p33tsgi27x",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "mrp3p33tsgi27x",
+    "date": "2026-07-17",
+    "category": "Other Assets",
+    "item": "PPF Account (SBI) - India",
+    "value": 2100000,
+    "growthRate": 7,
+    "currency": "INR",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "dy9i9bwniw86axtdgf6o1g",
+   "snapshotId": "mrp3pwslw28s5s",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "mrp3pwslw28s5s",
+    "date": "2026-07-17",
+    "category": "Other Assets",
+    "item": "SAA Account for Diya - India",
+    "value": 1400000,
+    "growthRate": 7.2,
+    "currency": "INR",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "sdo23tuqbjt0xj7e7dzt6ej",
+   "snapshotId": "mrp3vcwp66fqmh",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "mrp3vcwp66fqmh",
+    "date": "2026-07-17",
+    "category": "Real Estate",
+    "item": "Land Anandpur - India",
+    "value": 2500000,
+    "growthRate": 2,
+    "currency": "INR",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "gbs6q433f90v5q8jk1xckp",
+   "snapshotId": "mrp5angqrd3qe3",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "mrp5angqrd3qe3",
+    "date": "2026-07-17",
+    "category": "Other Assets",
+    "item": "Cars In -  USA",
+    "value": 50000,
+    "growthRate": 0,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "s7smd1g96vpwtjcinax9jg",
+   "snapshotId": "mrp5dmugr2oe12",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "mrp5dmugr2oe12",
+    "date": "2026-07-17",
+    "category": "Cash & Bank",
+    "item": "Bank DCU  - USA",
+    "value": 1300,
+    "growthRate": 3,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "v87iori697nh59orstpf",
+   "snapshotId": "mrp5gcnosyw9ua",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "mrp5gcnosyw9ua",
+    "date": "2026-07-17",
+    "category": "Cash & Bank",
+    "item": "Bank BoFA - USA",
+    "value": 3800,
+    "growthRate": 0.1,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "g8rnkx75k0mrt7epcdgezi",
+   "snapshotId": "mrp5h4yddo7uo0",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "mrp5h4yddo7uo0",
+    "date": "2026-07-17",
+    "category": "Cash & Bank",
+    "item": "Bank First Horizon - USA",
+    "value": 5500,
+    "growthRate": 0.1,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "267s2ppsci9snja0xjx04q",
+   "snapshotId": "mrpkbt29g2gy8x",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "mrpkbt29g2gy8x",
+    "date": "2026-07-17",
+    "category": "Liabilities/Debt",
+    "item": "BofA - Credit Card Bill",
+    "value": 2225,
+    "growthRate": 0,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "buelsvqdnqbn9n9gg825e",
+   "snapshotId": "mrpqrqfh5beo80",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "mrpqrqfh5beo80",
+    "date": "2026-07-17",
+    "category": "Other Assets",
+    "item": "Gold",
+    "value": 2400000,
+    "growthRate": 10,
+    "currency": "INR",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "2sn1vw6e4jyrr576216ekp",
+   "snapshotId": "mrtgu4bz5obe1r",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "mrtgu4bz5obe1r",
+    "date": "2026-04-30",
+    "category": "Other Assets",
+    "item": "To Adil",
+    "value": 15000,
+    "growthRate": 4,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "fs9ssfymfv9yedp86hss5i",
+   "snapshotId": "lwm392j4m8jr8f",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "lwm392j4m8jr8f",
+    "date": "2026-07-24",
+    "category": "Real Estate",
+    "item": "House - Pune",
+    "value": 4500000,
+    "growthRate": 3.5,
+    "currency": "INR",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "drxavxa5vlf7ptufs4gf1o",
+   "snapshotId": "makjsidq2v9jv1",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "makjsidq2v9jv1",
+    "date": "2026-08-01",
+    "category": "Cash & Bank",
+    "item": "Bank First Horizon - USA",
+    "value": 6110,
+    "growthRate": 0.1,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "ativstxglolz0g24r82o0e",
+   "snapshotId": "bf92b432yjf49d",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "bf92b432yjf49d",
+    "date": "2026-07-24",
+    "category": "Cash & Bank",
+    "item": "Bank First Horizon - USA",
+    "value": 5500,
+    "growthRate": 0.1,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "zs5zlvd2a4nnowonmocip",
+   "snapshotId": "peeldvj0wszeeu",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "peeldvj0wszeeu",
+    "date": "2026-08-01",
+    "category": "Liabilities/Debt",
+    "item": "BofA - Credit Card Bill",
+    "value": 2365,
+    "growthRate": 0,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "s0nsi27fnwyw79y06td7",
+   "snapshotId": "bf92b4322lfyf1",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "bf92b4322lfyf1",
+    "date": "2026-07-24",
+    "category": "Liabilities/Debt",
+    "item": "BofA - Credit Card Bill",
+    "value": 2225,
+    "growthRate": 0,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "r7ayoc4g6ks1koiswuz9l",
+   "snapshotId": "yk7jusxmqykwe3",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "yk7jusxmqykwe3",
+    "date": "2026-07-24",
+    "category": "Investments (Stocks)",
+    "item": "Fidelity Investments - Total Assets",
+    "value": 20557,
+    "growthRate": null,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "ehvzc1zwkmilgzdqgyf7a",
+   "snapshotId": "b0jemav8b78pp0",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "b0jemav8b78pp0",
+    "date": "2026-07-24",
+    "category": "Cash & Bank",
+    "item": "Bank FifthThird - USA",
+    "value": 123459,
+    "growthRate": 3.5,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "6onl4v6z9c8ddcez61f7yv",
+   "snapshotId": "dfvu9tfgph5jjj",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "dfvu9tfgph5jjj",
+    "date": "2026-08-01",
+    "category": "Retirement (401k/IRA)",
+    "item": "Metlife - 401k",
+    "value": 169599,
+    "growthRate": 11,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "ebgoa7td08stmbxo2kf89",
+   "snapshotId": "bf92b43244q8fm",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "bf92b43244q8fm",
+    "date": "2026-07-24",
+    "category": "Retirement (401k/IRA)",
+    "item": "Metlife - 401k",
+    "value": 168688,
+    "growthRate": 11,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "mbdgjoymd1gqoesq0tu3",
+   "snapshotId": "ptgwryrlg9a3b2",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "ptgwryrlg9a3b2",
+    "date": "2026-07-24",
+    "category": "Other Assets",
+    "item": "Cars In -  USA",
+    "value": 44000,
+    "growthRate": 0,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "0vohhtw9abbeoles05p82yd",
+   "snapshotId": "1d0wraeo373o6p",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "1d0wraeo373o6p",
+    "date": "2026-07-24",
+    "category": "Cash & Bank",
+    "item": "Bank BoFA - USA",
+    "value": 3800,
+    "growthRate": 0.1,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "28cfx3sxyskhtwcw2ki81f",
+   "snapshotId": "msan8z7n258au6",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "msan8z7n258au6",
+    "date": "2026-08-01",
+    "category": "Cash & Bank",
+    "item": "Bank BoFA - USA",
+    "value": 6914,
+    "growthRate": 0.1,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "zki39a182ax28rw87yalk",
+   "snapshotId": "msanav058azdo1",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "msanav058azdo1",
+    "date": "2026-08-01",
+    "category": "Cash & Bank",
+    "item": "Bank FifthThird - USA",
+    "value": 123887,
+    "growthRate": 3.5,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "e2qnlvagx16a3zf033je9",
+   "snapshotId": "msanc99ox5a1oy",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "msanc99ox5a1oy",
+    "date": "2026-08-01",
+    "category": "Investments (Stocks)",
+    "item": "Fidelity Investments - Total Assets",
+    "value": 21794,
+    "growthRate": null,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "fxm7c45c94b642jpg91kw6",
+   "snapshotId": "mse29fx38h39of",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "mse29fx38h39of",
+    "date": "2026-08-03",
+    "category": "Investments (Stocks)",
+    "item": "Mutual Funds  - India",
+    "value": 13650064,
+    "growthRate": 15,
+    "currency": "INR",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "0ihaa6oyo0i509945og13j2w",
+   "snapshotId": "msl4v91utieamm",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "msl4v91utieamm",
+    "date": "2026-08-08",
+    "category": "Other Assets",
+    "item": "Fixed Deposit",
+    "value": 30000,
+    "growthRate": 5,
+    "currency": "INR",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "xydhki7prfilfcoe0lxmrh",
+   "snapshotId": "msmfhvrga9l7xu",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "msmfhvrga9l7xu",
+    "date": "2026-08-09",
+    "category": "Other Assets",
+    "item": "TredCred - India",
+    "value": 664821,
+    "growthRate": 10,
+    "currency": "INR",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "340lmxumt7gj0w2xjwylt",
+   "snapshotId": "msmfjoajzvy0qn",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "msmfjoajzvy0qn",
+    "date": "2026-08-09",
+    "category": "Investments (Stocks)",
+    "item": "Mutual Funds  - India",
+    "value": 13878529,
+    "growthRate": 15,
+    "currency": "INR",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "m1edqtzqyfhb7udz55jiw",
+   "snapshotId": "msmg44f680ftax",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "msmg44f680ftax",
+    "date": "2026-08-09",
+    "category": "Investments (Stocks)",
+    "item": "Fidelity Investments - Total Assets",
+    "value": 28381,
+    "growthRate": 7,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "s9m4p3dv6onn9tiw5tztkn",
+   "snapshotId": "msmg7u6agbji1w",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "msmg7u6agbji1w",
+    "date": "2026-08-09",
+    "category": "Cash & Bank",
+    "item": "Bank BoFA - USA",
+    "value": 3800,
+    "growthRate": 0.1,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "gl1jj8o6oclbfwle87g8e",
+   "snapshotId": "msmge2aawna3e5",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "msmge2aawna3e5",
+    "date": "2026-08-09",
+    "category": "Liabilities/Debt",
+    "item": "BofA - Credit Card Bill",
+    "value": 3400,
+    "growthRate": 0,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "jsmtepn7q39sh543iweim",
+   "snapshotId": "mso4cqu3w8p37o",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "mso4cqu3w8p37o",
+    "date": "2026-08-10",
+    "category": "Cash & Bank",
+    "item": "Bank FifthThird - USA",
+    "value": 125835,
+    "growthRate": 3.5,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "kus9t4k74qeedfle24niqo",
+   "snapshotId": "mspcsgtfduj2bg",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "mspcsgtfduj2bg",
+    "date": "2026-08-11",
+    "category": "Retirement (401k/IRA)",
+    "item": "Metlife - 401k",
+    "value": 175215,
+    "growthRate": 14,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  },
+  {
+   "id": "41nyicvoy3ic9n472tfcii",
+   "snapshotId": "mspcv9ygk74dkl",
+   "timestamp": "2026-08-12T22:27:17.123Z",
+   "operation": "create",
+   "before": {},
+   "after": {
+    "id": "mspcv9ygk74dkl",
+    "date": "2026-08-11",
+    "category": "Retirement (401k/IRA)",
+    "item": "Metlife - Retirement Fund",
+    "value": 25243,
+    "growthRate": null,
+    "currency": "USD",
+    "createdAt": "2026-08-12T22:27:17.123Z",
+    "source": "legacy",
+    "correctionOf": null
+   },
+   "reason": "Synced from production on 2026-08-12"
+  }
+ ]
+}
