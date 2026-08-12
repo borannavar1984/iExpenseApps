@@ -1541,7 +1541,7 @@ function nwItemHistoryList(){
   const hidden = loadNWHiddenItems();
   const seen=[]; const seenLower=new Set();
   [...nwSnapshots].reverse().forEach(e=>{
-    if(!e.item) return;
+    if(!e.item || e.source === "undo") return;
     if(nwSel.cat && e.category!==nwSel.cat) return;
     if(!seenLower.has(e.item.toLowerCase())){ seenLower.add(e.item.toLowerCase()); seen.push(e.item); }
   });
@@ -1691,7 +1691,7 @@ async function saveNW(){
   const isUpdate = nwUpdatingSnapshot !== null;
   if(isUpdate && !confirm(`Log this month's value for "${candidate.item}"? Your previous entries stay untouched.`)) return;
 
-  const snapshotId = isUpdate ? nwUpdatingSnapshot.id : genId();
+  const snapshotId = genId();
   const newSnapshot = {
     id: snapshotId,
     date: candidate.date,
@@ -1705,12 +1705,7 @@ async function saveNW(){
     correctionOf: isUpdate ? nwUpdatingSnapshot.id : null
   };
 
-  const existingIdx = nwSnapshots.findIndex(s => s.id === snapshotId);
-  if(existingIdx >= 0){
-    nwSnapshots[existingIdx] = newSnapshot;
-  } else {
-    nwSnapshots.push(newSnapshot);
-  }
+  nwSnapshots.push(newSnapshot);
 
   const logEntry = {
     id: genId(),
@@ -1771,13 +1766,13 @@ function showNWHistory(itemName){
   nwViewingItemHistory = itemName;
   const historyList = document.getElementById("nwHistoryList");
   document.getElementById("nwHistoryTitle").textContent = `History for ${itemName}`;
-  const itemSnapshots = nwSnapshots.filter(s => s.item === itemName).slice().reverse();
+  const itemSnapshots = nwSnapshots.filter(s => s.item === itemName && s.source !== "undo").slice().reverse();
 
   historyList.innerHTML = itemSnapshots.map((snap, idx) => `
     <div class="nw-history-entry">
       <div>${snap.date}</div>
       <div>${nwFmtAmount(snap.value, snap.currency || "USD")}</div>
-      <div>${idx === 0 ? "Current" : snap.source === "undo" ? "Undone" : "Superseded"}</div>
+      <div>${idx === 0 ? "Current" : "Previous"}</div>
     </div>
   `).join("");
 
@@ -1988,7 +1983,7 @@ async function cloudSyncNow(){
       const mergedSnapshots = unionMerge(remoteSnapshots, nwSnapshots, loadDeletedIds(NW_DELETED_IDS_KEY));
       const existingLogIds = new Set(nwChangeLog.map(log=>log.id));
       remoteChangeLog.forEach(log=>{
-        if(!existingLogIds.has(log.id)){
+        if(!existingLogIds.has(log.id) && mergedSnapshots.some(s=>s.id === log.snapshotId)){
           nwChangeLog.push(log);
           existingLogIds.add(log.id);
         }
@@ -2039,7 +2034,7 @@ async function cloudPullOnLoad(){
     if(nwDeletedIds.length && remoteSnapshots.some(e=>nwDeletedIds.includes(e.id))) needsPushBack = true;
     const existingLogIds = new Set(nwChangeLog.map(log=>log.id));
     remoteChangeLog.forEach(log=>{
-      if(!existingLogIds.has(log.id)){
+      if(!existingLogIds.has(log.id) && nwMerged.some(s=>s.id === log.snapshotId)){
         nwChangeLog.push(log);
         existingLogIds.add(log.id);
       }
