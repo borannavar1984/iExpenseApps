@@ -235,11 +235,9 @@
   .nw-value-comparison-card .comp-value{font-size:18px;font-weight:700;margin-bottom:8px}
   .nw-value-comparison-card .comp-arrow{color:var(--muted);margin:8px 0;font-size:14px}
   .nw-value-comparison-card .comp-btn{background:none;border:none;color:var(--accent);font-size:13px;font-weight:700;cursor:pointer;padding:0;text-decoration:underline;margin-top:4px}
-  .nw-history-entry{display:flex;justify-content:space-between;align-items:center;padding:12px 4px;border-bottom:1px solid var(--card2)}
+  .nw-history-entry{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:12px 4px;border-bottom:1px solid var(--card2)}
   .nw-history-entry:last-child{border-bottom:none}
-  .nw-history-entry > div:nth-child(1){font-size:14px;color:var(--muted);flex:0 0 auto;width:70px}
-  .nw-history-entry > div:nth-child(2){font-size:15px;font-weight:700;flex:1;text-align:right}
-  .nw-history-entry > div:nth-child(3){font-size:12px;color:var(--muted);flex:0 0 auto;width:80px;text-align:right}
+  .history-undo-btn{background:var(--accent);color:var(--ctatext);border:none;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;margin-top:4px}
   .alert-warning{border-left:3px solid var(--amber)}
   .alert-danger{border-left:3px solid var(--red)}
   .alert-text{font-size:12px;margin-top:6px;padding:8px 0 0 0}
@@ -367,11 +365,12 @@
 </div>
 
 <div id="nwComparisonCardWrap" style="display:none">
-  <div class="nw-value-comparison-card">
+  <div class="nw-value-comparison-card" id="nwComparisonCard">
     <div class="comp-label">📊 Last Value</div>
     <div class="comp-value" id="nwComparisonLastValue">—</div>
     <div class="comp-arrow">➜</div>
     <div class="comp-label">New Value</div>
+    <div id="nwChangeWarning"></div>
   </div>
   <button type="button" class="comp-btn" id="nwViewHistoryBtn" onclick="showNWHistory(document.getElementById('nwItem').value)">View History</button>
 </div>
@@ -383,7 +382,7 @@
 <div class="chip-row" id="nwCurrencyRow"></div>
 
 <div class="label">Current Value</div>
-<div class="amount-wrap" id="nwAmountWrap"><input type="tel" id="nwValue" inputmode="decimal" placeholder="0.00"></div>
+<div class="amount-wrap" id="nwAmountWrap"><input type="tel" id="nwValue" inputmode="decimal" placeholder="0.00" oninput="updateNWChangeWarning()"></div>
 
 <div class="label">Annual Growth Rate % (optional)</div>
 <input type="tel" id="nwGrowth" inputmode="decimal" placeholder="e.g. 7 — used for projections">
@@ -582,7 +581,8 @@
       <input type="file" id="restoreFile" accept="application/json" style="display:none" onchange="restoreData(event)">
     </div>
     <button class="btn btn-ghost" onclick="exportExcel()" style="margin-top:8px">📊 Export Excel report (.xlsx)</button>
-    <div class="settings-hint">Monthly summary, category breakdown, all entries &amp; net worth — build your own charts/pivot tables in Excel.</div>
+    <button class="btn btn-ghost" onclick="exportNWHistory()" style="margin-top:8px">📈 Export Net Worth History (.json)</button>
+    <div class="settings-hint">Monthly summary, category breakdown, all entries &amp; net worth — build your own charts/pivot tables in Excel. Net worth history includes complete audit trail with all changes.</div>
   </div>
 
   <!-- Footer: version + environment badge. Cheap way to answer "am I on
@@ -1223,6 +1223,26 @@ function backupData(){
   toast("Backup downloaded");
 }
 
+function exportNWHistory(){
+  const timestamp = new Date().toISOString();
+  const backup = {
+    backup: `net-worth-${timestamp.split('T')[0]}`,
+    source: "iExpense (Net Worth)",
+    exportedAt: timestamp,
+    snapshots: nwSnapshots,
+    changeLog: nwChangeLog
+  };
+
+  const blob = new Blob([JSON.stringify(backup, null, 2)], {type: 'application/json'});
+  const fname = `${backup.backup}_${timestamp.replace(/[-:T]/g,"").slice(0,14)}.json`;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = fname;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast("Net worth history exported ✓");
+}
+
 async function restoreData(evt){
   const file = evt.target.files[0];
   evt.target.value = "";
@@ -1541,7 +1561,7 @@ function nwItemHistoryList(){
   const hidden = loadNWHiddenItems();
   const seen=[]; const seenLower=new Set();
   [...nwSnapshots].reverse().forEach(e=>{
-    if(!e.item) return;
+    if(!e.item || e.source === "undo") return;
     if(nwSel.cat && e.category!==nwSel.cat) return;
     if(!seenLower.has(e.item.toLowerCase())){ seenLower.add(e.item.toLowerCase()); seen.push(e.item); }
   });
@@ -1644,6 +1664,34 @@ function cancelNWEdit(){
   resetNWForm();
 }
 
+function updateNWChangeWarning(){
+  const oldValue = nwUpdatingSnapshot ? nwUpdatingSnapshot.value : null;
+  const newValueStr = document.getElementById("nwValue").value.trim();
+  const newValue = newValueStr ? parseFloat(newValueStr) : null;
+  const warningDiv = document.getElementById("nwChangeWarning");
+
+  if(!oldValue || !newValue || newValue === oldValue){
+    warningDiv.innerHTML = "";
+    document.getElementById("nwComparisonCard").classList.remove("alert-warning", "alert-danger");
+    return;
+  }
+
+  const pctChange = Math.abs((newValue - oldValue) / oldValue * 100);
+
+  if(pctChange >= 100){
+    document.getElementById("nwComparisonCard").classList.add("alert-danger");
+    document.getElementById("nwComparisonCard").classList.remove("alert-warning");
+    warningDiv.innerHTML = `<div class="alert-text">🚨 Huge change (${pctChange.toFixed(0)}%) — review the value?</div>`;
+  } else if(pctChange >= 50){
+    document.getElementById("nwComparisonCard").classList.add("alert-warning");
+    document.getElementById("nwComparisonCard").classList.remove("alert-danger");
+    warningDiv.innerHTML = `<div class="alert-text">⚠️ Large change (${pctChange.toFixed(0)}%) — confirm the value?</div>`;
+  } else {
+    warningDiv.innerHTML = "";
+    document.getElementById("nwComparisonCard").classList.remove("alert-warning", "alert-danger");
+  }
+}
+
 // tapping an existing item never mutates its history — it prefills the form
 // with that item's last known category/currency/growth rate and value, dated
 // TODAY, so you can just retype the new number and hit Update; saving always
@@ -1666,6 +1714,7 @@ function nwStartUpdate(itemName){
   document.getElementById("nwSaveBtn").textContent = "Update Entry";
   document.getElementById("nwComparisonCardWrap").style.display = "block";
   document.getElementById("nwComparisonLastValue").textContent = `${nwFmtAmount(latest.value, latest.currency || PRIMARY_CUR)} (updated ${latest.date})`;
+  updateNWChangeWarning();
   window.scrollTo({top:0,behavior:"smooth"});
 }
 
@@ -1691,7 +1740,7 @@ async function saveNW(){
   const isUpdate = nwUpdatingSnapshot !== null;
   if(isUpdate && !confirm(`Log this month's value for "${candidate.item}"? Your previous entries stay untouched.`)) return;
 
-  const snapshotId = isUpdate ? nwUpdatingSnapshot.id : genId();
+  const snapshotId = genId();
   const newSnapshot = {
     id: snapshotId,
     date: candidate.date,
@@ -1705,12 +1754,7 @@ async function saveNW(){
     correctionOf: isUpdate ? nwUpdatingSnapshot.id : null
   };
 
-  const existingIdx = nwSnapshots.findIndex(s => s.id === snapshotId);
-  if(existingIdx >= 0){
-    nwSnapshots[existingIdx] = newSnapshot;
-  } else {
-    nwSnapshots.push(newSnapshot);
-  }
+  nwSnapshots.push(newSnapshot);
 
   const logEntry = {
     id: genId(),
@@ -1771,15 +1815,23 @@ function showNWHistory(itemName){
   nwViewingItemHistory = itemName;
   const historyList = document.getElementById("nwHistoryList");
   document.getElementById("nwHistoryTitle").textContent = `History for ${itemName}`;
-  const itemSnapshots = nwSnapshots.filter(s => s.item === itemName).slice().reverse();
+  const itemSnapshots = nwSnapshots.filter(s => s.item === itemName && s.source !== "undo").slice().reverse();
 
-  historyList.innerHTML = itemSnapshots.map((snap, idx) => `
-    <div class="nw-history-entry">
-      <div>${snap.date}</div>
-      <div>${nwFmtAmount(snap.value, snap.currency || "USD")}</div>
-      <div>${idx === 0 ? "Current" : snap.source === "undo" ? "Undone" : "Superseded"}</div>
-    </div>
-  `).join("");
+  historyList.innerHTML = itemSnapshots.map((snap, idx) => {
+    const undoBtn = idx === 0 ? `<button type="button" class="history-undo-btn" onclick="undoNWSnapshot('${snap.id}')">Undo</button>` : "";
+    return `
+      <div class="nw-history-entry">
+        <div style="flex:1">
+          <div>${snap.date}</div>
+          <div>${nwFmtAmount(snap.value, snap.currency || "USD")}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px">${idx === 0 ? "Current" : "Previous"}</div>
+          ${undoBtn}
+        </div>
+      </div>
+    `;
+  }).join("");
 
   document.getElementById("nwHistoryOverlay").style.display = "flex";
 }
@@ -1787,6 +1839,52 @@ function showNWHistory(itemName){
 function closeNWHistory(){
   document.getElementById("nwHistoryOverlay").style.display = "none";
   nwViewingItemHistory = null;
+}
+
+function undoNWSnapshot(snapshotId){
+  const snap = nwSnapshots.find(s => s.id === snapshotId);
+  if(!snap) return;
+
+  if(!confirm(`Undo "${snap.item}" entry from ${snap.date}?`)) return;
+
+  const undoSnapshot = {
+    id: genId(),
+    date: snap.date,
+    category: snap.category,
+    item: snap.item,
+    value: snap.value,
+    growthRate: snap.growthRate,
+    currency: snap.currency,
+    createdAt: new Date().toISOString(),
+    source: "undo",
+    correctionOf: snapshotId
+  };
+
+  nwSnapshots.push(undoSnapshot);
+
+  const logEntry = {
+    id: genId(),
+    snapshotId: undoSnapshot.id,
+    timestamp: undoSnapshot.createdAt,
+    operation: "undo",
+    before: snap,
+    after: undoSnapshot,
+    reason: "User reverted change"
+  };
+  nwChangeLog.push(logEntry);
+
+  if(cloudCfg){
+    nwCloudSyncMutation(remote => {
+      remote.snapshots = nwSnapshots;
+      remote.changeLog = nwChangeLog;
+      return remote;
+    });
+  }
+
+  persistNW();
+  toast(`✓ Undid "${snap.item}"`, "var(--green)");
+  showNWHistory(snap.item);
+  refreshAllNWDisplays();
 }
 
 // ===== Delete tombstones: a plain union-merge can only ADD entries, so it
@@ -1988,7 +2086,7 @@ async function cloudSyncNow(){
       const mergedSnapshots = unionMerge(remoteSnapshots, nwSnapshots, loadDeletedIds(NW_DELETED_IDS_KEY));
       const existingLogIds = new Set(nwChangeLog.map(log=>log.id));
       remoteChangeLog.forEach(log=>{
-        if(!existingLogIds.has(log.id)){
+        if(!existingLogIds.has(log.id) && mergedSnapshots.some(s=>s.id === log.snapshotId)){
           nwChangeLog.push(log);
           existingLogIds.add(log.id);
         }
@@ -2039,7 +2137,7 @@ async function cloudPullOnLoad(){
     if(nwDeletedIds.length && remoteSnapshots.some(e=>nwDeletedIds.includes(e.id))) needsPushBack = true;
     const existingLogIds = new Set(nwChangeLog.map(log=>log.id));
     remoteChangeLog.forEach(log=>{
-      if(!existingLogIds.has(log.id)){
+      if(!existingLogIds.has(log.id) && nwMerged.some(s=>s.id === log.snapshotId)){
         nwChangeLog.push(log);
         existingLogIds.add(log.id);
       }
