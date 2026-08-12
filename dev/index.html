@@ -416,8 +416,7 @@
 
     <div id="nwRegionUSView" style="display:none">
       <div class="cards" id="nwCardsUS"></div>
-      <div class="chart-card"><h4>Net Worth Growth (Week-on-Week)</h4><canvas id="nwGrowthChartUS" height="200"></canvas><div class="dash-empty" id="nwGrowthChartUSEmpty" style="display:none"></div></div>
-      <div class="chart-card"><h4>Net Worth Trend</h4><canvas id="nwTrendChartUS" height="180"></canvas><div class="dash-empty" id="nwTrendChartUSEmpty" style="display:none"></div></div>
+      <div class="chart-card"><h4>Net Worth Trend (Weekly)</h4><canvas id="nwTrendChartUS" height="180"></canvas><div class="dash-empty" id="nwTrendChartUSEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Breakdown by Category</h4><canvas id="nwCatChartUS" height="220"></canvas><div class="dash-empty" id="nwCatChartUSEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Net Worth Growth Projection</h4><canvas id="nwProjectionChartUS" height="200"></canvas><div class="dash-empty" id="nwProjectionChartUSEmpty" style="display:none"></div><div style="font-size:12px;color:var(--muted);margin-top:6px" id="nwProjectionChartUSWarn"></div></div>
       <div class="dash-month">
@@ -431,8 +430,7 @@
 
     <div id="nwRegionINView" style="display:none">
       <div class="cards" id="nwCardsIN"></div>
-      <div class="chart-card"><h4>Net Worth Growth (Week-on-Week)</h4><canvas id="nwGrowthChartIN" height="200"></canvas><div class="dash-empty" id="nwGrowthChartINEmpty" style="display:none"></div></div>
-      <div class="chart-card"><h4>Net Worth Trend</h4><canvas id="nwTrendChartIN" height="180"></canvas><div class="dash-empty" id="nwTrendChartINEmpty" style="display:none"></div></div>
+      <div class="chart-card"><h4>Net Worth Trend (Weekly)</h4><canvas id="nwTrendChartIN" height="180"></canvas><div class="dash-empty" id="nwTrendChartINEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Breakdown by Category</h4><canvas id="nwCatChartIN" height="220"></canvas><div class="dash-empty" id="nwCatChartINEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Net Worth Growth Projection</h4><canvas id="nwProjectionChartIN" height="200"></canvas><div class="dash-empty" id="nwProjectionChartINEmpty" style="display:none"></div><div style="font-size:12px;color:var(--muted);margin-top:6px" id="nwProjectionChartINWarn"></div></div>
       <div class="dash-month">
@@ -456,8 +454,7 @@
       </div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:14px" id="nwRateStatus"></div>
       <div class="cards" id="nwCards"></div>
-      <div class="chart-card"><h4>Net Worth Growth (Week-on-Week)</h4><canvas id="nwGrowthChart" height="200"></canvas><div class="dash-empty" id="nwGrowthChartEmpty" style="display:none"></div></div>
-      <div class="chart-card"><h4>Net Worth Trend</h4><canvas id="nwTrendChart" height="180"></canvas><div class="dash-empty" id="nwTrendChartEmpty" style="display:none"></div></div>
+      <div class="chart-card"><h4>Net Worth Trend (Weekly)</h4><canvas id="nwTrendChart" height="180"></canvas><div class="dash-empty" id="nwTrendChartEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Breakdown by Category</h4><canvas id="nwCatChart" height="220"></canvas><div class="dash-empty" id="nwCatChartEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Net Worth Growth Projection</h4><canvas id="nwProjectionChart" height="200"></canvas><div class="dash-empty" id="nwProjectionChartEmpty" style="display:none"></div><div style="font-size:12px;color:var(--muted);margin-top:6px" id="nwProjectionChartWarn"></div></div>
       <div class="dash-month">
@@ -2453,54 +2450,40 @@ function nwComputeAndRender(suffix, itemsWithIdx, toCur, rateInfo, opts){
   const netWorth = totalAssets - totalLiabilities;
   const investable = items.filter(e=>!isLiability(e.category));
 
-  const months = nwAllMonths();
-  const trend = months.map(m=>({ m, ...nwValueAsOf(m, toCur, rateInfo, currencyFilter) }));
-  const curIdx = trend.length-1;
-  const changeThisMonth = curIdx>0 ? trend[curIdx].net - trend[curIdx-1].net : null;
+  const weeklyData = nwCalculateWeeklyGrowth(items, toCur, rateInfo, currencyFilter);
+  const curIdx = weeklyData.amounts.length - 1;
+  const changeThisWeek = curIdx > 0 ? weeklyData.amounts[curIdx] - weeklyData.amounts[curIdx-1] : null;
 
   document.getElementById("nwCards"+suffix).innerHTML = `
     <div class="card"><div class="card-label">💎 Total Net Worth${currentIncomplete?" ⚠️":""}</div><div class="card-value">${nwFmtAmount(netWorth, toCur)}</div><div class="card-sub">Assets − Liabilities</div></div>
     <div class="card green"><div class="card-label">📈 Total Assets</div><div class="card-value">${nwFmtAmount(totalAssets, toCur)}</div></div>
     <div class="card orange"><div class="card-label">💳 Total Liabilities</div><div class="card-value">${nwFmtAmount(totalLiabilities, toCur)}</div></div>
-    <div class="card purple"><div class="card-label">🎯 Change This Month</div><div class="card-value">${changeThisMonth==null ? "N/A" : (changeThisMonth>=0?"+":"") + nwFmtAmount(changeThisMonth, toCur)}</div>${changeThisMonth==null ? '<div class="card-sub">Not enough history yet</div>' : ""}</div>
+    <div class="card purple"><div class="card-label">🎯 Change This Week</div><div class="card-value">${changeThisWeek==null ? "N/A" : (changeThisWeek>=0?"+":"") + nwFmtAmount(changeThisWeek, toCur)}</div>${changeThisWeek==null ? '<div class="card-sub">Not enough history yet</div>' : ""}</div>
   `;
 
-  const labels = months.map(monthLabel);
   if(typeof Chart!=="undefined"){
-    showChartCanvas("nwTrendChart"+suffix);
     const textColor = themeColor("--text");
     const gridColor = themeColor("--border");
 
-    if(charts["nwTrend"+suffix]) charts["nwTrend"+suffix].destroy();
-    charts["nwTrend"+suffix] = new Chart(document.getElementById("nwTrendChart"+suffix), {
-      type:"line",
-      data:{ labels, datasets:[{ label:"Net Worth", data:trend.map(t=>t.net), borderColor:themeColor("--accent"), backgroundColor:"rgba(79,140,255,0.15)", fill:true, tension:.3 }] },
-      options:{ responsive:true, plugins:{ legend:{ display:false },
-          tooltip:{ callbacks:{ label:(ctx)=>nwFmtAmount(ctx.parsed.y, toCur) } } },
-        scales:{ x:{ ticks:{ color:textColor }, grid:{ color:gridColor } },
-          y:{ ticks:{ color:textColor, callback:(value)=>nwFmtAmount(value, toCur) }, grid:{ color:gridColor } } } }
-    });
-
-    const weeklyData = nwCalculateWeeklyGrowth(items, toCur, rateInfo, currencyFilter);
-    if(!weeklyData.weeks.length || weeklyData.changes.length === 0){
-      showChartFallback("nwGrowthChart"+suffix, "📊 Need at least 2 weeks of data to show week-on-week changes");
+    if(!weeklyData.weeks.length){
+      showChartFallback("nwTrendChart"+suffix, "📊 No net worth data yet");
     } else {
-      showChartCanvas("nwGrowthChart"+suffix);
-      if(charts["nwGrowth"+suffix]) charts["nwGrowth"+suffix].destroy();
-      const displayWeeks = weeklyData.weeks.slice(1);
-      const displayAmounts = weeklyData.amounts.slice(1);
-      const colors = weeklyData.changes.map(pct=>pct>=0 ? "rgba(34,197,94,0.8)" : "rgba(239,68,68,0.8)");
-      const borderColors = weeklyData.changes.map(pct=>pct>=0 ? "#22c55e" : "#ef4444");
-      charts["nwGrowth"+suffix] = new Chart(document.getElementById("nwGrowthChart"+suffix), {
-        type:"bar",
+      showChartCanvas("nwTrendChart"+suffix);
+      if(charts["nwTrend"+suffix]) charts["nwTrend"+suffix].destroy();
+      charts["nwTrend"+suffix] = new Chart(document.getElementById("nwTrendChart"+suffix), {
+        type:"line",
         data:{
-          labels:displayWeeks.map(w=>`${w.start.substring(5)}`),
+          labels:weeklyData.weeks.map(w=>`${w.start.substring(5)}`),
           datasets:[{
-            label:"Week-on-Week Change %",
-            data:weeklyData.changes,
-            backgroundColor:colors,
-            borderColor:borderColors,
-            borderWidth:1
+            label:"Net Worth",
+            data:weeklyData.amounts,
+            borderColor:themeColor("--accent"),
+            backgroundColor:"rgba(79,140,255,0.15)",
+            fill:true,
+            tension:.3,
+            pointRadius:3,
+            pointHoverRadius:5,
+            pointBackgroundColor:themeColor("--accent")
           }]
         },
         options:{
@@ -2510,25 +2493,23 @@ function nwComputeAndRender(suffix, itemsWithIdx, toCur, rateInfo, opts){
             tooltip:{
               callbacks:{
                 label:(ctx)=>{
-                  const pct = ctx.parsed.y;
-                  const label = pct >= 0 ? `+${pct.toFixed(2)}%` : `${pct.toFixed(2)}%`;
-                  return `Change: ${label}`;
-                },
-                afterLabel:(ctx)=>{
+                  const amt = ctx.parsed.y;
                   const idx = ctx.dataIndex;
-                  const amt = displayAmounts[idx];
-                  return `Net Worth: ${nwFmtAmount(amt, toCur)}`;
+                  let label = nwFmtAmount(amt, toCur);
+                  if(idx > 0 && weeklyData.amounts[idx-1] !== undefined){
+                    const prev = weeklyData.amounts[idx-1];
+                    const change = amt - prev;
+                    const pctChange = prev !== 0 ? ((change / Math.abs(prev)) * 100) : 0;
+                    label += ` (${change>=0?"+":""}${nwFmtAmount(change, toCur)}, ${pctChange>=0?"+":""}${pctChange.toFixed(1)}%)`;
+                  }
+                  return label;
                 }
               }
             }
           },
           scales:{
             x:{ ticks:{ color:textColor }, grid:{ color:gridColor } },
-            y:{
-              ticks:{ color:textColor, callback:(value)=>`${value>=0?"+":""}${value.toFixed(1)}%` },
-              grid:{ color:gridColor },
-              beginAtZero:true
-            }
+            y:{ ticks:{ color:textColor, callback:(value)=>nwFmtAmount(value, toCur) }, grid:{ color:gridColor } }
           }
         }
       });
