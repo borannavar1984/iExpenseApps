@@ -2451,14 +2451,18 @@ function nwComputeAndRender(suffix, itemsWithIdx, toCur, rateInfo, opts){
   const investable = items.filter(e=>!isLiability(e.category));
 
   const weeklyData = nwCalculateWeeklyGrowth(items, toCur, rateInfo, currencyFilter);
-  const curIdx = weeklyData.amounts.length - 1;
-  const changeThisWeek = curIdx > 0 ? weeklyData.amounts[curIdx] - weeklyData.amounts[curIdx-1] : null;
+
+  // Calculate monthly change for dashboard card
+  const months = nwAllMonths();
+  const monthlyTrend = months.map(m=>({ m, ...nwValueAsOf(m, toCur, rateInfo, currencyFilter) }));
+  const curMonthIdx = monthlyTrend.length-1;
+  const changeThisMonth = curMonthIdx>0 ? monthlyTrend[curMonthIdx].net - monthlyTrend[curMonthIdx-1].net : null;
 
   document.getElementById("nwCards"+suffix).innerHTML = `
     <div class="card"><div class="card-label">💎 Total Net Worth${currentIncomplete?" ⚠️":""}</div><div class="card-value">${nwFmtAmount(netWorth, toCur)}</div><div class="card-sub">Assets − Liabilities</div></div>
     <div class="card green"><div class="card-label">📈 Total Assets</div><div class="card-value">${nwFmtAmount(totalAssets, toCur)}</div></div>
     <div class="card orange"><div class="card-label">💳 Total Liabilities</div><div class="card-value">${nwFmtAmount(totalLiabilities, toCur)}</div></div>
-    <div class="card purple"><div class="card-label">🎯 Change This Week</div><div class="card-value">${changeThisWeek==null ? "N/A" : (changeThisWeek>=0?"+":"") + nwFmtAmount(changeThisWeek, toCur)}</div>${changeThisWeek==null ? '<div class="card-sub">Not enough history yet</div>' : ""}</div>
+    <div class="card purple"><div class="card-label">🎯 Change This Month</div><div class="card-value">${changeThisMonth==null ? "N/A" : (changeThisMonth>=0?"+":"") + nwFmtAmount(changeThisMonth, toCur)}</div>${changeThisMonth==null ? '<div class="card-sub">Not enough history yet</div>' : ""}</div>
   `;
 
   if(typeof Chart!=="undefined"){
