@@ -416,6 +416,7 @@
 
     <div id="nwRegionUSView" style="display:none">
       <div class="cards" id="nwCardsUS"></div>
+      <div class="chart-card"><h4>Net Worth Growth (Week-on-Week)</h4><canvas id="nwGrowthChartUS" height="200"></canvas><div class="dash-empty" id="nwGrowthChartUSEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Net Worth Trend</h4><canvas id="nwTrendChartUS" height="180"></canvas><div class="dash-empty" id="nwTrendChartUSEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Breakdown by Category</h4><canvas id="nwCatChartUS" height="220"></canvas><div class="dash-empty" id="nwCatChartUSEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Net Worth Growth Projection</h4><canvas id="nwProjectionChartUS" height="200"></canvas><div class="dash-empty" id="nwProjectionChartUSEmpty" style="display:none"></div><div style="font-size:12px;color:var(--muted);margin-top:6px" id="nwProjectionChartUSWarn"></div></div>
@@ -430,6 +431,7 @@
 
     <div id="nwRegionINView" style="display:none">
       <div class="cards" id="nwCardsIN"></div>
+      <div class="chart-card"><h4>Net Worth Growth (Week-on-Week)</h4><canvas id="nwGrowthChartIN" height="200"></canvas><div class="dash-empty" id="nwGrowthChartINEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Net Worth Trend</h4><canvas id="nwTrendChartIN" height="180"></canvas><div class="dash-empty" id="nwTrendChartINEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Breakdown by Category</h4><canvas id="nwCatChartIN" height="220"></canvas><div class="dash-empty" id="nwCatChartINEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Net Worth Growth Projection</h4><canvas id="nwProjectionChartIN" height="200"></canvas><div class="dash-empty" id="nwProjectionChartINEmpty" style="display:none"></div><div style="font-size:12px;color:var(--muted);margin-top:6px" id="nwProjectionChartINWarn"></div></div>
@@ -454,6 +456,7 @@
       </div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:14px" id="nwRateStatus"></div>
       <div class="cards" id="nwCards"></div>
+      <div class="chart-card"><h4>Net Worth Growth (Week-on-Week)</h4><canvas id="nwGrowthChart" height="200"></canvas><div class="dash-empty" id="nwGrowthChartEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Net Worth Trend</h4><canvas id="nwTrendChart" height="180"></canvas><div class="dash-empty" id="nwTrendChartEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Breakdown by Category</h4><canvas id="nwCatChart" height="220"></canvas><div class="dash-empty" id="nwCatChartEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Net Worth Growth Projection</h4><canvas id="nwProjectionChart" height="200"></canvas><div class="dash-empty" id="nwProjectionChartEmpty" style="display:none"></div><div style="font-size:12px;color:var(--muted);margin-top:6px" id="nwProjectionChartWarn"></div></div>
@@ -2357,6 +2360,57 @@ function nwValueAsOf(monthStr, toCur, rateInfo, currencyFilter){
   return { assets, liabilities, net:assets-liabilities, incomplete };
 }
 
+function nwCalculateWeeklyGrowth(items, toCur, rateInfo, currencyFilter){
+  if(!nwEntries.length) return { weeks:[], amounts:[], changes:[] };
+  const weeks = [];
+  const amounts = [];
+  const changes = [];
+  const entries = currencyFilter ? nwEntries.filter(e=>(e.currency||"USD")===currencyFilter) : nwEntries;
+  if(!entries.length) return { weeks:[], amounts:[], changes:[] };
+  const sorted = entries.slice().sort((a,b)=>a.date<b.date?-1:1);
+  const first = new Date(sorted[0].date + "T00:00:00Z");
+  const last = new Date();
+  let weekStart = new Date(first);
+  // Start from Sunday (getUTCDay()=0) and work forward in Sunday-Saturday weeks
+  weekStart.setUTCDate(weekStart.getUTCDate() - weekStart.getUTCDay());
+  while(weekStart <= last){
+    const weekEnd = new Date(weekStart);
+    weekEnd.setUTCDate(weekEnd.getUTCDate() + 6);
+    const weekStartStr = weekStart.toISOString().split("T")[0];
+    const weekEndStr = weekEnd.toISOString().split("T")[0];
+    const latestByItem = {};
+    entries.forEach(e=>{
+      if(!e.date || e.date > weekEndStr) return;
+      if(!latestByItem[e.item] || e.date >= latestByItem[e.item].date) latestByItem[e.item] = e;
+    });
+    let assets = 0, liabilities = 0;
+    Object.values(latestByItem).forEach(e=>{
+      const converted = nwConvert(Number(e.value||0), e.currency||"USD", toCur, rateInfo);
+      if(converted==null) return;
+      if(isLiability(e.category)) liabilities += converted;
+      else assets += converted;
+    });
+    const net = assets - liabilities;
+    if(Object.keys(latestByItem).length > 0){
+      weeks.push({ start:weekStartStr, end:weekEndStr });
+      amounts.push(net);
+    }
+    weekStart.setUTCDate(weekStart.getUTCDate() + 7);
+  }
+  for(let i=1; i<amounts.length; i++){
+    const prev = amounts[i-1];
+    const curr = amounts[i];
+    const pct = prev !== 0 ? ((curr - prev) / Math.abs(prev)) * 100 : 0;
+    changes.push(pct);
+  }
+  const startIdx = Math.max(0, weeks.length - 12);
+  return {
+    weeks: weeks.slice(startIdx),
+    amounts: amounts.slice(startIdx),
+    changes: changes.slice(startIdx)
+  };
+}
+
 // shared renderer for all three Net Worth region tabs — Total passes suffix=""
 // (keeping the original unsuffixed element ids so nothing about that tab's
 // behavior or tests changes) and spans both currencies via rateInfo/toCur;
@@ -2426,6 +2480,59 @@ function nwComputeAndRender(suffix, itemsWithIdx, toCur, rateInfo, opts){
         scales:{ x:{ ticks:{ color:textColor }, grid:{ color:gridColor } },
           y:{ ticks:{ color:textColor, callback:(value)=>nwFmtAmount(value, toCur) }, grid:{ color:gridColor } } } }
     });
+
+    const weeklyData = nwCalculateWeeklyGrowth(items, toCur, rateInfo, currencyFilter);
+    if(!weeklyData.weeks.length || weeklyData.changes.length === 0){
+      showChartFallback("nwGrowthChart"+suffix, "📊 Need at least 2 weeks of data to show week-on-week changes");
+    } else {
+      showChartCanvas("nwGrowthChart"+suffix);
+      if(charts["nwGrowth"+suffix]) charts["nwGrowth"+suffix].destroy();
+      const displayWeeks = weeklyData.weeks.slice(1);
+      const displayAmounts = weeklyData.amounts.slice(1);
+      const colors = weeklyData.changes.map(pct=>pct>=0 ? "rgba(34,197,94,0.8)" : "rgba(239,68,68,0.8)");
+      const borderColors = weeklyData.changes.map(pct=>pct>=0 ? "#22c55e" : "#ef4444");
+      charts["nwGrowth"+suffix] = new Chart(document.getElementById("nwGrowthChart"+suffix), {
+        type:"bar",
+        data:{
+          labels:displayWeeks.map(w=>`${w.start.substring(5)}`),
+          datasets:[{
+            label:"Week-on-Week Change %",
+            data:weeklyData.changes,
+            backgroundColor:colors,
+            borderColor:borderColors,
+            borderWidth:1
+          }]
+        },
+        options:{
+          responsive:true,
+          plugins:{
+            legend:{ display:false },
+            tooltip:{
+              callbacks:{
+                label:(ctx)=>{
+                  const pct = ctx.parsed.y;
+                  const label = pct >= 0 ? `+${pct.toFixed(2)}%` : `${pct.toFixed(2)}%`;
+                  return `Change: ${label}`;
+                },
+                afterLabel:(ctx)=>{
+                  const idx = ctx.dataIndex;
+                  const amt = displayAmounts[idx];
+                  return `Net Worth: ${nwFmtAmount(amt, toCur)}`;
+                }
+              }
+            }
+          },
+          scales:{
+            x:{ ticks:{ color:textColor }, grid:{ color:gridColor } },
+            y:{
+              ticks:{ color:textColor, callback:(value)=>`${value>=0?"+":""}${value.toFixed(1)}%` },
+              grid:{ color:gridColor },
+              beginAtZero:true
+            }
+          }
+        }
+      });
+    }
 
     const byCat = {};
     items.forEach(e=>{
