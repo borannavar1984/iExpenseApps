@@ -229,6 +229,23 @@
   .cat-picker-row .cpr-label{flex:1;font-size:16px}
   .cat-picker-row .cpr-check{color:var(--accent);font-size:18px;font-weight:700;width:20px;text-align:center}
 
+  /* Net worth value comparison card and history modal */
+  .nw-value-comparison-card{background:var(--card2);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:12px}
+  .nw-value-comparison-card .comp-label{font-size:12px;color:var(--muted);margin-bottom:4px}
+  .nw-value-comparison-card .comp-value{font-size:18px;font-weight:700;margin-bottom:8px}
+  .nw-value-comparison-card .comp-arrow{color:var(--muted);margin:8px 0;font-size:14px}
+  .nw-value-comparison-card .comp-btn{background:none;border:none;color:var(--accent);font-size:13px;font-weight:700;cursor:pointer;padding:0;text-decoration:underline;margin-top:4px}
+  .nw-history-entry{display:flex;justify-content:space-between;align-items:center;padding:12px 4px;border-bottom:1px solid var(--card2)}
+  .nw-history-entry:last-child{border-bottom:none}
+  .nw-history-entry > div:nth-child(1){font-size:14px;color:var(--muted);flex:0 0 auto;width:70px}
+  .nw-history-entry > div:nth-child(2){font-size:15px;font-weight:700;flex:1;text-align:right}
+  .nw-history-entry > div:nth-child(3){font-size:12px;color:var(--muted);flex:0 0 auto;width:80px;text-align:right}
+  .alert-warning{border-left:3px solid var(--amber)}
+  .alert-danger{border-left:3px solid var(--red)}
+  .alert-text{font-size:12px;margin-top:6px;padding:8px 0 0 0}
+  .alert-warning .alert-text{color:var(--amber)}
+  .alert-danger .alert-text{color:var(--red)}
+
   /* ===== Tablet/desktop layout — the app is mobile-first by default; these
      rules only add extra room and reflow at wider viewports. Pure CSS, no
      HTML/JS restructuring, so touch targets and the mobile layout itself
@@ -349,6 +366,16 @@
   <div class="store-suggest" id="nwItemSuggest" style="display:none"></div>
 </div>
 
+<div id="nwComparisonCardWrap" style="display:none">
+  <div class="nw-value-comparison-card">
+    <div class="comp-label">📊 Last Value</div>
+    <div class="comp-value" id="nwComparisonLastValue">—</div>
+    <div class="comp-arrow">➜</div>
+    <div class="comp-label">New Value</div>
+  </div>
+  <button type="button" class="comp-btn" id="nwViewHistoryBtn" onclick="showNWHistory(document.getElementById('nwItem').value)">View History</button>
+</div>
+
 <div class="label">Date</div>
 <input type="date" id="nwDate">
 
@@ -368,6 +395,18 @@
 <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Shows the latest value for each item. Log a fresh entry each month (same item name, new value) to track its growth over time.</div>
 <div id="nwItemList"></div>
 
+</div>
+
+<!-- Net Worth Change History Modal -->
+<div id="nwHistoryOverlay" class="cat-picker-overlay" style="display:none">
+  <div class="cat-picker-header">
+    <button class="cat-picker-back" onclick="closeNWHistory()">‹</button>
+    <div class="cat-picker-title" id="nwHistoryTitle">History</div>
+    <div style="width:36px"></div>
+  </div>
+  <div class="cat-picker-list" id="nwHistoryList">
+    <!-- populated by showNWHistory() -->
+  </div>
 </div>
 
 <div id="dashboardView" style="display:none">
@@ -731,6 +770,10 @@ let nwActiveRegion = "total";
 // detail table and its history drill-down — keyed by the same suffix used
 // throughout nwComputeAndRender ("US", "IN", or "" for Total)
 let nwFilters = { US:{cat:"",item:""}, IN:{cat:"",item:""}, "":{cat:"",item:""} };
+let nwSnapshots = [];
+let nwChangeLog = [];
+let nwUpdatingSnapshot = null;
+let nwViewingItemHistory = null;
 function nwSetFilter(suffix, kind, value){
   if(kind==="cat"){ nwFilters[suffix].cat = value; nwFilters[suffix].item = ""; }
   else nwFilters[suffix].item = value;
@@ -742,10 +785,27 @@ function genId(){ return Date.now().toString(36)+Math.random().toString(36).slic
 function ensureIds(){ entries.forEach(e=>{ if(!e.id) e.id=genId(); }); }
 function persist(){ ensureIds(); try{ localStorage.setItem(LS_KEY, JSON.stringify(entries)); }catch(e){} }
 persist(); // backfill ids on any pre-existing data
-function loadNW(){ try{ return JSON.parse(localStorage.getItem(NW_LS_KEY)||"[]"); }catch(e){ return []; } }
-function ensureNWIds(){ nwEntries.forEach(e=>{ if(!e.id) e.id=genId(); }); }
-function persistNW(){ ensureNWIds(); try{ localStorage.setItem(NW_LS_KEY, JSON.stringify(nwEntries)); }catch(e){} }
-persistNW();
+function loadNW(){
+  try{
+    const data = JSON.parse(localStorage.getItem(NW_LS_KEY)||"{}");
+    if(Array.isArray(data)){
+      return { snapshots: data, changeLog: [] };
+    }
+    return data;
+  }catch(e){ return { snapshots: [], changeLog: [] }; }
+}
+function ensureNWIds(){ nwSnapshots.forEach(e=>{ if(!e.id) e.id=genId(); }); }
+function persistNW(){
+  ensureNWIds();
+  try{
+    const data = { version: 2, snapshots: nwSnapshots, changeLog: nwChangeLog };
+    localStorage.setItem(NW_LS_KEY, JSON.stringify(data));
+  }catch(e){}
+}
+const nwData = loadNW();
+nwSnapshots = nwData.snapshots || [];
+nwChangeLog = nwData.changeLog || [];
+nwEntries = []; // deprecated, kept for compatibility
 function todayStr(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 // despite the historical name, this formats in whatever the user's PRIMARY
 // currency is — kept as fmtUSD to avoid churning every call site; INR uses
@@ -864,7 +924,7 @@ function renderNWCatGrid(){
 // substring match, same filtering rule as the merchant autocomplete
 function renderNWCatPickerList(){
   const query = document.getElementById("nwCatSearch").value.trim().toLowerCase();
-  const ranked = rankCatsByFrequency(NW_CATS, nwEntries, 3);
+  const ranked = rankCatsByFrequency(NW_CATS, nwSnapshots, 3);
   let matches = ranked;
   if(query){
     const starts = ranked.filter(c=>c.toLowerCase().startsWith(query));
@@ -1156,7 +1216,7 @@ function backupData(){
   // net worth history now travels with expense/income entries in the same
   // backup file — earlier versions silently dropped nwEntries here, so a
   // restore-round would lose every net worth snapshot the user ever logged
-  const payload = { backup:new Date().toISOString(), source:"iExpense", entries:entries, nwEntries:nwEntries };
+  const payload = { backup:new Date().toISOString(), source:"iExpense", entries:entries, nwSnapshots:nwSnapshots, nwChangeLog:nwChangeLog };
   const blob = new Blob([JSON.stringify(payload,null,1)],{type:"application/json"});
   const fname = `iexpense_backup_${payload.backup.replace(/[-:T]/g,"").slice(0,14)}.json`;
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=fname; a.click();
@@ -1172,9 +1232,19 @@ async function restoreData(evt){
     let data;
     try{ data = JSON.parse(reader.result); }catch(e){ toast("Invalid backup file","var(--red)"); return; }
     // legacy backups were a bare array of expense/income entries; newer ones
-    // are { entries, nwEntries } and may or may not include nwEntries
+    // are { entries, nwEntries } or { entries, nwSnapshots, nwChangeLog }
     const incoming = Array.isArray(data) ? data : (data.entries||[]);
-    const incomingNW = Array.isArray(data) ? [] : (data.nwEntries||[]);
+    // handle both old array format and new snapshot+changelog format
+    let incomingNW = [];
+    let incomingNWLog = [];
+    if(!Array.isArray(data)){
+      if(data.nwSnapshots && data.nwChangeLog){
+        incomingNW = data.nwSnapshots || [];
+        incomingNWLog = data.nwChangeLog || [];
+      } else {
+        incomingNW = data.nwEntries || [];
+      }
+    }
     if((!Array.isArray(incoming) || !incoming.length) && (!Array.isArray(incomingNW) || !incomingNW.length)){
       toast("No entries found in file","var(--amber)"); return;
     }
@@ -1228,16 +1298,29 @@ async function restoreData(evt){
       if(!e.id) return false;
       return true;
     }
-    const existingNWIds = new Set(nwEntries.map(e=>e.id).filter(Boolean));
+    const existingNWIds = new Set(nwSnapshots.map(e=>e.id).filter(Boolean));
     let addedNW = 0;
     let rejectedNW = 0;
     incomingNW.forEach(e=>{
       if(!validateRestoreNWEntry(e)) { rejectedNW++; return; }
       if(existingNWIds.has(e.id)) return;
-      nwEntries.push({ date:e.date, category:e.category, item:e.item, value:Number(e.value), growthRate:e.growthRate==null?null:Number(e.growthRate), currency:e.currency||"USD", id:e.id });
+      const snapshot = { date:e.date, category:e.category, item:e.item, value:Number(e.value), growthRate:e.growthRate==null?null:Number(e.growthRate), currency:e.currency||"USD", id:e.id, createdAt:new Date().toISOString(), source:"legacy" };
+      nwSnapshots.push(snapshot);
+      // add change log entry for migrated data
+      nwChangeLog.push({ id:genId(), snapshotId:e.id, timestamp:snapshot.createdAt, operation:"create", before:{}, after:snapshot, reason:null });
       existingNWIds.add(e.id);
       addedNW++;
     });
+    // if restoring snapshots+changelog, merge the changelog
+    if(incomingNWLog && incomingNWLog.length){
+      const existingLogIds = new Set(nwChangeLog.map(log=>log.id));
+      incomingNWLog.forEach(log=>{
+        if(!existingLogIds.has(log.id)){
+          nwChangeLog.push(log);
+          existingLogIds.add(log.id);
+        }
+      });
+    }
 
     persist(); persistNW(); renderList(); renderNWItemList();
 
@@ -1315,12 +1398,12 @@ async function exportExcel(){
   })));
   XLSX.utils.book_append_sheet(wb, entriesSheet, "All Entries");
 
-  if(nwEntries.length){
+  if(nwSnapshots.length){
     const nwCurrentSheet = XLSX.utils.json_to_sheet(nwLatestPerItem().map(({e})=>({
       Item:e.item, Category:e.category, Value:Number(e.value||0), Currency:e.currency||"USD",
       "Last Updated":e.date, "Growth Rate (%/yr)": e.growthRate!=null ? e.growthRate : ""
     })));
-    const nwHistorySheet = XLSX.utils.json_to_sheet([...nwEntries].sort((a,b)=>(a.date||"")<(b.date||"")?-1:1).map(e=>({
+    const nwHistorySheet = XLSX.utils.json_to_sheet([...nwSnapshots].sort((a,b)=>(a.date||"")<(b.date||"")?-1:1).map(e=>({
       Date:e.date, Item:e.item, Category:e.category, Value:Number(e.value||0), Currency:e.currency||"USD"
     })));
     XLSX.utils.book_append_sheet(wb, nwCurrentSheet, "Net Worth (Current)");
@@ -1331,7 +1414,7 @@ async function exportExcel(){
     // INR accounts) and summing them without a live same-day FX rate would
     // misreport the total, so each currency gets its own honest,
     // unconverted chart instead of a guessed combined number.
-    const currencies = [...new Set(nwEntries.map(e=>e.currency||"USD"))].sort();
+    const currencies = [...new Set(nwSnapshots.map(e=>e.currency||"USD"))].sort();
     const nwMonths = nwAllMonths();
     currencies.forEach(cur=>{
       const byCat = {};
@@ -1457,7 +1540,7 @@ function nwUnhideItem(item){
 function nwItemHistoryList(){
   const hidden = loadNWHiddenItems();
   const seen=[]; const seenLower=new Set();
-  [...nwEntries].reverse().forEach(e=>{
+  [...nwSnapshots].reverse().forEach(e=>{
     if(!e.item) return;
     if(nwSel.cat && e.category!==nwSel.cat) return;
     if(!seenLower.has(e.item.toLowerCase())){ seenLower.add(e.item.toLowerCase()); seen.push(e.item); }
@@ -1496,7 +1579,7 @@ document.getElementById("nwItem").addEventListener("blur",()=>hideNWItemSuggesti
 document.getElementById("nwItem").addEventListener("keydown",(e)=>{ if(e.key==="Escape") hideNWItemSuggestions(); });
 
 function nwLatestForItem(itemName){
-  const matches = nwEntries.filter(e=>e.item===itemName);
+  const matches = nwSnapshots.filter(e=>e.item===itemName && e.source !== "undo");
   if(!matches.length) return null;
   return matches.reduce((a,b)=> (b.date>a.date ? b : a));
 }
@@ -1514,7 +1597,8 @@ function nwLatestPerItem(){
   const map = {};
   // >= so that when two entries share the same date, the one logged more
   // recently (later in the array) wins rather than whichever was pushed first
-  nwEntries.forEach((e,idx)=>{
+  // filter out "undo" source snapshots
+  nwSnapshots.filter(s => s.source !== "undo").forEach((e,idx)=>{
     if(!map[e.item] || e.date >= map[e.item].e.date) map[e.item] = { e, idx };
   });
   return Object.values(map);
@@ -1542,11 +1626,13 @@ function renderNWItemList(){
 
 function resetNWForm(){
   nwUpdatingItem=null;
+  nwUpdatingSnapshot=null;
   document.getElementById("nwItem").value="";
   document.getElementById("nwValue").value="";
   document.getElementById("nwGrowth").value="";
   document.getElementById("nwDate").value=todayStr(); document.getElementById("nwDate").max=todayStr();
   document.getElementById("nwCancelEditBtn").style.display="none";
+  document.getElementById("nwComparisonCardWrap").style.display="none";
   renderNWCatGrid();
   nwSelectCurrency(NW_CURRENCIES[0]);
   document.getElementById("nwSaveBtn").textContent="Save Net Worth Entry";
@@ -1569,7 +1655,7 @@ function cancelNWEdit(){
 function nwStartUpdate(itemName){
   const latest = nwLatestForItem(itemName);
   if(!latest) return;
-  nwUpdatingItem = itemName;
+  nwUpdatingSnapshot = latest;
   document.getElementById("nwItem").value = itemName;
   document.getElementById("nwValue").value = latest.value;
   document.getElementById("nwGrowth").value = latest.growthRate!=null ? latest.growthRate : "";
@@ -1578,6 +1664,8 @@ function nwStartUpdate(itemName){
   document.getElementById("nwDate").value = todayStr(); document.getElementById("nwDate").max = todayStr();
   document.getElementById("nwCancelEditBtn").style.display = "block";
   document.getElementById("nwSaveBtn").textContent = "Update Entry";
+  document.getElementById("nwComparisonCardWrap").style.display = "block";
+  document.getElementById("nwComparisonLastValue").textContent = `${nwFmtAmount(latest.value, latest.currency || PRIMARY_CUR)} (updated ${latest.date})`;
   window.scrollTo({top:0,behavior:"smooth"});
 }
 
@@ -1600,23 +1688,52 @@ async function saveNW(){
   const candidate = { date:document.getElementById("nwDate").value||todayStr(), category:nwSel.cat, item, value:Math.round(val*100)/100, growthRate, currency:nwSel.currency||PRIMARY_CUR };
   if(candidate.date > todayStr()){ toast("Date can't be in the future","var(--red)"); return; }
 
-  const wasUpdate = nwUpdatingItem!==null;
-  if(wasUpdate && !confirm(`Log this month's value for "${candidate.item}"? Your previous entries stay untouched.`)) return;
+  const isUpdate = nwUpdatingSnapshot !== null;
+  if(isUpdate && !confirm(`Log this month's value for "${candidate.item}"? Your previous entries stay untouched.`)) return;
 
-  // always append a brand-new snapshot — net worth history is never mutated
-  // in place, whether this is a first-time add or a monthly update of an
-  // existing item, so past months' values can never silently change
-  const targetId = genId();
-  nwEntries.push({ ...candidate, id:targetId });
+  const snapshotId = isUpdate ? nwUpdatingSnapshot.id : genId();
+  const newSnapshot = {
+    id: snapshotId,
+    date: candidate.date,
+    category: candidate.category,
+    item: candidate.item,
+    value: candidate.value,
+    growthRate: candidate.growthRate,
+    currency: candidate.currency,
+    createdAt: new Date().toISOString(),
+    source: isUpdate ? "correction" : "initial",
+    correctionOf: isUpdate ? nwUpdatingSnapshot.id : null
+  };
+
+  const existingIdx = nwSnapshots.findIndex(s => s.id === snapshotId);
+  if(existingIdx >= 0){
+    nwSnapshots[existingIdx] = newSnapshot;
+  } else {
+    nwSnapshots.push(newSnapshot);
+  }
+
+  const logEntry = {
+    id: genId(),
+    snapshotId: newSnapshot.id,
+    timestamp: newSnapshot.createdAt,
+    operation: isUpdate ? "update" : "create",
+    before: isUpdate ? nwUpdatingSnapshot : {},
+    after: newSnapshot,
+    reason: null
+  };
+  nwChangeLog.push(logEntry);
+
   persistNW();
-  toast(wasUpdate ? "Updated ✓" : "Saved ✓");
+  toast(isUpdate ? "Updated ✓" : "Saved ✓");
   resetNWForm();
+  nwUpdatingSnapshot = null;
   showMainTab("dashboard");
 
   if(cloudCfg){
     try{
       await nwCloudSyncMutation(remote=>{
-        remote.push({ ...candidate, id:targetId });
+        remote.snapshots = nwSnapshots;
+        remote.changeLog = nwChangeLog;
         return remote;
       });
     }catch(err){
@@ -1629,8 +1746,9 @@ async function saveNW(){
 async function delNWItem(itemName, evt){
   if(evt) evt.stopPropagation();
   if(!confirm(`Delete all history for "${itemName}"? This can't be undone.`)) return;
-  const idsToDelete = nwEntries.filter(e=>e.item===itemName).map(e=>e.id);
-  nwEntries = nwEntries.filter(e=>e.item!==itemName);
+  const idsToDelete = nwSnapshots.filter(e=>e.item===itemName).map(e=>e.id);
+  nwSnapshots = nwSnapshots.filter(e=>e.item!==itemName);
+  nwChangeLog = nwChangeLog.filter(log=>!idsToDelete.includes(log.snapshotId));
   persistNW();
   addDeletedIds(NW_DELETED_IDS_KEY, idsToDelete);
   if(nwUpdatingItem===itemName) cancelNWEdit();
@@ -1638,11 +1756,37 @@ async function delNWItem(itemName, evt){
 
   if(cloudCfg){
     try{
-      await nwCloudSyncMutation(remote=>remote.filter(e=>!idsToDelete.includes(e.id)));
+      await nwCloudSyncMutation(remote=>{
+        remote.snapshots = remote.snapshots.filter(e=>!idsToDelete.includes(e.id));
+        remote.changeLog = remote.changeLog.filter(log=>!idsToDelete.includes(log.snapshotId));
+        return remote;
+      });
     }catch(err){
       setCloudStatus(false, "Deleted locally — will retry syncing automatically");
     }
   }
+}
+
+function showNWHistory(itemName){
+  nwViewingItemHistory = itemName;
+  const historyList = document.getElementById("nwHistoryList");
+  document.getElementById("nwHistoryTitle").textContent = `History for ${itemName}`;
+  const itemSnapshots = nwSnapshots.filter(s => s.item === itemName).slice().reverse();
+
+  historyList.innerHTML = itemSnapshots.map((snap, idx) => `
+    <div class="nw-history-entry">
+      <div>${snap.date}</div>
+      <div>${nwFmtAmount(snap.value, snap.currency || "USD")}</div>
+      <div>${idx === 0 ? "Current" : snap.source === "undo" ? "Undone" : "Superseded"}</div>
+    </div>
+  `).join("");
+
+  document.getElementById("nwHistoryOverlay").style.display = "flex";
+}
+
+function closeNWHistory(){
+  document.getElementById("nwHistoryOverlay").style.display = "none";
+  nwViewingItemHistory = null;
 }
 
 // ===== Delete tombstones: a plain union-merge can only ADD entries, so it
@@ -1803,9 +1947,19 @@ async function cloudConnect(){
   // expense/income connection that just succeeded above
   try{
     const { entries: nwRemote, sha: nwSha } = await cloudFetchRemote(cloudCfg, "networth.json");
-    const nwMerged = unionMerge(nwRemote, nwEntries, loadDeletedIds(NW_DELETED_IDS_KEY));
+    const remoteSnapshots = nwRemote.snapshots || nwRemote || [];
+    const remoteChangeLog = nwRemote.changeLog || [];
+    const mergedSnapshots = unionMerge(remoteSnapshots, nwSnapshots, loadDeletedIds(NW_DELETED_IDS_KEY));
+    const existingLogIds = new Set(nwChangeLog.map(log=>log.id));
+    remoteChangeLog.forEach(log=>{
+      if(!existingLogIds.has(log.id)){
+        nwChangeLog.push(log);
+        existingLogIds.add(log.id);
+      }
+    });
+    const nwMerged = { version: 2, snapshots: mergedSnapshots, changeLog: nwChangeLog };
     await cloudWriteRemote(cloudCfg, nwMerged, nwSha, "networth.json");
-    nwEntries = nwMerged;
+    nwSnapshots = mergedSnapshots;
     persistNW();
     renderNWItemList();
     renderNWItemSuggestions();
@@ -1828,8 +1982,22 @@ async function cloudSyncNow(){
   // net worth sync is best-effort and must never override the "Synced ✓"
   // result above, which already reflects the core expense/income sync
   try{
-    const nwMerged = await nwCloudSyncMutation(remote=>unionMerge(remote, nwEntries, loadDeletedIds(NW_DELETED_IDS_KEY)));
-    nwEntries = nwMerged; persistNW(); renderNWItemList(); renderNWItemSuggestions();
+    const nwMerged = await nwCloudSyncMutation(remote=>{
+      const remoteSnapshots = remote.snapshots || remote || [];
+      const remoteChangeLog = remote.changeLog || [];
+      const mergedSnapshots = unionMerge(remoteSnapshots, nwSnapshots, loadDeletedIds(NW_DELETED_IDS_KEY));
+      const existingLogIds = new Set(nwChangeLog.map(log=>log.id));
+      remoteChangeLog.forEach(log=>{
+        if(!existingLogIds.has(log.id)){
+          nwChangeLog.push(log);
+          existingLogIds.add(log.id);
+        }
+      });
+      return { version: 2, snapshots: mergedSnapshots, changeLog: nwChangeLog };
+    });
+    nwSnapshots = nwMerged.snapshots;
+    nwChangeLog = nwMerged.changeLog;
+    persistNW(); renderNWItemList(); renderNWItemSuggestions();
   }catch(err){ /* best-effort */ }
 }
 
@@ -1865,9 +2033,19 @@ async function cloudPullOnLoad(){
   try{
     const { entries: nwRemote } = await cloudFetchRemote(cloudCfg, "networth.json");
     const nwDeletedIds = loadDeletedIds(NW_DELETED_IDS_KEY);
-    const nwMerged = unionMerge(nwRemote, nwEntries, nwDeletedIds);
-    if(nwDeletedIds.length && nwRemote.some(e=>nwDeletedIds.includes(e.id))) needsPushBack = true;
-    nwEntries = nwMerged; persistNW(); renderNWItemList(); renderNWItemSuggestions();
+    const remoteSnapshots = nwRemote.snapshots || nwRemote || [];
+    const remoteChangeLog = nwRemote.changeLog || [];
+    const nwMerged = unionMerge(remoteSnapshots, nwSnapshots, nwDeletedIds);
+    if(nwDeletedIds.length && remoteSnapshots.some(e=>nwDeletedIds.includes(e.id))) needsPushBack = true;
+    const existingLogIds = new Set(nwChangeLog.map(log=>log.id));
+    remoteChangeLog.forEach(log=>{
+      if(!existingLogIds.has(log.id)){
+        nwChangeLog.push(log);
+        existingLogIds.add(log.id);
+      }
+    });
+    nwSnapshots = nwMerged;
+    persistNW(); renderNWItemList(); renderNWItemSuggestions();
   }catch(err){ /* best-effort */ }
   if(needsPushBack) cloudSyncNow();
 }
@@ -2260,7 +2438,7 @@ async function deleteFromDashboard(idx, evt){
 
 // every month that has a net worth entry, plus the real current month
 function nwAllMonths(){
-  const months = [...new Set(nwEntries.map(e=>e.date && e.date.slice(0,7)).filter(Boolean))];
+  const months = [...new Set(nwSnapshots.map(e=>e.date && e.date.slice(0,7)).filter(Boolean))];
   const cur = todayStr().slice(0,7);
   if(!months.includes(cur)) months.push(cur);
   return months.sort();
@@ -2342,7 +2520,7 @@ function nwValueAsOf(monthStr, toCur, rateInfo, currencyFilter){
   const nextMonth = parseInt(month) === 12 ? (parseInt(year)+1) + "-01" : year + "-" + String(parseInt(month)+1).padStart(2,"0");
   const cutoff = nextMonth + "-01"; // First day of next month, exclusive upper bound
   const latestByItem = {};
-  nwEntries.forEach(e=>{
+  nwSnapshots.filter(s => s.source !== "undo").forEach(e=>{
     if(currencyFilter && (e.currency||"USD")!==currencyFilter) return;
     if(!e.date || e.date >= cutoff) return; // Use >= for proper exclusion
     if(!latestByItem[e.item] || e.date >= latestByItem[e.item].date) latestByItem[e.item] = e;
@@ -2358,11 +2536,12 @@ function nwValueAsOf(monthStr, toCur, rateInfo, currencyFilter){
 }
 
 function nwCalculateWeeklyGrowth(items, toCur, rateInfo, currencyFilter){
-  if(!nwEntries.length) return { weeks:[], amounts:[], changes:[] };
+  const activeSnapshots = nwSnapshots.filter(s => s.source !== "undo");
+  if(!activeSnapshots.length) return { weeks:[], amounts:[], changes:[] };
   const weeks = [];
   const amounts = [];
   const changes = [];
-  const entries = currencyFilter ? nwEntries.filter(e=>(e.currency||"USD")===currencyFilter) : nwEntries;
+  const entries = currencyFilter ? activeSnapshots.filter(e=>(e.currency||"USD")===currencyFilter) : activeSnapshots;
   if(!entries.length) return { weeks:[], amounts:[], changes:[] };
   const sorted = entries.slice().sort((a,b)=>a.date<b.date?-1:1);
   const first = new Date(sorted[0].date + "T00:00:00Z");
@@ -2609,13 +2788,13 @@ function nwComputeAndRender(suffix, itemsWithIdx, toCur, rateInfo, opts){
         const converted = nwConvert(Number(e.value||0), cur, toCur, rateInfo);
         valueCell = converted==null ? `${native} (⚠️ no rate to convert)` : `${isLiability(e.category)?"-":""}${nwFmtAmount(converted, toCur)} <span style="color:var(--muted)">(${native})</span>`;
       }
-      return `<tr class="entry-row" onclick="editFromNWDashboard(${idx})"><td>${e.item}</td><td>${nwCatIcon(e.category)}${e.category}</td><td>${valueCell}</td><td>${e.date}</td><td><button class="row-del" onclick="deleteFromNWDashboard(${idx},event)">✕</button></td></tr>`;
+      return `<tr class="entry-row" onclick="editFromNWDashboard('${e.item.replace(/'/g,"\\'")}')"><td>${e.item}</td><td>${nwCatIcon(e.category)}${e.category}</td><td>${valueCell}</td><td>${e.date}</td><td><button class="row-del" onclick="deleteFromNWDashboard('${e.item.replace(/'/g,"\\'")}',event)">✕</button></td></tr>`;
     }).join("")}
   </tbody></table>` : `<div class="dash-empty">💎 No net worth items match this filter</div>`;
 
   const historyWrap = document.getElementById("nwHistoryWrap"+suffix);
   if(filt.item){
-    const history = nwEntries.filter(e=>e.item===filt.item).sort((a,b)=> a.date<b.date?-1:1);
+    const history = nwSnapshots.filter(e=>e.item===filt.item && e.source !== "undo").sort((a,b)=> a.date<b.date?-1:1);
     document.getElementById("nwHistoryHead"+suffix).textContent = `${filt.item} — History`;
     document.getElementById("nwHistoryTable"+suffix).innerHTML = `<table><thead><tr><th>Date</th><th>Value</th><th>Category</th><th>Growth</th></tr></thead><tbody>
       ${history.map(e=>`<tr><td>${e.date}</td><td>${isLiability(e.category)?"-":""}${nwFmtAmount(Number(e.value), e.currency||PRIMARY_CUR)}</td><td>${nwCatIcon(e.category)}${e.category}</td><td>${e.growthRate!=null?e.growthRate+"%/yr":"—"}</td></tr>`).join("")}
@@ -2657,14 +2836,13 @@ async function renderDashNetWorth(){
   }
 }
 
-function editFromNWDashboard(idx){
-  nwStartUpdate(nwEntries[idx].item);
+function editFromNWDashboard(itemName){
+  nwStartUpdate(itemName);
   showNetWorth();
 }
 
-async function deleteFromNWDashboard(idx, evt){
+async function deleteFromNWDashboard(itemName, evt){
   if(evt) evt.stopPropagation();
-  const itemName = nwEntries[idx].item;
   await delNWItem(itemName, evt);
   renderDashNetWorth();
 }
