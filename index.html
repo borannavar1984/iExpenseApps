@@ -3076,11 +3076,8 @@ if(cloudCfg){
 document.addEventListener("visibilitychange", ()=>{
   if(document.visibilityState==="visible" && cloudCfg) cloudPullOnLoad();
 });
-if(IS_DEV_PREVIEW){
-  // dev already has its own Cloud Sync connected to expense-data-dev, so the
-  // JSON Backup/Restore flow is redundant there — but Excel export is a real
-  // reporting feature, not just a backup mechanism, so it always stays visible
-  document.getElementById("jsonBackupSection").style.display = "none";
+// Backup/Export options now visible on both prod and dev
+// Note: dev has Cloud Sync AND local backup for complete data protection
 }
 (function initTheme(){
   let saved="dark";
