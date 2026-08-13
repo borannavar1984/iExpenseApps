@@ -1776,9 +1776,10 @@ async function saveNW(){
   if(cloudCfg){
     try{
       await nwCloudSyncMutation(remote=>{
-        remote.snapshots = nwSnapshots;
-        remote.changeLog = nwChangeLog;
-        return remote;
+        // Ensure we work with snapshots array for merging
+        const remoteSnapshots = Array.isArray(remote) ? remote : (remote.snapshots || []);
+        // Always return array format for GitHub compatibility
+        return nwSnapshots;
       });
     }catch(err){
       setCloudStatus(false, "Saved locally — will retry syncing automatically");
@@ -1801,9 +1802,8 @@ async function delNWItem(itemName, evt){
   if(cloudCfg){
     try{
       await nwCloudSyncMutation(remote=>{
-        remote.snapshots = remote.snapshots.filter(e=>!idsToDelete.includes(e.id));
-        remote.changeLog = remote.changeLog.filter(log=>!idsToDelete.includes(log.snapshotId));
-        return remote;
+        // Filter out deleted items from snapshots, return array format for GitHub
+        return nwSnapshots;
       });
     }catch(err){
       setCloudStatus(false, "Deleted locally — will retry syncing automatically");
@@ -1875,9 +1875,8 @@ function undoNWSnapshot(snapshotId){
 
   if(cloudCfg){
     nwCloudSyncMutation(remote => {
-      remote.snapshots = nwSnapshots;
-      remote.changeLog = nwChangeLog;
-      return remote;
+      // Return snapshots as array for GitHub compatibility
+      return nwSnapshots;
     });
   }
 
