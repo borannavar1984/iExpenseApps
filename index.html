@@ -1768,7 +1768,7 @@ async function saveNW(){
   nwChangeLog.push(logEntry);
 
   persistNW();
-  toast(isUpdate ? "Updated ✓" : "Saved ✓");
+  toast(isUpdate ? "Updated ✓" : "Saved ✓", "var(--green)");
   resetNWForm();
   nwUpdatingSnapshot = null;
   showMainTab("dashboard");
@@ -1781,8 +1781,14 @@ async function saveNW(){
         // Always return array format for GitHub compatibility
         return nwSnapshots;
       });
+      // Sync succeeded - show success message
+      setCloudStatus(true, `✓ Net worth: ${nwSnapshots.length} items synced to GitHub`);
+      console.log("✓ Net worth synced successfully", nwSnapshots.length, "items");
     }catch(err){
-      setCloudStatus(false, "Saved locally — will retry syncing automatically");
+      // Sync failed - show clear failure message
+      setCloudStatus(false, "✗ Did not sync to GitHub — data saved locally. Will retry automatically.");
+      console.error("✗ Net worth sync failed:", err.message);
+      toast("✗ Sync failed — data saved locally", "var(--red)");
     }
   }
 }
@@ -1805,8 +1811,12 @@ async function delNWItem(itemName, evt){
         // Filter out deleted items from snapshots, return array format for GitHub
         return nwSnapshots;
       });
+      setCloudStatus(true, `✓ Net worth: deleted "${itemName}" — synced to GitHub`);
+      console.log("✓ Deletion synced successfully");
     }catch(err){
-      setCloudStatus(false, "Deleted locally — will retry syncing automatically");
+      setCloudStatus(false, "✗ Deleted locally — did not sync to GitHub. Will retry automatically.");
+      console.error("✗ Delete sync failed:", err.message);
+      toast("✗ Sync failed — deletion saved locally", "var(--red)");
     }
   }
 }
@@ -1877,6 +1887,13 @@ function undoNWSnapshot(snapshotId){
     nwCloudSyncMutation(remote => {
       // Return snapshots as array for GitHub compatibility
       return nwSnapshots;
+    }).then(() => {
+      setCloudStatus(true, `✓ Net worth: undid change — synced to GitHub`);
+      console.log("✓ Undo synced successfully");
+    }).catch(err => {
+      setCloudStatus(false, "✗ Undid locally — did not sync to GitHub. Will retry automatically.");
+      console.error("✗ Undo sync failed:", err.message);
+      toast("✗ Sync failed — undo saved locally", "var(--red)");
     });
   }
 
