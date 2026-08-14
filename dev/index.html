@@ -926,19 +926,42 @@ function closeCatPicker(){
 // forms, which open as a full-screen view on top of Dashboard and return to
 // it on Save, Update, or Cancel =====
 function openAddPicker(){
+  console.log("[DEBUG] openAddPicker() - showing overlay");
   document.getElementById("addPickerOverlay").style.display="flex";
 }
 function closeAddPicker(){
+  console.log("[DEBUG] closeAddPicker() - hiding overlay");
   document.getElementById("addPickerOverlay").style.display="none";
 }
 function chooseAdd(kind){
+  console.log("[DEBUG] chooseAdd() called with kind:", kind);
   closeAddPicker();
   showMainTab(kind);
+  console.log("[DEBUG] chooseAdd() completed");
 }
 function closeAddForm(){
-  if(document.getElementById("netWorthView").style.display !== "none") cancelNWEdit();
-  else cancelEdit();
-  showMainTab("dashboard");
+  console.log("[DEBUG] closeAddForm() called");
+  console.log("[DEBUG] netWorthView display:", document.getElementById("netWorthView").style.display);
+  try {
+    if(document.getElementById("netWorthView").style.display !== "none") {
+      console.log("[DEBUG] Calling cancelNWEdit()");
+      cancelNWEdit();
+    } else {
+      console.log("[DEBUG] Calling cancelEdit()");
+      cancelEdit();
+    }
+  } catch(e) {
+    console.error("[DEBUG] Error in cancelEdit/cancelNWEdit:", e);
+  }
+  console.log("[DEBUG] Calling showMainTab('dashboard')");
+  try {
+    showMainTab("dashboard");
+    console.log("[DEBUG] showMainTab completed");
+    console.log("[DEBUG] dashboardView display:", document.getElementById("dashboardView").style.display);
+    console.log("[DEBUG] entriesView display:", document.getElementById("entriesView").style.display);
+  } catch(e) {
+    console.error("[DEBUG] Error in showMainTab:", e);
+  }
 }
 
 const payRow=document.getElementById("payRow");
@@ -2208,10 +2231,6 @@ function showNetWorth(){
   document.getElementById("entriesView").style.display = "none";
   document.getElementById("dashboardView").style.display = "none";
   document.getElementById("netWorthView").style.display = "block";
-  document.getElementById("tabExpenseBtn").classList.remove("sel");
-  document.getElementById("tabIncomeBtn").classList.remove("sel");
-  document.getElementById("tabNetWorthBtn").classList.add("sel");
-  document.getElementById("tabDashboardBtn").classList.remove("sel");
   document.getElementById("fabAddBtn").style.display = "none";
   renderNWItemList();
   hideNWItemSuggestions();
