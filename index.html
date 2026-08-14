@@ -209,7 +209,7 @@
   .cat-picker-back{background:var(--card2);border:1px solid var(--border);color:var(--text);width:36px;height:36px;min-width:36px;border-radius:50%;font-size:20px;cursor:pointer;line-height:1}
   .cat-picker-title{font-weight:700;font-size:17px}
   .add-form-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-  .fab-add{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom));width:60px;height:60px;border-radius:50%;background:var(--accent);color:var(--ctatext);font-size:30px;line-height:1;border:none;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer;z-index:150;display:flex;align-items:center;justify-content:center;padding:0;transition:background .2s ease,transform .2s ease,box-shadow .2s ease}
+  .fab-add{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom));width:60px;height:60px;border-radius:50%;background:var(--accent);color:var(--ctatext);font-size:30px;line-height:1;border:none;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer;z-index:150;display:none;align-items:center;justify-content:center;padding:0;transition:background .2s ease,transform .2s ease,box-shadow .2s ease}
   .fab-add:hover{transform:translateX(-50%) scale(1.08);box-shadow:0 8px 24px rgba(0,0,0,.45)}
   .fab-add:active{transform:translateX(-50%) scale(.92)}
   .radial-menu-backdrop{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:140}
@@ -294,8 +294,14 @@
   </div>
 </header>
 
+<div class="tabs" style="display:none">
+  <button class="sel" id="tabExpenseBtn" onclick="showMainTab('expense')">🧾 Expense</button>
+  <button id="tabIncomeBtn" onclick="showMainTab('income')">💰 Income</button>
+  <button id="tabNetWorthBtn" onclick="showMainTab('networth')">💎 Net Worth</button>
+  <button id="tabDashboardBtn" onclick="showMainTab('dashboard')">📊 Dashboard</button>
+</div>
 
-<div id="entriesView" style="display:none">
+<div id="entriesView">
 
 <div class="add-form-header">
   <button type="button" class="cat-picker-back" onclick="closeAddForm()">‹</button>
@@ -402,7 +408,7 @@
   </div>
 </div>
 
-<div id="dashboardView">
+<div id="dashboardView" style="display:none">
   <div class="dash-tabs">
     <button class="sel" id="dashMonthlyBtn" onclick="showDashTab('monthly')">Monthly Detail</button>
     <button id="dashOverviewBtn" onclick="showDashTab('overview')">Summary</button>
@@ -715,70 +721,14 @@ const CURRENCY_INFO = {
   MXN:{sym:"Mex$",label:"Mexican Peso"}
 };
 function curSym(cur){ return CURRENCY_INFO[cur] ? CURRENCY_INFO[cur].sym : cur+" "; }
-
-// ===== STORAGE SERVICE: Abstraction layer for localStorage (web) / AsyncStorage (mobile) =====
-// On web: synchronous operations using localStorage
-// On mobile: asynchronous operations using React Native AsyncStorage
-// Call pattern: const val = StorageService.getSync(key) on web, or await StorageService.get(key) on mobile
-const StorageService = {
-  // Synchronous methods (web only, uses localStorage)
-  getSync: (key) => {
-    try { return JSON.parse(localStorage.getItem(key) || "null"); }
-    catch(e) { return null; }
-  },
-  setSync: (key, value) => {
-    try { localStorage.setItem(key, JSON.stringify(value)); return true; }
-    catch(e) { console.warn(`Storage full or error saving ${key}:`, e); return false; }
-  },
-  removeSync: (key) => {
-    try { localStorage.removeItem(key); return true; }
-    catch(e) { return false; }
-  },
-
-  // Asynchronous methods (compatible with AsyncStorage on mobile)
-  get: async (key) => {
-    try { return JSON.parse(localStorage.getItem(key) || "null"); }
-    catch(e) { return null; }
-  },
-  set: async (key, value) => {
-    try { localStorage.setItem(key, JSON.stringify(value)); return true; }
-    catch(e) { console.warn(`Storage full or error saving ${key}:`, e); return false; }
-  },
-  remove: async (key) => {
-    try { localStorage.removeItem(key); return true; }
-    catch(e) { return false; }
-  },
-
-  // Check if storage is available and has space
-  isAvailable: () => {
-    try {
-      const test = "__storage_test__";
-      localStorage.setItem(test, "1");
-      localStorage.removeItem(test);
-      return true;
-    } catch(e) { return false; }
-  },
-
-  // Get approximate storage usage (for quota management)
-  getUsage: () => {
-    let total = 0;
-    for(const key in localStorage) {
-      if(localStorage.hasOwnProperty(key)) {
-        total += localStorage[key].length + key.length;
-      }
-    }
-    return { used: total, estimate: total + " bytes" };
-  }
-};
-
-function loadPrefs(){ return StorageService.getSync(PREFS_KEY); }
-function savePrefs(){ StorageService.setSync(PREFS_KEY, prefs); }
+function loadPrefs(){ try{ return JSON.parse(localStorage.getItem(PREFS_KEY)||"null"); }catch(e){ return null; } }
+function savePrefs(){ try{ localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); }catch(e){} }
 let prefs = loadPrefs();
 // Anyone already using the app before preferences existed keeps today's exact
 // behavior (USD primary + INR secondary) without ever seeing the onboarding
 // screen — only a truly fresh install (no data at all) gets asked.
 if(!prefs){
-  const hasData = !!(StorageService.getSync(LS_KEY) || StorageService.getSync(NW_LS_KEY) || StorageService.getSync(nsKey("iexpense_cloud_cfg")));
+  const hasData = !!(localStorage.getItem(LS_KEY) || localStorage.getItem(NW_LS_KEY) || localStorage.getItem(nsKey("iexpense_cloud_cfg")));
   if(hasData){
     prefs = { name:"", primaryCurrency:"USD", secondaryCurrency:"INR", onboarded:true, migrated:true };
     savePrefs();
@@ -830,23 +780,27 @@ function nwSetFilter(suffix, kind, value){
   renderDashNetWorth();
 }
 
-function load(){ const val = StorageService.getSync(LS_KEY); return Array.isArray(val) ? val : []; }
+function load(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||"[]"); }catch(e){ return []; } }
 function genId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
 function ensureIds(){ entries.forEach(e=>{ if(!e.id) e.id=genId(); }); }
-function persist(){ ensureIds(); StorageService.setSync(LS_KEY, entries); }
+function persist(){ ensureIds(); try{ localStorage.setItem(LS_KEY, JSON.stringify(entries)); }catch(e){} }
 persist(); // backfill ids on any pre-existing data
 function loadNW(){
-  const data = StorageService.getSync(NW_LS_KEY);
-  if(Array.isArray(data)){
-    return { snapshots: data, changeLog: [] };
-  }
-  return data && typeof data === 'object' ? data : { snapshots: [], changeLog: [] };
+  try{
+    const data = JSON.parse(localStorage.getItem(NW_LS_KEY)||"{}");
+    if(Array.isArray(data)){
+      return { snapshots: data, changeLog: [] };
+    }
+    return data;
+  }catch(e){ return { snapshots: [], changeLog: [] }; }
 }
 function ensureNWIds(){ nwSnapshots.forEach(e=>{ if(!e.id) e.id=genId(); }); }
 function persistNW(){
   ensureNWIds();
-  const data = { version: 2, snapshots: nwSnapshots, changeLog: nwChangeLog };
-  StorageService.setSync(NW_LS_KEY, data);
+  try{
+    const data = { version: 2, snapshots: nwSnapshots, changeLog: nwChangeLog };
+    localStorage.setItem(NW_LS_KEY, JSON.stringify(data));
+  }catch(e){}
 }
 const nwData = loadNW();
 nwSnapshots = nwData.snapshots || [];
@@ -926,42 +880,19 @@ function closeCatPicker(){
 // forms, which open as a full-screen view on top of Dashboard and return to
 // it on Save, Update, or Cancel =====
 function openAddPicker(){
-  console.log("[DEBUG] openAddPicker() - showing overlay");
   document.getElementById("addPickerOverlay").style.display="flex";
 }
 function closeAddPicker(){
-  console.log("[DEBUG] closeAddPicker() - hiding overlay");
   document.getElementById("addPickerOverlay").style.display="none";
 }
 function chooseAdd(kind){
-  console.log("[DEBUG] chooseAdd() called with kind:", kind);
   closeAddPicker();
   showMainTab(kind);
-  console.log("[DEBUG] chooseAdd() completed");
 }
 function closeAddForm(){
-  console.log("[DEBUG] closeAddForm() called");
-  console.log("[DEBUG] netWorthView display:", document.getElementById("netWorthView").style.display);
-  try {
-    if(document.getElementById("netWorthView").style.display !== "none") {
-      console.log("[DEBUG] Calling cancelNWEdit()");
-      cancelNWEdit();
-    } else {
-      console.log("[DEBUG] Calling cancelEdit()");
-      cancelEdit();
-    }
-  } catch(e) {
-    console.error("[DEBUG] Error in cancelEdit/cancelNWEdit:", e);
-  }
-  console.log("[DEBUG] Calling showMainTab('dashboard')");
-  try {
-    showMainTab("dashboard");
-    console.log("[DEBUG] showMainTab completed");
-    console.log("[DEBUG] dashboardView display:", document.getElementById("dashboardView").style.display);
-    console.log("[DEBUG] entriesView display:", document.getElementById("entriesView").style.display);
-  } catch(e) {
-    console.error("[DEBUG] Error in showMainTab:", e);
-  }
+  if(document.getElementById("netWorthView").style.display !== "none") cancelNWEdit();
+  else cancelEdit();
+  showMainTab("dashboard");
 }
 
 const payRow=document.getElementById("payRow");
@@ -1061,6 +992,10 @@ function setFormType(type){
   document.getElementById("entriesView").style.display = "block";
   document.getElementById("netWorthView").style.display = "none";
   document.getElementById("dashboardView").style.display = "none";
+  document.getElementById("tabExpenseBtn").classList.toggle("sel", type==="expense");
+  document.getElementById("tabIncomeBtn").classList.toggle("sel", type==="income");
+  document.getElementById("tabNetWorthBtn").classList.remove("sel");
+  document.getElementById("tabDashboardBtn").classList.remove("sel");
   document.getElementById("storeLabel").textContent = type==="expense" ? "Store / Merchant" : "Source";
   document.getElementById("fStore").placeholder = type==="expense" ? "e.g. Costco" : "e.g. Salary";
   document.getElementById("paymentSection").style.display = type==="expense" ? "block" : "none";
@@ -1097,8 +1032,8 @@ document.getElementById("fStore").addEventListener("keydown",(e)=>{ if(e.key==="
 
 // recent-store quick picks, scoped to the current expense/income mode
 const HIDDEN_CHIPS_KEY = nsKey("iexpense_hidden_chips_v1");
-function loadHiddenChips(){ const val = StorageService.getSync(HIDDEN_CHIPS_KEY); return Array.isArray(val) ? val : []; }
-function saveHiddenChips(list){ StorageService.setSync(HIDDEN_CHIPS_KEY, list); }
+function loadHiddenChips(){ try{ return JSON.parse(localStorage.getItem(HIDDEN_CHIPS_KEY)||"[]"); }catch(e){ return []; } }
+function saveHiddenChips(list){ try{ localStorage.setItem(HIDDEN_CHIPS_KEY, JSON.stringify(list)); }catch(e){} }
 function hideChip(storeName){
   const hidden = loadHiddenChips();
   if(!hidden.includes(storeName)) hidden.push(storeName);
@@ -1616,8 +1551,8 @@ function downloadBlob(blob, filename){
 // scoped to whichever category is currently selected (pick "Cash & Bank"
 // first and only your bank items show up when you start typing) =====
 const NW_HIDDEN_ITEMS_KEY = nsKey("iexpense_nw_hidden_items_v1");
-function loadNWHiddenItems(){ const val = StorageService.getSync(NW_HIDDEN_ITEMS_KEY); return Array.isArray(val) ? val : []; }
-function saveNWHiddenItems(list){ StorageService.setSync(NW_HIDDEN_ITEMS_KEY, list); }
+function loadNWHiddenItems(){ try{ return JSON.parse(localStorage.getItem(NW_HIDDEN_ITEMS_KEY)||"[]"); }catch(e){ return []; } }
+function saveNWHiddenItems(list){ try{ localStorage.setItem(NW_HIDDEN_ITEMS_KEY, JSON.stringify(list)); }catch(e){} }
 function nwHideItem(item){
   const hidden = loadNWHiddenItems();
   if(!hidden.includes(item)) hidden.push(item);
@@ -1987,11 +1922,11 @@ function undoNWSnapshot(snapshotId){
 // copy, it pushes a cleanup write so the remote side converges too. =====
 const DELETED_IDS_KEY = nsKey("iexpense_deleted_ids_v1");
 const NW_DELETED_IDS_KEY = nsKey("iexpense_nw_deleted_ids_v1");
-function loadDeletedIds(key){ const val = StorageService.getSync(key); return Array.isArray(val) ? val : []; }
+function loadDeletedIds(key){ try{ return JSON.parse(localStorage.getItem(key)||"[]"); }catch(e){ return []; } }
 function addDeletedIds(key, ids){
   const cur = loadDeletedIds(key);
   ids.forEach(id=>{ if(!cur.includes(id)) cur.push(id); });
-  StorageService.setSync(key, cur);
+  try{ localStorage.setItem(key, JSON.stringify(cur)); }catch(e){}
 }
 
 // ===== Cloud Sync: GitHub repo (private) acts as the shared data store =====
@@ -1999,36 +1934,38 @@ const CLOUD_KEY = nsKey("iexpense_cloud_cfg");
 let cloudCfg = null; // Configuration with token restored from sessionStorage
 let cloudToken = null; // Legacy: kept for compatibility
 function loadCloudCfg(){
-  const stored = StorageService.getSync(CLOUD_KEY);
-  if (stored && stored.token) {
-    // SECURITY: Remove token from localStorage if present (old insecure data)
-    StorageService.removeSync(CLOUD_KEY);
-    return null; // Don't load it - token shouldn't be in localStorage
-  }
-  // SECURITY: Try sessionStorage first (browser), then localStorage (PWA/mobile)
-  if (stored) {
-    let token = null;
-    if (typeof sessionStorage !== 'undefined') {
-      token = sessionStorage.getItem('iexpense_cloud_token');
+  try{
+    const stored = JSON.parse(localStorage.getItem(CLOUD_KEY)||"null");
+    if (stored && stored.token) {
+      // SECURITY: Remove token from localStorage if present (old insecure data)
+      localStorage.removeItem(CLOUD_KEY);
+      return null; // Don't load it - token shouldn't be in localStorage
     }
-    if (!token && typeof localStorage !== 'undefined') {
-      // Fallback: get token from localStorage for PWA/mobile compatibility
-      const tokenKey = CLOUD_KEY + '_token';
-      try {
-        token = localStorage.getItem(tokenKey);
-      } catch(e) {}
+    // SECURITY: Try sessionStorage first (browser), then localStorage (PWA/mobile)
+    if (stored) {
+      let token = null;
+      if (typeof sessionStorage !== 'undefined') {
+        token = sessionStorage.getItem('iexpense_cloud_token');
+      }
+      if (!token && typeof localStorage !== 'undefined') {
+        // Fallback: get token from localStorage for PWA/mobile compatibility
+        const tokenKey = CLOUD_KEY + '_token';
+        try {
+          token = localStorage.getItem(tokenKey);
+        } catch(e) {}
+      }
+      if (token) {
+        return { ...stored, token };
+      }
     }
-    if (token) {
-      return { ...stored, token };
-    }
-  }
-  return stored;
+    return stored;
+  }catch(e){ return null; }
 }
 function saveCloudCfg(cfg){
   // SECURITY: Save config without token to localStorage
   const toStore = {...cfg};
   delete toStore.token; // Remove token before config storage
-  StorageService.setSync(CLOUD_KEY, toStore);
+  localStorage.setItem(CLOUD_KEY, JSON.stringify(toStore));
   // SECURITY: Store token in sessionStorage (browser) and localStorage (PWA/mobile fallback)
   if (cfg.token) {
     if (typeof sessionStorage !== 'undefined') {
@@ -2044,7 +1981,7 @@ function saveCloudCfg(cfg){
   }
 }
 function clearCloudCfg(){
-  StorageService.removeSync(CLOUD_KEY);
+  localStorage.removeItem(CLOUD_KEY);
   cloudToken = null; // Clear in-memory token too
   if (typeof sessionStorage !== 'undefined') {
     sessionStorage.removeItem('iexpense_cloud_token');
@@ -2279,6 +2216,10 @@ function showNetWorth(){
   document.getElementById("entriesView").style.display = "none";
   document.getElementById("dashboardView").style.display = "none";
   document.getElementById("netWorthView").style.display = "block";
+  document.getElementById("tabExpenseBtn").classList.remove("sel");
+  document.getElementById("tabIncomeBtn").classList.remove("sel");
+  document.getElementById("tabNetWorthBtn").classList.add("sel");
+  document.getElementById("tabDashboardBtn").classList.remove("sel");
   document.getElementById("fabAddBtn").style.display = "none";
   renderNWItemList();
   hideNWItemSuggestions();
@@ -2293,6 +2234,10 @@ function showMainTab(tab){
     document.getElementById("netWorthView").style.display = "none";
     document.getElementById("dashboardView").style.display = "block";
     document.getElementById("settingsView").style.display = "none";
+    document.getElementById("tabExpenseBtn").classList.remove("sel");
+    document.getElementById("tabIncomeBtn").classList.remove("sel");
+    document.getElementById("tabNetWorthBtn").classList.remove("sel");
+    document.getElementById("tabDashboardBtn").classList.add("sel");
     document.getElementById("fabAddBtn").style.display = "flex";
     renderDashboard();
   } else if(tab==="networth"){
@@ -2307,6 +2252,10 @@ function showMainTab(tab){
     document.getElementById("netWorthView").style.display = "none";
     document.getElementById("dashboardView").style.display = "none";
     document.getElementById("settingsView").style.display = "block";
+    document.getElementById("tabExpenseBtn").classList.remove("sel");
+    document.getElementById("tabIncomeBtn").classList.remove("sel");
+    document.getElementById("tabNetWorthBtn").classList.remove("sel");
+    document.getElementById("tabDashboardBtn").classList.remove("sel");
     document.getElementById("fabAddBtn").style.display = "none";
     renderSettings();
     // Land the user at the top of the Settings screen so the back chevron
@@ -2665,7 +2614,7 @@ function nwAllMonths(){
 // guessed — items that can't be converted are called out, never silently
 // mixed into a wrong-looking total. =====
 function getManualFxRate(){
-  return StorageService.getSync(FX_MANUAL_KEY);
+  try{ return JSON.parse(localStorage.getItem(FX_MANUAL_KEY)||"null"); }catch(e){ return null; }
 }
 function saveManualFxRate(){
   const val = Number(document.getElementById("nwManualRateInput").value);
@@ -2680,7 +2629,7 @@ function saveManualFxRate(){
   // manual rate can never silently outlive its day even if the device clock
   // rolls forward mid\u2011session
   const fresh = { rate:val, date:todayStr(), manual:true };
-  StorageService.setSync(FX_MANUAL_KEY, fresh);
+  try{ localStorage.setItem(FX_MANUAL_KEY, JSON.stringify(fresh)); }catch(e){}
   toast("Rate saved ✓");
   renderDashNetWorth();
 }
@@ -2696,7 +2645,8 @@ async function getUsdInrRate(){
   const today = todayStr();
   const manual = getManualFxRate();
   if(manual && manual.date===today) return manual; // a rate you typed in yourself always wins for today
-  let cached = StorageService.getSync(FX_CACHE_KEY);
+  let cached = null;
+  try{ cached = JSON.parse(localStorage.getItem(FX_CACHE_KEY)||"null"); }catch(e){}
   if(cached && cached.date===today) return cached;
   try{
     const res = await fetch(`https://api.frankfurter.dev/v1/latest?from=${PRIMARY_CUR}&to=${SECONDARY_CUR}`);
@@ -2705,7 +2655,7 @@ async function getUsdInrRate(){
     const rate = data.rates && data.rates[SECONDARY_CUR];
     if(!rate) throw new Error("no rate in response");
     const fresh = { rate, date:today, manual:false };
-    StorageService.setSync(FX_CACHE_KEY, fresh);
+    try{ localStorage.setItem(FX_CACHE_KEY, JSON.stringify(fresh)); }catch(e){}
     return fresh;
   }catch(err){
     return manual || cached; // a stale manual entry beats a stale auto one; null if neither ever existed
@@ -2745,6 +2695,43 @@ function nwValueAsOf(monthStr, toCur, rateInfo, currencyFilter){
     else assets += converted;
   });
   return { assets, liabilities, net:assets-liabilities, incomplete };
+}
+
+function nwCalculateMonthlyGrowth(toCur, rateInfo, currencyFilter){
+  // Calculate net worth for each month (last 13 months for comparison)
+  const activeSnapshots = nwSnapshots.filter(s => s.source !== "undo");
+  if(!activeSnapshots.length) return { months:[], amounts:[], changes:[] };
+
+  // Get all unique months with data
+  const months = nwAllMonths();
+  if(months.length === 0) return { months:[], amounts:[], changes:[] };
+
+  const amounts = [];
+  const monthLabels = [];
+
+  months.forEach(monthStr => {
+    const result = nwValueAsOf(monthStr, toCur, rateInfo, currencyFilter);
+    amounts.push(result.net);
+    monthLabels.push(monthStr.substring(5)); // MM format (e.g., "08" for August)
+  });
+
+  // Calculate month-to-month changes
+  const changes = [];
+  for(let i=1; i<amounts.length; i++){
+    const prev = amounts[i-1];
+    const curr = amounts[i];
+    const change = curr - prev;
+    changes.push(change);
+  }
+
+  // Return last 13 months (12 months to show + 1 previous for baseline)
+  const startIdx = Math.max(0, months.length - 13);
+  return {
+    months: months.slice(startIdx),
+    amounts: amounts.slice(startIdx),
+    changes: changes.slice(startIdx),
+    labels: monthLabels.slice(startIdx)
+  };
 }
 
 function nwCalculateWeeklyGrowth(items, toCur, rateInfo, currencyFilter){
@@ -2841,7 +2828,8 @@ function nwComputeAndRender(suffix, itemsWithIdx, toCur, rateInfo, opts){
   const netWorth = totalAssets - totalLiabilities;
   const investable = items.filter(e=>!isLiability(e.category));
 
-  const weeklyData = nwCalculateWeeklyGrowth(items, toCur, rateInfo, currencyFilter);
+  // Use monthly trends (not weekly) for better visibility of small changes
+  const monthlyData = nwCalculateMonthlyGrowth(toCur, rateInfo, currencyFilter);
 
   // Calculate monthly change for dashboard card
   // NOTE: Always use ALL items (currencyFilter=null) for trend, even if viewing a single region.
@@ -2864,7 +2852,7 @@ function nwComputeAndRender(suffix, itemsWithIdx, toCur, rateInfo, opts){
     const textColor = themeColor("--text");
     const gridColor = themeColor("--border");
 
-    if(!weeklyData.weeks.length){
+    if(!monthlyData.months.length){
       showChartFallback("nwTrendChart"+suffix, "📊 No net worth data yet");
     } else {
       showChartCanvas("nwTrendChart"+suffix);
@@ -2872,16 +2860,16 @@ function nwComputeAndRender(suffix, itemsWithIdx, toCur, rateInfo, opts){
       charts["nwTrend"+suffix] = new Chart(document.getElementById("nwTrendChart"+suffix), {
         type:"line",
         data:{
-          labels:weeklyData.weeks.map(w=>`${w.start.substring(5)}`),
+          labels:monthlyData.labels,
           datasets:[{
-            label:"Net Worth",
-            data:weeklyData.amounts,
+            label:"Net Worth (Monthly)",
+            data:monthlyData.amounts,
             borderColor:themeColor("--accent"),
             backgroundColor:"rgba(79,140,255,0.15)",
             fill:true,
             tension:.3,
-            pointRadius:3,
-            pointHoverRadius:5,
+            pointRadius:5,
+            pointHoverRadius:7,
             pointBackgroundColor:themeColor("--accent")
           }]
         },
@@ -2895,11 +2883,10 @@ function nwComputeAndRender(suffix, itemsWithIdx, toCur, rateInfo, opts){
                   const amt = ctx.parsed.y;
                   const idx = ctx.dataIndex;
                   let label = nwFmtAmount(amt, toCur);
-                  if(idx > 0 && weeklyData.amounts[idx-1] !== undefined){
-                    const prev = weeklyData.amounts[idx-1];
+                  if(idx > 0 && monthlyData.amounts[idx-1] !== undefined){
+                    const prev = monthlyData.amounts[idx-1];
                     const change = amt - prev;
-                    const pctChange = prev !== 0 ? ((change / Math.abs(prev)) * 100) : 0;
-                    label += ` (${change>=0?"+":""}${nwFmtAmount(change, toCur)}, ${pctChange>=0?"+":""}${pctChange.toFixed(1)}%)`;
+                    label += ` (${change>=0?"+":""}${nwFmtAmount(change, toCur)})`;
                   }
                   return label;
                 }
@@ -3075,7 +3062,7 @@ function setTheme(theme){
   const lBtn = document.getElementById("settingsLightBtn");
   if(dBtn) dBtn.classList.toggle("sel", theme!=="light");
   if(lBtn) lBtn.classList.toggle("sel", theme==="light");
-  StorageService.setSync(nsKey("iexpense_theme"), theme);
+  try{ localStorage.setItem(nsKey("iexpense_theme"), theme); }catch(e){}
   if(document.getElementById("dashboardView").style.display !== "none") renderDashboard();
 }
 
@@ -3197,8 +3184,10 @@ document.addEventListener("visibilitychange", ()=>{
 });
 // Backup/Export options now visible on both prod and dev
 // Note: dev has Cloud Sync AND local backup for complete data protection
+}
 (function initTheme(){
-  const saved = StorageService.getSync(nsKey("iexpense_theme")) || "dark";
+  let saved="dark";
+  try{ saved = localStorage.getItem(nsKey("iexpense_theme")) || "dark"; }catch(e){}
   setTheme(saved);
 })();
 showMainTab("dashboard"); // Dashboard is the app's home screen; the + button is the only way to log an expense/income/net worth entry

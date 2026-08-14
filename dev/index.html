@@ -209,7 +209,7 @@
   .cat-picker-back{background:var(--card2);border:1px solid var(--border);color:var(--text);width:36px;height:36px;min-width:36px;border-radius:50%;font-size:20px;cursor:pointer;line-height:1}
   .cat-picker-title{font-weight:700;font-size:17px}
   .add-form-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-  .fab-add{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom));width:60px;height:60px;border-radius:50%;background:var(--accent);color:var(--ctatext);font-size:30px;line-height:1;border:none;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer;z-index:150;display:flex;align-items:center;justify-content:center;padding:0;transition:background .2s ease,transform .2s ease,box-shadow .2s ease}
+  .fab-add{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom));width:60px;height:60px;border-radius:50%;background:var(--accent);color:var(--ctatext);font-size:30px;line-height:1;border:none;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer;z-index:150;display:none;align-items:center;justify-content:center;padding:0;transition:background .2s ease,transform .2s ease,box-shadow .2s ease}
   .fab-add:hover{transform:translateX(-50%) scale(1.08);box-shadow:0 8px 24px rgba(0,0,0,.45)}
   .fab-add:active{transform:translateX(-50%) scale(.92)}
   .radial-menu-backdrop{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:140}
@@ -235,9 +235,11 @@
   .nw-value-comparison-card .comp-value{font-size:18px;font-weight:700;margin-bottom:8px}
   .nw-value-comparison-card .comp-arrow{color:var(--muted);margin:8px 0;font-size:14px}
   .nw-value-comparison-card .comp-btn{background:none;border:none;color:var(--accent);font-size:13px;font-weight:700;cursor:pointer;padding:0;text-decoration:underline;margin-top:4px}
-  .nw-history-entry{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:12px 4px;border-bottom:1px solid var(--card2)}
+  .nw-history-entry{display:flex;justify-content:space-between;align-items:center;padding:12px 4px;border-bottom:1px solid var(--card2)}
   .nw-history-entry:last-child{border-bottom:none}
-  .history-undo-btn{background:var(--accent);color:var(--ctatext);border:none;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;margin-top:4px}
+  .nw-history-entry > div:nth-child(1){font-size:14px;color:var(--muted);flex:0 0 auto;width:70px}
+  .nw-history-entry > div:nth-child(2){font-size:15px;font-weight:700;flex:1;text-align:right}
+  .nw-history-entry > div:nth-child(3){font-size:12px;color:var(--muted);flex:0 0 auto;width:80px;text-align:right}
   .alert-warning{border-left:3px solid var(--amber)}
   .alert-danger{border-left:3px solid var(--red)}
   .alert-text{font-size:12px;margin-top:6px;padding:8px 0 0 0}
@@ -294,8 +296,14 @@
   </div>
 </header>
 
+<div class="tabs" style="display:none">
+  <button class="sel" id="tabExpenseBtn" onclick="showMainTab('expense')">🧾 Expense</button>
+  <button id="tabIncomeBtn" onclick="showMainTab('income')">💰 Income</button>
+  <button id="tabNetWorthBtn" onclick="showMainTab('networth')">💎 Net Worth</button>
+  <button id="tabDashboardBtn" onclick="showMainTab('dashboard')">📊 Dashboard</button>
+</div>
 
-<div id="entriesView" style="display:none">
+<div id="entriesView">
 
 <div class="add-form-header">
   <button type="button" class="cat-picker-back" onclick="closeAddForm()">‹</button>
@@ -359,12 +367,11 @@
 </div>
 
 <div id="nwComparisonCardWrap" style="display:none">
-  <div class="nw-value-comparison-card" id="nwComparisonCard">
+  <div class="nw-value-comparison-card">
     <div class="comp-label">📊 Last Value</div>
     <div class="comp-value" id="nwComparisonLastValue">—</div>
     <div class="comp-arrow">➜</div>
     <div class="comp-label">New Value</div>
-    <div id="nwChangeWarning"></div>
   </div>
   <button type="button" class="comp-btn" id="nwViewHistoryBtn" onclick="showNWHistory(document.getElementById('nwItem').value)">View History</button>
 </div>
@@ -376,7 +383,7 @@
 <div class="chip-row" id="nwCurrencyRow"></div>
 
 <div class="label">Current Value</div>
-<div class="amount-wrap" id="nwAmountWrap"><input type="tel" id="nwValue" inputmode="decimal" placeholder="0.00" oninput="updateNWChangeWarning()"></div>
+<div class="amount-wrap" id="nwAmountWrap"><input type="tel" id="nwValue" inputmode="decimal" placeholder="0.00"></div>
 
 <div class="label">Annual Growth Rate % (optional)</div>
 <input type="tel" id="nwGrowth" inputmode="decimal" placeholder="e.g. 7 — used for projections">
@@ -402,7 +409,7 @@
   </div>
 </div>
 
-<div id="dashboardView">
+<div id="dashboardView" style="display:none">
   <div class="dash-tabs">
     <button class="sel" id="dashMonthlyBtn" onclick="showDashTab('monthly')">Monthly Detail</button>
     <button id="dashOverviewBtn" onclick="showDashTab('overview')">Summary</button>
@@ -575,8 +582,7 @@
       <input type="file" id="restoreFile" accept="application/json" style="display:none" onchange="restoreData(event)">
     </div>
     <button class="btn btn-ghost" onclick="exportExcel()" style="margin-top:8px">📊 Export Excel report (.xlsx)</button>
-    <button class="btn btn-ghost" onclick="exportNWHistory()" style="margin-top:8px">📈 Export Net Worth History (.json)</button>
-    <div class="settings-hint">Monthly summary, category breakdown, all entries &amp; net worth — build your own charts/pivot tables in Excel. Net worth history includes complete audit trail with all changes.</div>
+    <div class="settings-hint">Monthly summary, category breakdown, all entries &amp; net worth — build your own charts/pivot tables in Excel.</div>
   </div>
 
   <!-- Footer: version + environment badge. Cheap way to answer "am I on
@@ -715,70 +721,14 @@ const CURRENCY_INFO = {
   MXN:{sym:"Mex$",label:"Mexican Peso"}
 };
 function curSym(cur){ return CURRENCY_INFO[cur] ? CURRENCY_INFO[cur].sym : cur+" "; }
-
-// ===== STORAGE SERVICE: Abstraction layer for localStorage (web) / AsyncStorage (mobile) =====
-// On web: synchronous operations using localStorage
-// On mobile: asynchronous operations using React Native AsyncStorage
-// Call pattern: const val = StorageService.getSync(key) on web, or await StorageService.get(key) on mobile
-const StorageService = {
-  // Synchronous methods (web only, uses localStorage)
-  getSync: (key) => {
-    try { return JSON.parse(localStorage.getItem(key) || "null"); }
-    catch(e) { return null; }
-  },
-  setSync: (key, value) => {
-    try { localStorage.setItem(key, JSON.stringify(value)); return true; }
-    catch(e) { console.warn(`Storage full or error saving ${key}:`, e); return false; }
-  },
-  removeSync: (key) => {
-    try { localStorage.removeItem(key); return true; }
-    catch(e) { return false; }
-  },
-
-  // Asynchronous methods (compatible with AsyncStorage on mobile)
-  get: async (key) => {
-    try { return JSON.parse(localStorage.getItem(key) || "null"); }
-    catch(e) { return null; }
-  },
-  set: async (key, value) => {
-    try { localStorage.setItem(key, JSON.stringify(value)); return true; }
-    catch(e) { console.warn(`Storage full or error saving ${key}:`, e); return false; }
-  },
-  remove: async (key) => {
-    try { localStorage.removeItem(key); return true; }
-    catch(e) { return false; }
-  },
-
-  // Check if storage is available and has space
-  isAvailable: () => {
-    try {
-      const test = "__storage_test__";
-      localStorage.setItem(test, "1");
-      localStorage.removeItem(test);
-      return true;
-    } catch(e) { return false; }
-  },
-
-  // Get approximate storage usage (for quota management)
-  getUsage: () => {
-    let total = 0;
-    for(const key in localStorage) {
-      if(localStorage.hasOwnProperty(key)) {
-        total += localStorage[key].length + key.length;
-      }
-    }
-    return { used: total, estimate: total + " bytes" };
-  }
-};
-
-function loadPrefs(){ return StorageService.getSync(PREFS_KEY); }
-function savePrefs(){ StorageService.setSync(PREFS_KEY, prefs); }
+function loadPrefs(){ try{ return JSON.parse(localStorage.getItem(PREFS_KEY)||"null"); }catch(e){ return null; } }
+function savePrefs(){ try{ localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); }catch(e){} }
 let prefs = loadPrefs();
 // Anyone already using the app before preferences existed keeps today's exact
 // behavior (USD primary + INR secondary) without ever seeing the onboarding
 // screen — only a truly fresh install (no data at all) gets asked.
 if(!prefs){
-  const hasData = !!(StorageService.getSync(LS_KEY) || StorageService.getSync(NW_LS_KEY) || StorageService.getSync(nsKey("iexpense_cloud_cfg")));
+  const hasData = !!(localStorage.getItem(LS_KEY) || localStorage.getItem(NW_LS_KEY) || localStorage.getItem(nsKey("iexpense_cloud_cfg")));
   if(hasData){
     prefs = { name:"", primaryCurrency:"USD", secondaryCurrency:"INR", onboarded:true, migrated:true };
     savePrefs();
@@ -830,23 +780,27 @@ function nwSetFilter(suffix, kind, value){
   renderDashNetWorth();
 }
 
-function load(){ const val = StorageService.getSync(LS_KEY); return Array.isArray(val) ? val : []; }
+function load(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||"[]"); }catch(e){ return []; } }
 function genId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
 function ensureIds(){ entries.forEach(e=>{ if(!e.id) e.id=genId(); }); }
-function persist(){ ensureIds(); StorageService.setSync(LS_KEY, entries); }
+function persist(){ ensureIds(); try{ localStorage.setItem(LS_KEY, JSON.stringify(entries)); }catch(e){} }
 persist(); // backfill ids on any pre-existing data
 function loadNW(){
-  const data = StorageService.getSync(NW_LS_KEY);
-  if(Array.isArray(data)){
-    return { snapshots: data, changeLog: [] };
-  }
-  return data && typeof data === 'object' ? data : { snapshots: [], changeLog: [] };
+  try{
+    const data = JSON.parse(localStorage.getItem(NW_LS_KEY)||"{}");
+    if(Array.isArray(data)){
+      return { snapshots: data, changeLog: [] };
+    }
+    return data;
+  }catch(e){ return { snapshots: [], changeLog: [] }; }
 }
 function ensureNWIds(){ nwSnapshots.forEach(e=>{ if(!e.id) e.id=genId(); }); }
 function persistNW(){
   ensureNWIds();
-  const data = { version: 2, snapshots: nwSnapshots, changeLog: nwChangeLog };
-  StorageService.setSync(NW_LS_KEY, data);
+  try{
+    const data = { version: 2, snapshots: nwSnapshots, changeLog: nwChangeLog };
+    localStorage.setItem(NW_LS_KEY, JSON.stringify(data));
+  }catch(e){}
 }
 const nwData = loadNW();
 nwSnapshots = nwData.snapshots || [];
@@ -926,42 +880,19 @@ function closeCatPicker(){
 // forms, which open as a full-screen view on top of Dashboard and return to
 // it on Save, Update, or Cancel =====
 function openAddPicker(){
-  console.log("[DEBUG] openAddPicker() - showing overlay");
   document.getElementById("addPickerOverlay").style.display="flex";
 }
 function closeAddPicker(){
-  console.log("[DEBUG] closeAddPicker() - hiding overlay");
   document.getElementById("addPickerOverlay").style.display="none";
 }
 function chooseAdd(kind){
-  console.log("[DEBUG] chooseAdd() called with kind:", kind);
   closeAddPicker();
   showMainTab(kind);
-  console.log("[DEBUG] chooseAdd() completed");
 }
 function closeAddForm(){
-  console.log("[DEBUG] closeAddForm() called");
-  console.log("[DEBUG] netWorthView display:", document.getElementById("netWorthView").style.display);
-  try {
-    if(document.getElementById("netWorthView").style.display !== "none") {
-      console.log("[DEBUG] Calling cancelNWEdit()");
-      cancelNWEdit();
-    } else {
-      console.log("[DEBUG] Calling cancelEdit()");
-      cancelEdit();
-    }
-  } catch(e) {
-    console.error("[DEBUG] Error in cancelEdit/cancelNWEdit:", e);
-  }
-  console.log("[DEBUG] Calling showMainTab('dashboard')");
-  try {
-    showMainTab("dashboard");
-    console.log("[DEBUG] showMainTab completed");
-    console.log("[DEBUG] dashboardView display:", document.getElementById("dashboardView").style.display);
-    console.log("[DEBUG] entriesView display:", document.getElementById("entriesView").style.display);
-  } catch(e) {
-    console.error("[DEBUG] Error in showMainTab:", e);
-  }
+  if(document.getElementById("netWorthView").style.display !== "none") cancelNWEdit();
+  else cancelEdit();
+  showMainTab("dashboard");
 }
 
 const payRow=document.getElementById("payRow");
@@ -1061,6 +992,10 @@ function setFormType(type){
   document.getElementById("entriesView").style.display = "block";
   document.getElementById("netWorthView").style.display = "none";
   document.getElementById("dashboardView").style.display = "none";
+  document.getElementById("tabExpenseBtn").classList.toggle("sel", type==="expense");
+  document.getElementById("tabIncomeBtn").classList.toggle("sel", type==="income");
+  document.getElementById("tabNetWorthBtn").classList.remove("sel");
+  document.getElementById("tabDashboardBtn").classList.remove("sel");
   document.getElementById("storeLabel").textContent = type==="expense" ? "Store / Merchant" : "Source";
   document.getElementById("fStore").placeholder = type==="expense" ? "e.g. Costco" : "e.g. Salary";
   document.getElementById("paymentSection").style.display = type==="expense" ? "block" : "none";
@@ -1097,8 +1032,8 @@ document.getElementById("fStore").addEventListener("keydown",(e)=>{ if(e.key==="
 
 // recent-store quick picks, scoped to the current expense/income mode
 const HIDDEN_CHIPS_KEY = nsKey("iexpense_hidden_chips_v1");
-function loadHiddenChips(){ const val = StorageService.getSync(HIDDEN_CHIPS_KEY); return Array.isArray(val) ? val : []; }
-function saveHiddenChips(list){ StorageService.setSync(HIDDEN_CHIPS_KEY, list); }
+function loadHiddenChips(){ try{ return JSON.parse(localStorage.getItem(HIDDEN_CHIPS_KEY)||"[]"); }catch(e){ return []; } }
+function saveHiddenChips(list){ try{ localStorage.setItem(HIDDEN_CHIPS_KEY, JSON.stringify(list)); }catch(e){} }
 function hideChip(storeName){
   const hidden = loadHiddenChips();
   if(!hidden.includes(storeName)) hidden.push(storeName);
@@ -1286,26 +1221,6 @@ function backupData(){
   const fname = `iexpense_backup_${payload.backup.replace(/[-:T]/g,"").slice(0,14)}.json`;
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=fname; a.click();
   toast("Backup downloaded");
-}
-
-function exportNWHistory(){
-  const timestamp = new Date().toISOString();
-  const backup = {
-    backup: `net-worth-${timestamp.split('T')[0]}`,
-    source: "iExpense (Net Worth)",
-    exportedAt: timestamp,
-    snapshots: nwSnapshots,
-    changeLog: nwChangeLog
-  };
-
-  const blob = new Blob([JSON.stringify(backup, null, 2)], {type: 'application/json'});
-  const fname = `${backup.backup}_${timestamp.replace(/[-:T]/g,"").slice(0,14)}.json`;
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = fname;
-  a.click();
-  URL.revokeObjectURL(a.href);
-  toast("Net worth history exported ✓");
 }
 
 async function restoreData(evt){
@@ -1607,8 +1522,8 @@ function downloadBlob(blob, filename){
 // scoped to whichever category is currently selected (pick "Cash & Bank"
 // first and only your bank items show up when you start typing) =====
 const NW_HIDDEN_ITEMS_KEY = nsKey("iexpense_nw_hidden_items_v1");
-function loadNWHiddenItems(){ const val = StorageService.getSync(NW_HIDDEN_ITEMS_KEY); return Array.isArray(val) ? val : []; }
-function saveNWHiddenItems(list){ StorageService.setSync(NW_HIDDEN_ITEMS_KEY, list); }
+function loadNWHiddenItems(){ try{ return JSON.parse(localStorage.getItem(NW_HIDDEN_ITEMS_KEY)||"[]"); }catch(e){ return []; } }
+function saveNWHiddenItems(list){ try{ localStorage.setItem(NW_HIDDEN_ITEMS_KEY, JSON.stringify(list)); }catch(e){} }
 function nwHideItem(item){
   const hidden = loadNWHiddenItems();
   if(!hidden.includes(item)) hidden.push(item);
@@ -1626,7 +1541,7 @@ function nwItemHistoryList(){
   const hidden = loadNWHiddenItems();
   const seen=[]; const seenLower=new Set();
   [...nwSnapshots].reverse().forEach(e=>{
-    if(!e.item || e.source === "undo") return;
+    if(!e.item) return;
     if(nwSel.cat && e.category!==nwSel.cat) return;
     if(!seenLower.has(e.item.toLowerCase())){ seenLower.add(e.item.toLowerCase()); seen.push(e.item); }
   });
@@ -1729,34 +1644,6 @@ function cancelNWEdit(){
   resetNWForm();
 }
 
-function updateNWChangeWarning(){
-  const oldValue = nwUpdatingSnapshot ? nwUpdatingSnapshot.value : null;
-  const newValueStr = document.getElementById("nwValue").value.trim();
-  const newValue = newValueStr ? parseFloat(newValueStr) : null;
-  const warningDiv = document.getElementById("nwChangeWarning");
-
-  if(!oldValue || !newValue || newValue === oldValue){
-    warningDiv.innerHTML = "";
-    document.getElementById("nwComparisonCard").classList.remove("alert-warning", "alert-danger");
-    return;
-  }
-
-  const pctChange = Math.abs((newValue - oldValue) / oldValue * 100);
-
-  if(pctChange >= 100){
-    document.getElementById("nwComparisonCard").classList.add("alert-danger");
-    document.getElementById("nwComparisonCard").classList.remove("alert-warning");
-    warningDiv.innerHTML = `<div class="alert-text">🚨 Huge change (${pctChange.toFixed(0)}%) — review the value?</div>`;
-  } else if(pctChange >= 50){
-    document.getElementById("nwComparisonCard").classList.add("alert-warning");
-    document.getElementById("nwComparisonCard").classList.remove("alert-danger");
-    warningDiv.innerHTML = `<div class="alert-text">⚠️ Large change (${pctChange.toFixed(0)}%) — confirm the value?</div>`;
-  } else {
-    warningDiv.innerHTML = "";
-    document.getElementById("nwComparisonCard").classList.remove("alert-warning", "alert-danger");
-  }
-}
-
 // tapping an existing item never mutates its history — it prefills the form
 // with that item's last known category/currency/growth rate and value, dated
 // TODAY, so you can just retype the new number and hit Update; saving always
@@ -1779,7 +1666,6 @@ function nwStartUpdate(itemName){
   document.getElementById("nwSaveBtn").textContent = "Update Entry";
   document.getElementById("nwComparisonCardWrap").style.display = "block";
   document.getElementById("nwComparisonLastValue").textContent = `${nwFmtAmount(latest.value, latest.currency || PRIMARY_CUR)} (updated ${latest.date})`;
-  updateNWChangeWarning();
   window.scrollTo({top:0,behavior:"smooth"});
 }
 
@@ -1805,7 +1691,7 @@ async function saveNW(){
   const isUpdate = nwUpdatingSnapshot !== null;
   if(isUpdate && !confirm(`Log this month's value for "${candidate.item}"? Your previous entries stay untouched.`)) return;
 
-  const snapshotId = genId();
+  const snapshotId = isUpdate ? nwUpdatingSnapshot.id : genId();
   const newSnapshot = {
     id: snapshotId,
     date: candidate.date,
@@ -1819,7 +1705,12 @@ async function saveNW(){
     correctionOf: isUpdate ? nwUpdatingSnapshot.id : null
   };
 
-  nwSnapshots.push(newSnapshot);
+  const existingIdx = nwSnapshots.findIndex(s => s.id === snapshotId);
+  if(existingIdx >= 0){
+    nwSnapshots[existingIdx] = newSnapshot;
+  } else {
+    nwSnapshots.push(newSnapshot);
+  }
 
   const logEntry = {
     id: genId(),
@@ -1833,7 +1724,7 @@ async function saveNW(){
   nwChangeLog.push(logEntry);
 
   persistNW();
-  toast(isUpdate ? "Updated ✓" : "Saved ✓", "var(--green)");
+  toast(isUpdate ? "Updated ✓" : "Saved ✓");
   resetNWForm();
   nwUpdatingSnapshot = null;
   showMainTab("dashboard");
@@ -1841,19 +1732,12 @@ async function saveNW(){
   if(cloudCfg){
     try{
       await nwCloudSyncMutation(remote=>{
-        // Ensure we work with snapshots array for merging
-        const remoteSnapshots = Array.isArray(remote) ? remote : (remote.snapshots || []);
-        // Always return array format for GitHub compatibility
-        return nwSnapshots;
+        remote.snapshots = nwSnapshots;
+        remote.changeLog = nwChangeLog;
+        return remote;
       });
-      // Sync succeeded - show success message
-      setCloudStatus(true, `✓ Net worth: ${nwSnapshots.length} items synced to GitHub`);
-      console.log("✓ Net worth synced successfully", nwSnapshots.length, "items");
     }catch(err){
-      // Sync failed - show clear failure message
-      setCloudStatus(false, "✗ Did not sync to GitHub — data saved locally. Will retry automatically.");
-      console.error("✗ Net worth sync failed:", err.message);
-      toast("✗ Sync failed — data saved locally", "var(--red)");
+      setCloudStatus(false, "Saved locally — will retry syncing automatically");
     }
   }
 }
@@ -1873,15 +1757,12 @@ async function delNWItem(itemName, evt){
   if(cloudCfg){
     try{
       await nwCloudSyncMutation(remote=>{
-        // Filter out deleted items from snapshots, return array format for GitHub
-        return nwSnapshots;
+        remote.snapshots = remote.snapshots.filter(e=>!idsToDelete.includes(e.id));
+        remote.changeLog = remote.changeLog.filter(log=>!idsToDelete.includes(log.snapshotId));
+        return remote;
       });
-      setCloudStatus(true, `✓ Net worth: deleted "${itemName}" — synced to GitHub`);
-      console.log("✓ Deletion synced successfully");
     }catch(err){
-      setCloudStatus(false, "✗ Deleted locally — did not sync to GitHub. Will retry automatically.");
-      console.error("✗ Delete sync failed:", err.message);
-      toast("✗ Sync failed — deletion saved locally", "var(--red)");
+      setCloudStatus(false, "Deleted locally — will retry syncing automatically");
     }
   }
 }
@@ -1890,23 +1771,15 @@ function showNWHistory(itemName){
   nwViewingItemHistory = itemName;
   const historyList = document.getElementById("nwHistoryList");
   document.getElementById("nwHistoryTitle").textContent = `History for ${itemName}`;
-  const itemSnapshots = nwSnapshots.filter(s => s.item === itemName && s.source !== "undo").slice().reverse();
+  const itemSnapshots = nwSnapshots.filter(s => s.item === itemName).slice().reverse();
 
-  historyList.innerHTML = itemSnapshots.map((snap, idx) => {
-    const undoBtn = idx === 0 ? `<button type="button" class="history-undo-btn" onclick="undoNWSnapshot('${snap.id}')">Undo</button>` : "";
-    return `
-      <div class="nw-history-entry">
-        <div style="flex:1">
-          <div>${snap.date}</div>
-          <div>${nwFmtAmount(snap.value, snap.currency || "USD")}</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:6px">${idx === 0 ? "Current" : "Previous"}</div>
-          ${undoBtn}
-        </div>
-      </div>
-    `;
-  }).join("");
+  historyList.innerHTML = itemSnapshots.map((snap, idx) => `
+    <div class="nw-history-entry">
+      <div>${snap.date}</div>
+      <div>${nwFmtAmount(snap.value, snap.currency || "USD")}</div>
+      <div>${idx === 0 ? "Current" : snap.source === "undo" ? "Undone" : "Superseded"}</div>
+    </div>
+  `).join("");
 
   document.getElementById("nwHistoryOverlay").style.display = "flex";
 }
@@ -1914,58 +1787,6 @@ function showNWHistory(itemName){
 function closeNWHistory(){
   document.getElementById("nwHistoryOverlay").style.display = "none";
   nwViewingItemHistory = null;
-}
-
-function undoNWSnapshot(snapshotId){
-  const snap = nwSnapshots.find(s => s.id === snapshotId);
-  if(!snap) return;
-
-  if(!confirm(`Undo "${snap.item}" entry from ${snap.date}?`)) return;
-
-  const undoSnapshot = {
-    id: genId(),
-    date: snap.date,
-    category: snap.category,
-    item: snap.item,
-    value: snap.value,
-    growthRate: snap.growthRate,
-    currency: snap.currency,
-    createdAt: new Date().toISOString(),
-    source: "undo",
-    correctionOf: snapshotId
-  };
-
-  nwSnapshots.push(undoSnapshot);
-
-  const logEntry = {
-    id: genId(),
-    snapshotId: undoSnapshot.id,
-    timestamp: undoSnapshot.createdAt,
-    operation: "undo",
-    before: snap,
-    after: undoSnapshot,
-    reason: "User reverted change"
-  };
-  nwChangeLog.push(logEntry);
-
-  if(cloudCfg){
-    nwCloudSyncMutation(remote => {
-      // Return snapshots as array for GitHub compatibility
-      return nwSnapshots;
-    }).then(() => {
-      setCloudStatus(true, `✓ Net worth: undid change — synced to GitHub`);
-      console.log("✓ Undo synced successfully");
-    }).catch(err => {
-      setCloudStatus(false, "✗ Undid locally — did not sync to GitHub. Will retry automatically.");
-      console.error("✗ Undo sync failed:", err.message);
-      toast("✗ Sync failed — undo saved locally", "var(--red)");
-    });
-  }
-
-  persistNW();
-  toast(`✓ Undid "${snap.item}"`, "var(--green)");
-  showNWHistory(snap.item);
-  refreshAllNWDisplays();
 }
 
 // ===== Delete tombstones: a plain union-merge can only ADD entries, so it
@@ -1978,32 +1799,37 @@ function undoNWSnapshot(snapshotId){
 // copy, it pushes a cleanup write so the remote side converges too. =====
 const DELETED_IDS_KEY = nsKey("iexpense_deleted_ids_v1");
 const NW_DELETED_IDS_KEY = nsKey("iexpense_nw_deleted_ids_v1");
-function loadDeletedIds(key){ const val = StorageService.getSync(key); return Array.isArray(val) ? val : []; }
+function loadDeletedIds(key){ try{ return JSON.parse(localStorage.getItem(key)||"[]"); }catch(e){ return []; } }
 function addDeletedIds(key, ids){
   const cur = loadDeletedIds(key);
   ids.forEach(id=>{ if(!cur.includes(id)) cur.push(id); });
-  StorageService.setSync(key, cur);
+  try{ localStorage.setItem(key, JSON.stringify(cur)); }catch(e){}
 }
 
 // ===== Cloud Sync: GitHub repo (private) acts as the shared data store =====
-// The token is persisted (fine-grained PAT, scoped by the user to exactly one
-// private repo with only Contents read/write — see CLOUD_SYNC_SETUP.md) so
-// sync survives a page reload / app restart without re-entering it every
-// time. An in-memory-only token was tried and reverted: this is a PWA that
-// gets closed and reopened constantly, so every reload silently lost the
-// token, cloud sync failed 401 on every request, and the status pill got
-// stuck on "Offline or cloud unreachable" — effectively breaking sync
-// permanently until the user manually reconnected each time.
 const CLOUD_KEY = nsKey("iexpense_cloud_cfg");
-let cloudCfg = null;
+let cloudCfg = null; // In-memory only, token never stored in localStorage
+let cloudToken = null; // PAT stored only in memory during session
 function loadCloudCfg(){
-  return StorageService.getSync(CLOUD_KEY);
+  try{
+    const stored = JSON.parse(localStorage.getItem(CLOUD_KEY)||"null");
+    if (stored && stored.token) {
+      // SECURITY: Remove token from localStorage if present (old insecure data)
+      localStorage.removeItem(CLOUD_KEY);
+      return null; // Don't load it - token shouldn't be in localStorage
+    }
+    return stored;
+  }catch(e){ return null; }
 }
 function saveCloudCfg(cfg){
-  StorageService.setSync(CLOUD_KEY, cfg);
+  // SECURITY: Never store token in localStorage - save config without it
+  const toStore = {...cfg};
+  delete toStore.token; // Remove token before storage
+  localStorage.setItem(CLOUD_KEY, JSON.stringify(toStore));
 }
 function clearCloudCfg(){
-  StorageService.removeSync(CLOUD_KEY);
+  localStorage.removeItem(CLOUD_KEY);
+  cloudToken = null; // Clear in-memory token too
 }
 cloudCfg = loadCloudCfg();
 
@@ -2162,7 +1988,7 @@ async function cloudSyncNow(){
       const mergedSnapshots = unionMerge(remoteSnapshots, nwSnapshots, loadDeletedIds(NW_DELETED_IDS_KEY));
       const existingLogIds = new Set(nwChangeLog.map(log=>log.id));
       remoteChangeLog.forEach(log=>{
-        if(!existingLogIds.has(log.id) && mergedSnapshots.some(s=>s.id === log.snapshotId)){
+        if(!existingLogIds.has(log.id)){
           nwChangeLog.push(log);
           existingLogIds.add(log.id);
         }
@@ -2213,7 +2039,7 @@ async function cloudPullOnLoad(){
     if(nwDeletedIds.length && remoteSnapshots.some(e=>nwDeletedIds.includes(e.id))) needsPushBack = true;
     const existingLogIds = new Set(nwChangeLog.map(log=>log.id));
     remoteChangeLog.forEach(log=>{
-      if(!existingLogIds.has(log.id) && nwMerged.some(s=>s.id === log.snapshotId)){
+      if(!existingLogIds.has(log.id)){
         nwChangeLog.push(log);
         existingLogIds.add(log.id);
       }
@@ -2228,6 +2054,10 @@ function showNetWorth(){
   document.getElementById("entriesView").style.display = "none";
   document.getElementById("dashboardView").style.display = "none";
   document.getElementById("netWorthView").style.display = "block";
+  document.getElementById("tabExpenseBtn").classList.remove("sel");
+  document.getElementById("tabIncomeBtn").classList.remove("sel");
+  document.getElementById("tabNetWorthBtn").classList.add("sel");
+  document.getElementById("tabDashboardBtn").classList.remove("sel");
   document.getElementById("fabAddBtn").style.display = "none";
   renderNWItemList();
   hideNWItemSuggestions();
@@ -2242,6 +2072,10 @@ function showMainTab(tab){
     document.getElementById("netWorthView").style.display = "none";
     document.getElementById("dashboardView").style.display = "block";
     document.getElementById("settingsView").style.display = "none";
+    document.getElementById("tabExpenseBtn").classList.remove("sel");
+    document.getElementById("tabIncomeBtn").classList.remove("sel");
+    document.getElementById("tabNetWorthBtn").classList.remove("sel");
+    document.getElementById("tabDashboardBtn").classList.add("sel");
     document.getElementById("fabAddBtn").style.display = "flex";
     renderDashboard();
   } else if(tab==="networth"){
@@ -2256,6 +2090,10 @@ function showMainTab(tab){
     document.getElementById("netWorthView").style.display = "none";
     document.getElementById("dashboardView").style.display = "none";
     document.getElementById("settingsView").style.display = "block";
+    document.getElementById("tabExpenseBtn").classList.remove("sel");
+    document.getElementById("tabIncomeBtn").classList.remove("sel");
+    document.getElementById("tabNetWorthBtn").classList.remove("sel");
+    document.getElementById("tabDashboardBtn").classList.remove("sel");
     document.getElementById("fabAddBtn").style.display = "none";
     renderSettings();
     // Land the user at the top of the Settings screen so the back chevron
@@ -2614,7 +2452,7 @@ function nwAllMonths(){
 // guessed — items that can't be converted are called out, never silently
 // mixed into a wrong-looking total. =====
 function getManualFxRate(){
-  return StorageService.getSync(FX_MANUAL_KEY);
+  try{ return JSON.parse(localStorage.getItem(FX_MANUAL_KEY)||"null"); }catch(e){ return null; }
 }
 function saveManualFxRate(){
   const val = Number(document.getElementById("nwManualRateInput").value);
@@ -2629,7 +2467,7 @@ function saveManualFxRate(){
   // manual rate can never silently outlive its day even if the device clock
   // rolls forward mid\u2011session
   const fresh = { rate:val, date:todayStr(), manual:true };
-  StorageService.setSync(FX_MANUAL_KEY, fresh);
+  try{ localStorage.setItem(FX_MANUAL_KEY, JSON.stringify(fresh)); }catch(e){}
   toast("Rate saved ✓");
   renderDashNetWorth();
 }
@@ -2645,7 +2483,8 @@ async function getUsdInrRate(){
   const today = todayStr();
   const manual = getManualFxRate();
   if(manual && manual.date===today) return manual; // a rate you typed in yourself always wins for today
-  let cached = StorageService.getSync(FX_CACHE_KEY);
+  let cached = null;
+  try{ cached = JSON.parse(localStorage.getItem(FX_CACHE_KEY)||"null"); }catch(e){}
   if(cached && cached.date===today) return cached;
   try{
     const res = await fetch(`https://api.frankfurter.dev/v1/latest?from=${PRIMARY_CUR}&to=${SECONDARY_CUR}`);
@@ -2654,7 +2493,7 @@ async function getUsdInrRate(){
     const rate = data.rates && data.rates[SECONDARY_CUR];
     if(!rate) throw new Error("no rate in response");
     const fresh = { rate, date:today, manual:false };
-    StorageService.setSync(FX_CACHE_KEY, fresh);
+    try{ localStorage.setItem(FX_CACHE_KEY, JSON.stringify(fresh)); }catch(e){}
     return fresh;
   }catch(err){
     return manual || cached; // a stale manual entry beats a stale auto one; null if neither ever existed
@@ -3020,7 +2859,7 @@ function setTheme(theme){
   const lBtn = document.getElementById("settingsLightBtn");
   if(dBtn) dBtn.classList.toggle("sel", theme!=="light");
   if(lBtn) lBtn.classList.toggle("sel", theme==="light");
-  StorageService.setSync(nsKey("iexpense_theme"), theme);
+  try{ localStorage.setItem(nsKey("iexpense_theme"), theme); }catch(e){}
   if(document.getElementById("dashboardView").style.display !== "none") renderDashboard();
 }
 
@@ -3140,10 +2979,15 @@ if(cloudCfg){
 document.addEventListener("visibilitychange", ()=>{
   if(document.visibilityState==="visible" && cloudCfg) cloudPullOnLoad();
 });
-// Backup/Export options now visible on both prod and dev
-// Note: dev has Cloud Sync AND local backup for complete data protection
+if(IS_DEV_PREVIEW){
+  // dev already has its own Cloud Sync connected to expense-data-dev, so the
+  // JSON Backup/Restore flow is redundant there — but Excel export is a real
+  // reporting feature, not just a backup mechanism, so it always stays visible
+  document.getElementById("jsonBackupSection").style.display = "none";
+}
 (function initTheme(){
-  const saved = StorageService.getSync(nsKey("iexpense_theme")) || "dark";
+  let saved="dark";
+  try{ saved = localStorage.getItem(nsKey("iexpense_theme")) || "dark"; }catch(e){}
   setTheme(saved);
 })();
 showMainTab("dashboard"); // Dashboard is the app's home screen; the + button is the only way to log an expense/income/net worth entry
