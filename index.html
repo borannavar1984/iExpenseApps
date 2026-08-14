@@ -2697,6 +2697,43 @@ function nwValueAsOf(monthStr, toCur, rateInfo, currencyFilter){
   return { assets, liabilities, net:assets-liabilities, incomplete };
 }
 
+function nwCalculateMonthlyGrowth(toCur, rateInfo, currencyFilter){
+  // Calculate net worth for each month (last 13 months for comparison)
+  const activeSnapshots = nwSnapshots.filter(s => s.source !== "undo");
+  if(!activeSnapshots.length) return { months:[], amounts:[], changes:[] };
+
+  // Get all unique months with data
+  const months = nwAllMonths();
+  if(months.length === 0) return { months:[], amounts:[], changes:[] };
+
+  const amounts = [];
+  const monthLabels = [];
+
+  months.forEach(monthStr => {
+    const result = nwValueAsOf(monthStr, toCur, rateInfo, currencyFilter);
+    amounts.push(result.net);
+    monthLabels.push(monthStr.substring(5)); // MM format (e.g., "08" for August)
+  });
+
+  // Calculate month-to-month changes
+  const changes = [];
+  for(let i=1; i<amounts.length; i++){
+    const prev = amounts[i-1];
+    const curr = amounts[i];
+    const change = curr - prev;
+    changes.push(change);
+  }
+
+  // Return last 13 months (12 months to show + 1 previous for baseline)
+  const startIdx = Math.max(0, months.length - 13);
+  return {
+    months: months.slice(startIdx),
+    amounts: amounts.slice(startIdx),
+    changes: changes.slice(startIdx),
+    labels: monthLabels.slice(startIdx)
+  };
+}
+
 function nwCalculateWeeklyGrowth(items, toCur, rateInfo, currencyFilter){
   const activeSnapshots = nwSnapshots.filter(s => s.source !== "undo");
   if(!activeSnapshots.length) return { weeks:[], amounts:[], changes:[] };
@@ -2791,7 +2828,8 @@ function nwComputeAndRender(suffix, itemsWithIdx, toCur, rateInfo, opts){
   const netWorth = totalAssets - totalLiabilities;
   const investable = items.filter(e=>!isLiability(e.category));
 
-  const weeklyData = nwCalculateWeeklyGrowth(items, toCur, rateInfo, currencyFilter);
+  // Use monthly trends (not weekly) for better visibility of small changes
+  const monthlyData = nwCalculateMonthlyGrowth(toCur, rateInfo, currencyFilter);
 
   // Calculate monthly change for dashboard card
   // NOTE: Always use ALL items (currencyFilter=null) for trend, even if viewing a single region.
@@ -2814,7 +2852,7 @@ function nwComputeAndRender(suffix, itemsWithIdx, toCur, rateInfo, opts){
     const textColor = themeColor("--text");
     const gridColor = themeColor("--border");
 
-    if(!weeklyData.weeks.length){
+    if(!monthlyData.months.length){
       showChartFallback("nwTrendChart"+suffix, "📊 No net worth data yet");
     } else {
       showChartCanvas("nwTrendChart"+suffix);
@@ -2822,16 +2860,16 @@ function nwComputeAndRender(suffix, itemsWithIdx, toCur, rateInfo, opts){
       charts["nwTrend"+suffix] = new Chart(document.getElementById("nwTrendChart"+suffix), {
         type:"line",
         data:{
-          labels:weeklyData.weeks.map(w=>`${w.start.substring(5)}`),
+          labels:monthlyData.labels,
           datasets:[{
-            label:"Net Worth",
-            data:weeklyData.amounts,
+            label:"Net Worth (Monthly)",
+            data:monthlyData.amounts,
             borderColor:themeColor("--accent"),
             backgroundColor:"rgba(79,140,255,0.15)",
             fill:true,
             tension:.3,
-            pointRadius:3,
-            pointHoverRadius:5,
+            pointRadius:5,
+            pointHoverRadius:7,
             pointBackgroundColor:themeColor("--accent")
           }]
         },
@@ -2845,11 +2883,10 @@ function nwComputeAndRender(suffix, itemsWithIdx, toCur, rateInfo, opts){
                   const amt = ctx.parsed.y;
                   const idx = ctx.dataIndex;
                   let label = nwFmtAmount(amt, toCur);
-                  if(idx > 0 && weeklyData.amounts[idx-1] !== undefined){
-                    const prev = weeklyData.amounts[idx-1];
+                  if(idx > 0 && monthlyData.amounts[idx-1] !== undefined){
+                    const prev = monthlyData.amounts[idx-1];
                     const change = amt - prev;
-                    const pctChange = prev !== 0 ? ((change / Math.abs(prev)) * 100) : 0;
-                    label += ` (${change>=0?"+":""}${nwFmtAmount(change, toCur)}, ${pctChange>=0?"+":""}${pctChange.toFixed(1)}%)`;
+                    label += ` (${change>=0?"+":""}${nwFmtAmount(change, toCur)})`;
                   }
                   return label;
                 }
