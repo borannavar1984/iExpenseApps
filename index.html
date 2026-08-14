@@ -1038,10 +1038,6 @@ function setFormType(type){
   document.getElementById("entriesView").style.display = "block";
   document.getElementById("netWorthView").style.display = "none";
   document.getElementById("dashboardView").style.display = "none";
-  document.getElementById("tabExpenseBtn").classList.toggle("sel", type==="expense");
-  document.getElementById("tabIncomeBtn").classList.toggle("sel", type==="income");
-  document.getElementById("tabNetWorthBtn").classList.remove("sel");
-  document.getElementById("tabDashboardBtn").classList.remove("sel");
   document.getElementById("storeLabel").textContent = type==="expense" ? "Store / Merchant" : "Source";
   document.getElementById("fStore").placeholder = type==="expense" ? "e.g. Costco" : "e.g. Salary";
   document.getElementById("paymentSection").style.display = type==="expense" ? "block" : "none";
@@ -2230,10 +2226,6 @@ function showMainTab(tab){
     document.getElementById("netWorthView").style.display = "none";
     document.getElementById("dashboardView").style.display = "block";
     document.getElementById("settingsView").style.display = "none";
-    document.getElementById("tabExpenseBtn").classList.remove("sel");
-    document.getElementById("tabIncomeBtn").classList.remove("sel");
-    document.getElementById("tabNetWorthBtn").classList.remove("sel");
-    document.getElementById("tabDashboardBtn").classList.add("sel");
     document.getElementById("fabAddBtn").style.display = "flex";
     renderDashboard();
   } else if(tab==="networth"){
@@ -2248,10 +2240,6 @@ function showMainTab(tab){
     document.getElementById("netWorthView").style.display = "none";
     document.getElementById("dashboardView").style.display = "none";
     document.getElementById("settingsView").style.display = "block";
-    document.getElementById("tabExpenseBtn").classList.remove("sel");
-    document.getElementById("tabIncomeBtn").classList.remove("sel");
-    document.getElementById("tabNetWorthBtn").classList.remove("sel");
-    document.getElementById("tabDashboardBtn").classList.remove("sel");
     document.getElementById("fabAddBtn").style.display = "none";
     renderSettings();
     // Land the user at the top of the Settings screen so the back chevron
