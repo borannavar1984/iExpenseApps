@@ -1931,8 +1931,8 @@ function addDeletedIds(key, ids){
 
 // ===== Cloud Sync: GitHub repo (private) acts as the shared data store =====
 const CLOUD_KEY = nsKey("iexpense_cloud_cfg");
-let cloudCfg = null; // In-memory only, token never stored in localStorage
-let cloudToken = null; // PAT stored only in memory during session
+let cloudCfg = null; // Configuration with token restored from sessionStorage
+let cloudToken = null; // Legacy: kept for compatibility
 function loadCloudCfg(){
   try{
     const stored = JSON.parse(localStorage.getItem(CLOUD_KEY)||"null");
@@ -1941,18 +1941,32 @@ function loadCloudCfg(){
       localStorage.removeItem(CLOUD_KEY);
       return null; // Don't load it - token shouldn't be in localStorage
     }
+    // SECURITY: Token stored in sessionStorage (survives reload, cleared on tab close)
+    if (stored && typeof sessionStorage !== 'undefined') {
+      const token = sessionStorage.getItem('iexpense_cloud_token');
+      if (token) {
+        return { ...stored, token };
+      }
+    }
     return stored;
   }catch(e){ return null; }
 }
 function saveCloudCfg(cfg){
-  // SECURITY: Never store token in localStorage - save config without it
+  // SECURITY: Save config without token to localStorage
   const toStore = {...cfg};
   delete toStore.token; // Remove token before storage
   localStorage.setItem(CLOUD_KEY, JSON.stringify(toStore));
+  // SECURITY: Store token in sessionStorage (survives reload, cleared on tab close)
+  if (cfg.token && typeof sessionStorage !== 'undefined') {
+    sessionStorage.setItem('iexpense_cloud_token', cfg.token);
+  }
 }
 function clearCloudCfg(){
   localStorage.removeItem(CLOUD_KEY);
   cloudToken = null; // Clear in-memory token too
+  if (typeof sessionStorage !== 'undefined') {
+    sessionStorage.removeItem('iexpense_cloud_token');
+  }
 }
 cloudCfg = loadCloudCfg();
 
