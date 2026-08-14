@@ -2005,9 +2005,19 @@ function loadCloudCfg(){
     StorageService.removeSync(CLOUD_KEY);
     return null; // Don't load it - token shouldn't be in localStorage
   }
-  // SECURITY: Token stored in sessionStorage (survives reload, cleared on tab close)
-  if (stored && typeof sessionStorage !== 'undefined') {
-    const token = sessionStorage.getItem('iexpense_cloud_token');
+  // SECURITY: Try sessionStorage first (browser), then localStorage (PWA/mobile)
+  if (stored) {
+    let token = null;
+    if (typeof sessionStorage !== 'undefined') {
+      token = sessionStorage.getItem('iexpense_cloud_token');
+    }
+    if (!token && typeof localStorage !== 'undefined') {
+      // Fallback: get token from localStorage for PWA/mobile compatibility
+      const tokenKey = CLOUD_KEY + '_token';
+      try {
+        token = localStorage.getItem(tokenKey);
+      } catch(e) {}
+    }
     if (token) {
       return { ...stored, token };
     }
@@ -2017,11 +2027,20 @@ function loadCloudCfg(){
 function saveCloudCfg(cfg){
   // SECURITY: Save config without token to localStorage
   const toStore = {...cfg};
-  delete toStore.token; // Remove token before localStorage storage
+  delete toStore.token; // Remove token before config storage
   StorageService.setSync(CLOUD_KEY, toStore);
-  // SECURITY: Store token in sessionStorage (survives reload, cleared on tab close)
-  if (cfg.token && typeof sessionStorage !== 'undefined') {
-    sessionStorage.setItem('iexpense_cloud_token', cfg.token);
+  // SECURITY: Store token in sessionStorage (browser) and localStorage (PWA/mobile fallback)
+  if (cfg.token) {
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.setItem('iexpense_cloud_token', cfg.token);
+    }
+    if (typeof localStorage !== 'undefined') {
+      // Also save to localStorage for PWA/mobile compatibility
+      const tokenKey = CLOUD_KEY + '_token';
+      try {
+        localStorage.setItem(tokenKey, cfg.token);
+      } catch(e) { console.warn('Could not save token to storage'); }
+    }
   }
 }
 function clearCloudCfg(){
@@ -2029,6 +2048,12 @@ function clearCloudCfg(){
   cloudToken = null; // Clear in-memory token too
   if (typeof sessionStorage !== 'undefined') {
     sessionStorage.removeItem('iexpense_cloud_token');
+  }
+  if (typeof localStorage !== 'undefined') {
+    const tokenKey = CLOUD_KEY + '_token';
+    try {
+      localStorage.removeItem(tokenKey);
+    } catch(e) {}
   }
 }
 cloudCfg = loadCloudCfg();
