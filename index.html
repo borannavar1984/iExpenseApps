@@ -1120,6 +1120,15 @@ async function saveEntry(){
   if(!sel.cat){ toast("Pick a category","var(--red)"); return; }
   if(!amt || amt<=0){ toast("Enter an amount","var(--red)"); return; }
   if(/\.\d{3,}/.test(rawAmt)){ toast("Amounts can have at most 2 decimal places","var(--red)"); return; }
+
+  // Validate category matches type (income categories should only be used with income, expense with expense)
+  const validCategories = formType==="income" ? INC_CATS : EXP_CATS;
+  if(!validCategories.includes(sel.cat)){
+    const expected = formType==="income" ? "income" : "expense";
+    toast('Category "' + sel.cat + '" doesn\'t match ' + expected + ' type — pick a different category',"var(--red)");
+    return;
+  }
+
   const candidate = { date:document.getElementById("fDate").value||todayStr(), type:formType, category:sel.cat, amount:Math.round(amt*100)/100,
     store:document.getElementById("fStore").value.trim(), payment:formType==="expense" ? (sel.pay||"") : "", note:document.getElementById("fNote").value.trim() };
   if(candidate.date > todayStr()){ toast("Date can't be in the future","var(--red)"); return; }
