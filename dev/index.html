@@ -571,9 +571,8 @@
     <div class="settings-hint">Your data stays in your own private GitHub repo. No third party sees it.</div>
   </div>
 
-  <!-- Backup + Restore + Excel export. Backup/Restore is hidden on the
-       /dev/ preview because dev has its own cloud target and the JSON
-       backup would only cause confusion; Excel export always stays. -->
+  <!-- Backup + Restore + Excel export. Same as production — full JSON
+       backup/restore plus Excel export, both available in dev too. -->
   <div class="settings-section" id="backupSection">
     <div class="settings-section-label">💾 Backup &amp; Export</div>
     <div id="jsonBackupSection">
@@ -582,7 +581,8 @@
       <input type="file" id="restoreFile" accept="application/json" style="display:none" onchange="restoreData(event)">
     </div>
     <button class="btn btn-ghost" onclick="exportExcel()" style="margin-top:8px">📊 Export Excel report (.xlsx)</button>
-    <div class="settings-hint">Monthly summary, category breakdown, all entries &amp; net worth — build your own charts/pivot tables in Excel.</div>
+    <button class="btn btn-ghost" onclick="exportNWHistory()" style="margin-top:8px">📈 Export Net Worth History (.json)</button>
+    <div class="settings-hint">Monthly summary, category breakdown, all entries &amp; net worth — build your own charts/pivot tables in Excel. Net worth history includes complete audit trail with all changes.</div>
   </div>
 
   <!-- Footer: version + environment badge. Cheap way to answer "am I on
@@ -1221,6 +1221,26 @@ function backupData(){
   const fname = `iexpense_backup_${payload.backup.replace(/[-:T]/g,"").slice(0,14)}.json`;
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=fname; a.click();
   toast("Backup downloaded");
+}
+
+function exportNWHistory(){
+  const timestamp = new Date().toISOString();
+  const backup = {
+    backup: `net-worth-${timestamp.split('T')[0]}`,
+    source: "iExpense (Net Worth)",
+    exportedAt: timestamp,
+    snapshots: nwSnapshots,
+    changeLog: nwChangeLog
+  };
+
+  const blob = new Blob([JSON.stringify(backup, null, 2)], {type: 'application/json'});
+  const fname = `${backup.backup}_${timestamp.replace(/[-:T]/g,"").slice(0,14)}.json`;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = fname;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast("Net worth history exported ✓");
 }
 
 async function restoreData(evt){
@@ -2979,12 +2999,6 @@ if(cloudCfg){
 document.addEventListener("visibilitychange", ()=>{
   if(document.visibilityState==="visible" && cloudCfg) cloudPullOnLoad();
 });
-if(IS_DEV_PREVIEW){
-  // dev already has its own Cloud Sync connected to expense-data-dev, so the
-  // JSON Backup/Restore flow is redundant there — but Excel export is a real
-  // reporting feature, not just a backup mechanism, so it always stays visible
-  document.getElementById("jsonBackupSection").style.display = "none";
-}
 (function initTheme(){
   let saved="dark";
   try{ saved = localStorage.getItem(nsKey("iexpense_theme")) || "dark"; }catch(e){}
