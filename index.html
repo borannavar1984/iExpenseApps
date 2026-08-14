@@ -294,14 +294,8 @@
   </div>
 </header>
 
-<div class="tabs">
-  <button class="sel" id="tabExpenseBtn" onclick="showMainTab('expense')">🧾 Expense</button>
-  <button id="tabIncomeBtn" onclick="showMainTab('income')">💰 Income</button>
-  <button id="tabNetWorthBtn" onclick="showMainTab('networth')">💎 Net Worth</button>
-  <button id="tabDashboardBtn" onclick="showMainTab('dashboard')">📊 Dashboard</button>
-</div>
 
-<div id="entriesView">
+<div id="entriesView" style="display:none">
 
 <div class="add-form-header">
   <button type="button" class="cat-picker-back" onclick="closeAddForm()">‹</button>
@@ -408,7 +402,7 @@
   </div>
 </div>
 
-<div id="dashboardView" style="display:none">
+<div id="dashboardView">
   <div class="dash-tabs">
     <button class="sel" id="dashMonthlyBtn" onclick="showDashTab('monthly')">Monthly Detail</button>
     <button id="dashOverviewBtn" onclick="showDashTab('overview')">Summary</button>
