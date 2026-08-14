@@ -721,14 +721,70 @@ const CURRENCY_INFO = {
   MXN:{sym:"Mex$",label:"Mexican Peso"}
 };
 function curSym(cur){ return CURRENCY_INFO[cur] ? CURRENCY_INFO[cur].sym : cur+" "; }
-function loadPrefs(){ try{ return JSON.parse(localStorage.getItem(PREFS_KEY)||"null"); }catch(e){ return null; } }
-function savePrefs(){ try{ localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); }catch(e){} }
+
+// ===== STORAGE SERVICE: Abstraction layer for localStorage (web) / AsyncStorage (mobile) =====
+// On web: synchronous operations using localStorage
+// On mobile: asynchronous operations using React Native AsyncStorage
+// Call pattern: const val = StorageService.getSync(key) on web, or await StorageService.get(key) on mobile
+const StorageService = {
+  // Synchronous methods (web only, uses localStorage)
+  getSync: (key) => {
+    try { return JSON.parse(localStorage.getItem(key) || "null"); }
+    catch(e) { return null; }
+  },
+  setSync: (key, value) => {
+    try { localStorage.setItem(key, JSON.stringify(value)); return true; }
+    catch(e) { console.warn(`Storage full or error saving ${key}:`, e); return false; }
+  },
+  removeSync: (key) => {
+    try { localStorage.removeItem(key); return true; }
+    catch(e) { return false; }
+  },
+
+  // Asynchronous methods (compatible with AsyncStorage on mobile)
+  get: async (key) => {
+    try { return JSON.parse(localStorage.getItem(key) || "null"); }
+    catch(e) { return null; }
+  },
+  set: async (key, value) => {
+    try { localStorage.setItem(key, JSON.stringify(value)); return true; }
+    catch(e) { console.warn(`Storage full or error saving ${key}:`, e); return false; }
+  },
+  remove: async (key) => {
+    try { localStorage.removeItem(key); return true; }
+    catch(e) { return false; }
+  },
+
+  // Check if storage is available and has space
+  isAvailable: () => {
+    try {
+      const test = "__storage_test__";
+      localStorage.setItem(test, "1");
+      localStorage.removeItem(test);
+      return true;
+    } catch(e) { return false; }
+  },
+
+  // Get approximate storage usage (for quota management)
+  getUsage: () => {
+    let total = 0;
+    for(const key in localStorage) {
+      if(localStorage.hasOwnProperty(key)) {
+        total += localStorage[key].length + key.length;
+      }
+    }
+    return { used: total, estimate: total + " bytes" };
+  }
+};
+
+function loadPrefs(){ return StorageService.getSync(PREFS_KEY); }
+function savePrefs(){ StorageService.setSync(PREFS_KEY, prefs); }
 let prefs = loadPrefs();
 // Anyone already using the app before preferences existed keeps today's exact
 // behavior (USD primary + INR secondary) without ever seeing the onboarding
 // screen — only a truly fresh install (no data at all) gets asked.
 if(!prefs){
-  const hasData = !!(localStorage.getItem(LS_KEY) || localStorage.getItem(NW_LS_KEY) || localStorage.getItem(nsKey("iexpense_cloud_cfg")));
+  const hasData = !!(StorageService.getSync(LS_KEY) || StorageService.getSync(NW_LS_KEY) || StorageService.getSync(nsKey("iexpense_cloud_cfg")));
   if(hasData){
     prefs = { name:"", primaryCurrency:"USD", secondaryCurrency:"INR", onboarded:true, migrated:true };
     savePrefs();
@@ -780,27 +836,23 @@ function nwSetFilter(suffix, kind, value){
   renderDashNetWorth();
 }
 
-function load(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||"[]"); }catch(e){ return []; } }
+function load(){ const val = StorageService.getSync(LS_KEY); return Array.isArray(val) ? val : []; }
 function genId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
 function ensureIds(){ entries.forEach(e=>{ if(!e.id) e.id=genId(); }); }
-function persist(){ ensureIds(); try{ localStorage.setItem(LS_KEY, JSON.stringify(entries)); }catch(e){} }
+function persist(){ ensureIds(); StorageService.setSync(LS_KEY, entries); }
 persist(); // backfill ids on any pre-existing data
 function loadNW(){
-  try{
-    const data = JSON.parse(localStorage.getItem(NW_LS_KEY)||"{}");
-    if(Array.isArray(data)){
-      return { snapshots: data, changeLog: [] };
-    }
-    return data;
-  }catch(e){ return { snapshots: [], changeLog: [] }; }
+  const data = StorageService.getSync(NW_LS_KEY);
+  if(Array.isArray(data)){
+    return { snapshots: data, changeLog: [] };
+  }
+  return data && typeof data === 'object' ? data : { snapshots: [], changeLog: [] };
 }
 function ensureNWIds(){ nwSnapshots.forEach(e=>{ if(!e.id) e.id=genId(); }); }
 function persistNW(){
   ensureNWIds();
-  try{
-    const data = { version: 2, snapshots: nwSnapshots, changeLog: nwChangeLog };
-    localStorage.setItem(NW_LS_KEY, JSON.stringify(data));
-  }catch(e){}
+  const data = { version: 2, snapshots: nwSnapshots, changeLog: nwChangeLog };
+  StorageService.setSync(NW_LS_KEY, data);
 }
 const nwData = loadNW();
 nwSnapshots = nwData.snapshots || [];
@@ -1032,8 +1084,8 @@ document.getElementById("fStore").addEventListener("keydown",(e)=>{ if(e.key==="
 
 // recent-store quick picks, scoped to the current expense/income mode
 const HIDDEN_CHIPS_KEY = nsKey("iexpense_hidden_chips_v1");
-function loadHiddenChips(){ try{ return JSON.parse(localStorage.getItem(HIDDEN_CHIPS_KEY)||"[]"); }catch(e){ return []; } }
-function saveHiddenChips(list){ try{ localStorage.setItem(HIDDEN_CHIPS_KEY, JSON.stringify(list)); }catch(e){} }
+function loadHiddenChips(){ const val = StorageService.getSync(HIDDEN_CHIPS_KEY); return Array.isArray(val) ? val : []; }
+function saveHiddenChips(list){ StorageService.setSync(HIDDEN_CHIPS_KEY, list); }
 function hideChip(storeName){
   const hidden = loadHiddenChips();
   if(!hidden.includes(storeName)) hidden.push(storeName);
@@ -1542,8 +1594,8 @@ function downloadBlob(blob, filename){
 // scoped to whichever category is currently selected (pick "Cash & Bank"
 // first and only your bank items show up when you start typing) =====
 const NW_HIDDEN_ITEMS_KEY = nsKey("iexpense_nw_hidden_items_v1");
-function loadNWHiddenItems(){ try{ return JSON.parse(localStorage.getItem(NW_HIDDEN_ITEMS_KEY)||"[]"); }catch(e){ return []; } }
-function saveNWHiddenItems(list){ try{ localStorage.setItem(NW_HIDDEN_ITEMS_KEY, JSON.stringify(list)); }catch(e){} }
+function loadNWHiddenItems(){ const val = StorageService.getSync(NW_HIDDEN_ITEMS_KEY); return Array.isArray(val) ? val : []; }
+function saveNWHiddenItems(list){ StorageService.setSync(NW_HIDDEN_ITEMS_KEY, list); }
 function nwHideItem(item){
   const hidden = loadNWHiddenItems();
   if(!hidden.includes(item)) hidden.push(item);
@@ -1913,11 +1965,11 @@ function undoNWSnapshot(snapshotId){
 // copy, it pushes a cleanup write so the remote side converges too. =====
 const DELETED_IDS_KEY = nsKey("iexpense_deleted_ids_v1");
 const NW_DELETED_IDS_KEY = nsKey("iexpense_nw_deleted_ids_v1");
-function loadDeletedIds(key){ try{ return JSON.parse(localStorage.getItem(key)||"[]"); }catch(e){ return []; } }
+function loadDeletedIds(key){ const val = StorageService.getSync(key); return Array.isArray(val) ? val : []; }
 function addDeletedIds(key, ids){
   const cur = loadDeletedIds(key);
   ids.forEach(id=>{ if(!cur.includes(id)) cur.push(id); });
-  try{ localStorage.setItem(key, JSON.stringify(cur)); }catch(e){}
+  StorageService.setSync(key, cur);
 }
 
 // ===== Cloud Sync: GitHub repo (private) acts as the shared data store =====
@@ -1925,24 +1977,22 @@ const CLOUD_KEY = nsKey("iexpense_cloud_cfg");
 let cloudCfg = null; // In-memory only, token never stored in localStorage
 let cloudToken = null; // PAT stored only in memory during session
 function loadCloudCfg(){
-  try{
-    const stored = JSON.parse(localStorage.getItem(CLOUD_KEY)||"null");
-    if (stored && stored.token) {
-      // SECURITY: Remove token from localStorage if present (old insecure data)
-      localStorage.removeItem(CLOUD_KEY);
-      return null; // Don't load it - token shouldn't be in localStorage
-    }
-    return stored;
-  }catch(e){ return null; }
+  const stored = StorageService.getSync(CLOUD_KEY);
+  if (stored && stored.token) {
+    // SECURITY: Remove token from localStorage if present (old insecure data)
+    StorageService.removeSync(CLOUD_KEY);
+    return null; // Don't load it - token shouldn't be in localStorage
+  }
+  return stored;
 }
 function saveCloudCfg(cfg){
   // SECURITY: Never store token in localStorage - save config without it
   const toStore = {...cfg};
   delete toStore.token; // Remove token before storage
-  localStorage.setItem(CLOUD_KEY, JSON.stringify(toStore));
+  StorageService.setSync(CLOUD_KEY, toStore);
 }
 function clearCloudCfg(){
-  localStorage.removeItem(CLOUD_KEY);
+  StorageService.removeSync(CLOUD_KEY);
   cloudToken = null; // Clear in-memory token too
 }
 cloudCfg = loadCloudCfg();
@@ -2566,7 +2616,7 @@ function nwAllMonths(){
 // guessed — items that can't be converted are called out, never silently
 // mixed into a wrong-looking total. =====
 function getManualFxRate(){
-  try{ return JSON.parse(localStorage.getItem(FX_MANUAL_KEY)||"null"); }catch(e){ return null; }
+  return StorageService.getSync(FX_MANUAL_KEY);
 }
 function saveManualFxRate(){
   const val = Number(document.getElementById("nwManualRateInput").value);
@@ -2581,7 +2631,7 @@ function saveManualFxRate(){
   // manual rate can never silently outlive its day even if the device clock
   // rolls forward mid\u2011session
   const fresh = { rate:val, date:todayStr(), manual:true };
-  try{ localStorage.setItem(FX_MANUAL_KEY, JSON.stringify(fresh)); }catch(e){}
+  StorageService.setSync(FX_MANUAL_KEY, fresh);
   toast("Rate saved ✓");
   renderDashNetWorth();
 }
@@ -2597,8 +2647,7 @@ async function getUsdInrRate(){
   const today = todayStr();
   const manual = getManualFxRate();
   if(manual && manual.date===today) return manual; // a rate you typed in yourself always wins for today
-  let cached = null;
-  try{ cached = JSON.parse(localStorage.getItem(FX_CACHE_KEY)||"null"); }catch(e){}
+  let cached = StorageService.getSync(FX_CACHE_KEY);
   if(cached && cached.date===today) return cached;
   try{
     const res = await fetch(`https://api.frankfurter.dev/v1/latest?from=${PRIMARY_CUR}&to=${SECONDARY_CUR}`);
@@ -2607,7 +2656,7 @@ async function getUsdInrRate(){
     const rate = data.rates && data.rates[SECONDARY_CUR];
     if(!rate) throw new Error("no rate in response");
     const fresh = { rate, date:today, manual:false };
-    try{ localStorage.setItem(FX_CACHE_KEY, JSON.stringify(fresh)); }catch(e){}
+    StorageService.setSync(FX_CACHE_KEY, fresh);
     return fresh;
   }catch(err){
     return manual || cached; // a stale manual entry beats a stale auto one; null if neither ever existed
@@ -2973,7 +3022,7 @@ function setTheme(theme){
   const lBtn = document.getElementById("settingsLightBtn");
   if(dBtn) dBtn.classList.toggle("sel", theme!=="light");
   if(lBtn) lBtn.classList.toggle("sel", theme==="light");
-  try{ localStorage.setItem(nsKey("iexpense_theme"), theme); }catch(e){}
+  StorageService.setSync(nsKey("iexpense_theme"), theme);
   if(document.getElementById("dashboardView").style.display !== "none") renderDashboard();
 }
 
@@ -3097,8 +3146,7 @@ document.addEventListener("visibilitychange", ()=>{
 // Note: dev has Cloud Sync AND local backup for complete data protection
 }
 (function initTheme(){
-  let saved="dark";
-  try{ saved = localStorage.getItem(nsKey("iexpense_theme")) || "dark"; }catch(e){}
+  const saved = StorageService.getSync(nsKey("iexpense_theme")) || "dark";
   setTheme(saved);
 })();
 showMainTab("dashboard"); // Dashboard is the app's home screen; the + button is the only way to log an expense/income/net worth entry
