@@ -3144,7 +3144,6 @@ document.addEventListener("visibilitychange", ()=>{
 });
 // Backup/Export options now visible on both prod and dev
 // Note: dev has Cloud Sync AND local backup for complete data protection
-}
 (function initTheme(){
   const saved = StorageService.getSync(nsKey("iexpense_theme")) || "dark";
   setTheme(saved);
