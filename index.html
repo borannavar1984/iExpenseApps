@@ -2805,8 +2805,12 @@ function nwComputeAndRender(suffix, itemsWithIdx, toCur, rateInfo, opts){
   const weeklyData = nwCalculateWeeklyGrowth(items, toCur, rateInfo, currencyFilter);
 
   // Calculate monthly change for dashboard card
+  // NOTE: Always use ALL items (currencyFilter=null) for trend, even if viewing a single region.
+  // This ensures "Change This Month" shows the actual change across all assets, not just the
+  // currently-selected region (US/IN). The items list passed to nwComputeAndRender is already
+  // filtered by region, but monthlyTrend should represent the COMPLETE picture.
   const months = nwAllMonths();
-  const monthlyTrend = months.map(m=>({ m, ...nwValueAsOf(m, toCur, rateInfo, currencyFilter) }));
+  const monthlyTrend = months.map(m=>({ m, ...nwValueAsOf(m, toCur, rateInfo, null) }));
   const curMonthIdx = monthlyTrend.length-1;
   const changeThisMonth = curMonthIdx>0 ? monthlyTrend[curMonthIdx].net - monthlyTrend[curMonthIdx-1].net : null;
 
