@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="iExpense">
+<meta name="apple-mobile-web-app-title" content="iFinWell">
 <meta name="theme-color" content="#121712">
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-<title>iExpense</title>
+<title>iFinWell</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -283,7 +283,7 @@
 <body>
 <header>
   <div>
-    <h1>i<span>Expense</span></h1>
+    <h1>i<span>FinWell</span></h1>
     <div id="helloName" style="display:none;font-size:11.5px;color:var(--muted);font-weight:600;margin-top:1px"></div>
   </div>
   <div style="display:flex;align-items:center;gap:8px">
@@ -561,7 +561,7 @@
     <div class="cloud-status" id="cloudStatus">Not connected — saving on this device only</div>
     <div id="cloudSetup">
       <input type="text" id="cloudOwner" placeholder="GitHub username" autocomplete="off">
-      <input type="text" id="cloudRepo" placeholder="Private data repo name (e.g. iExpense-data)" autocomplete="off" style="margin-top:8px">
+      <input type="text" id="cloudRepo" placeholder="Private data repo name (e.g. iFinWell-data)" autocomplete="off" style="margin-top:8px">
       <input type="password" id="cloudToken" placeholder="Personal access token" autocomplete="off" style="margin-top:8px">
       <button class="btn btn-export" onclick="cloudConnect()">Connect &amp; Sync</button>
     </div>
@@ -589,7 +589,7 @@
        prod or dev right now?" without inspecting the URL bar. -->
   <div class="settings-footer">
     <div class="settings-env" id="settingsEnvBadge">Production</div>
-    <div class="settings-version">iExpense · <span id="settingsVersion">v1</span></div>
+    <div class="settings-version">iFinWell · <span id="settingsVersion">v1</span></div>
   </div>
 </div>
 
@@ -642,7 +642,7 @@
 <div class="cat-picker-overlay" id="onboardOverlay" style="display:none">
   <div class="cat-picker-header">
     <div style="width:36px"></div>
-    <div class="cat-picker-title" id="obTitle">Welcome to iExpense 👋</div>
+    <div class="cat-picker-title" id="obTitle">Welcome to iFinWell 👋</div>
     <div style="width:36px"></div>
   </div>
   <div class="ob-body">
@@ -675,7 +675,7 @@
 const IS_DEV_PREVIEW = location.pathname.includes("/dev/");
 function nsKey(key){ return IS_DEV_PREVIEW ? key+"_dev" : key; }
 if(IS_DEV_PREVIEW){
-  document.title = "iExpense (DEV)";
+  document.title = "iFinWell (DEV)";
   document.querySelector("header h1").insertAdjacentHTML("beforeend",
     ' <span style="font-size:11px;background:var(--amber);color:#3a2a00;padding:2px 8px;border-radius:10px;vertical-align:middle;font-weight:800;">DEV</span>');
 }
@@ -1216,7 +1216,7 @@ function backupData(){
   // net worth history now travels with expense/income entries in the same
   // backup file — earlier versions silently dropped nwEntries here, so a
   // restore-round would lose every net worth snapshot the user ever logged
-  const payload = { backup:new Date().toISOString(), source:"iExpense", entries:entries, nwSnapshots:nwSnapshots, nwChangeLog:nwChangeLog };
+  const payload = { backup:new Date().toISOString(), source:"iFinWell", entries:entries, nwSnapshots:nwSnapshots, nwChangeLog:nwChangeLog };
   const blob = new Blob([JSON.stringify(payload,null,1)],{type:"application/json"});
   const fname = `iexpense_backup_${payload.backup.replace(/[-:T]/g,"").slice(0,14)}.json`;
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=fname; a.click();
@@ -1227,7 +1227,7 @@ function exportNWHistory(){
   const timestamp = new Date().toISOString();
   const backup = {
     backup: `net-worth-${timestamp.split('T')[0]}`,
-    source: "iExpense (Net Worth)",
+    source: "iFinWell (Net Worth)",
     exportedAt: timestamp,
     snapshots: nwSnapshots,
     changeLog: nwChangeLog
@@ -1383,7 +1383,7 @@ async function exportExcel(){
   const wb = XLSX.utils.book_new();
   // "Charts" is appended first so it's the sheet Excel opens to by default —
   // the same idea as the app's own Dashboard-as-home redesign.
-  const chartsSheet = XLSX.utils.aoa_to_sheet([["iExpense Report — Charts"]]);
+  const chartsSheet = XLSX.utils.aoa_to_sheet([["iFinWell Report — Charts"]]);
   XLSX.utils.book_append_sheet(wb, chartsSheet, "Charts");
 
   const summarySheet = XLSX.utils.aoa_to_sheet([
@@ -1871,7 +1871,7 @@ async function cloudFetchRemote(cfg, filename){
 }
 
 async function cloudWriteRemote(cfg, newEntries, sha, filename){
-  const body = { message:"iExpense sync", content: utf8ToB64(JSON.stringify(newEntries,null,1)) };
+  const body = { message:"iFinWell sync", content: utf8ToB64(JSON.stringify(newEntries,null,1)) };
   if(sha) body.sha = sha;
   const res = await fetch(cloudApiUrl(cfg, filename), {
     method:"PUT",
@@ -2985,7 +2985,7 @@ function obSetSecondary(yes){
 }
 function openPrefs(){
   const returning = !!prefs;
-  document.getElementById("obTitle").textContent = returning ? "Preferences" : "Welcome to iExpense 👋";
+  document.getElementById("obTitle").textContent = returning ? "Preferences" : "Welcome to iFinWell 👋";
   document.getElementById("obIntro").textContent = returning
     ? "Changing currency only changes how things are displayed — none of your saved entries are modified."
     : "Let's set up your preferences — takes 30 seconds, saved only on this device.";
