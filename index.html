@@ -88,6 +88,7 @@
   .amount-wrap{position:relative}
   .amount-wrap::before{content:var(--cur-sym,"$");position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:18px}
   #nwAmountWrap::before{content:var(--nw-sym,var(--cur-sym,"$"))}
+  #insAmountWrap::before{content:var(--ins-sym,var(--cur-sym,"$"))}
   select.ob-select{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:16px;padding:13px 14px;font-size:16px;outline:none;appearance:none;-webkit-appearance:none}
   .ob-body{padding:16px 18px calc(24px + env(safe-area-inset-bottom));overflow-y:auto;flex:1}
   .ob-intro{font-size:14px;color:var(--muted);line-height:1.5;margin:2px 0 6px}
@@ -213,15 +214,16 @@
   .fab-add:hover{transform:translateX(-50%) scale(1.08);box-shadow:0 8px 24px rgba(0,0,0,.45)}
   .fab-add:active{transform:translateX(-50%) scale(.92)}
   .radial-menu-backdrop{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:140}
-  .radial-menu{position:fixed;bottom:calc(86px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:240px;height:120px}
+  .radial-menu{position:fixed;bottom:calc(86px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:260px;height:130px}
   .radial-item{position:absolute;width:70px;height:70px;border-radius:50%;background:var(--accent);color:var(--ctatext);border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;box-shadow:0 6px 18px rgba(0,0,0,.35);font-size:11px;font-weight:600;z-index:151;pointer-events:auto;transition:transform .2s ease,background .12s,box-shadow .2s ease;font-family:inherit}
   .radial-item:hover{transform:scale(1.08);box-shadow:0 8px 24px rgba(0,0,0,.45)}
   .radial-item:active{transform:scale(.92)}
   .radial-icon{width:32px;height:32px;display:flex;align-items:center;justify-content:center;line-height:1}
   .radial-label{font-size:10px;font-weight:600;white-space:nowrap}
-  .radial-item[data-angle="0"]{top:-30px;left:50%;transform:translateX(-50%)}
-  .radial-item[data-angle="120"]{top:25px;left:0}
-  .radial-item[data-angle="240"]{top:25px;right:0}
+  .radial-item[data-angle="0"]{top:-30px;left:15px}
+  .radial-item[data-angle="60"]{top:-30px;right:15px}
+  .radial-item[data-angle="120"]{top:35px;left:0}
+  .radial-item[data-angle="240"]{top:35px;right:0}
   .cat-picker-list{overflow-y:auto;flex:1;padding:8px 14px calc(24px + env(safe-area-inset-bottom))}
   .cat-picker-row{display:flex;align-items:center;gap:14px;padding:14px 4px;border-bottom:1px solid var(--card2);cursor:pointer}
   .cat-picker-row:active{background:var(--card2)}
@@ -408,11 +410,91 @@
   </div>
 </div>
 
+<div id="insuranceView" style="display:none">
+
+<div class="add-form-header">
+  <button type="button" class="cat-picker-back" onclick="closeAddForm()">‹</button>
+  <div class="cat-picker-title">Add Insurance Policy</div>
+</div>
+
+<div class="label">Type</div>
+<button type="button" class="cat-field" id="insCatFieldBtn" onclick="openInsCatPicker()">
+  <span class="cpr-icon" id="insCatFieldIcon"></span>
+  <span class="cat-field-label cat-field-placeholder" id="insCatFieldLabel">Select type</span>
+  <span class="cat-field-chevron">›</span>
+</button>
+
+<div class="label">Provider</div>
+<input type="text" id="insProvider" placeholder="e.g. Blue Cross, LIC" autocomplete="off">
+
+<div id="insComparisonCardWrap" style="display:none">
+  <div class="nw-value-comparison-card" id="insComparisonCard">
+    <div class="comp-label">📊 Last Coverage</div>
+    <div class="comp-value" id="insComparisonLastValue">—</div>
+    <div class="comp-arrow">➜</div>
+    <div class="comp-label">New Coverage</div>
+    <div id="insChangeWarning"></div>
+  </div>
+  <button type="button" class="comp-btn" id="insViewHistoryBtn" onclick="showInsHistory(document.getElementById('insProvider').value)">View History</button>
+</div>
+
+<div class="label">Country</div>
+<input type="text" id="insCountry" placeholder="e.g. US, India" autocomplete="off">
+
+<div class="label" id="insRegionLabel">Currency</div>
+<div class="chip-row" id="insCurrencyRow"></div>
+
+<div class="label">Coverage Amount</div>
+<div class="amount-wrap" id="insAmountWrap"><input type="tel" id="insValue" inputmode="decimal" placeholder="0.00" oninput="updateInsChangeWarning()"></div>
+
+<div class="label">Premium (optional)</div>
+<div class="amount-wrap"><input type="tel" id="insPremium" inputmode="decimal" placeholder="0.00"></div>
+
+<div class="label">Policy Number (optional)</div>
+<input type="text" id="insPolicyNumber" placeholder="e.g. HC-123456" autocomplete="off">
+
+<div class="label">Covered Members (optional)</div>
+<input type="text" id="insCoveredMembers" placeholder="e.g. Self + Spouse + 2 kids" autocomplete="off">
+
+<div class="label" id="insBeneficiaryLabel" style="display:none">Beneficiary</div>
+<input type="text" id="insBeneficiary" placeholder="e.g. Spouse" autocomplete="off" style="display:none">
+
+<div class="label">Start Date</div>
+<input type="date" id="insStartDate">
+
+<div class="label">Renewal / Expiry Date (optional)</div>
+<input type="date" id="insRenewalDate">
+
+<div class="label">Notes (optional)</div>
+<input type="text" id="insNotes" placeholder="Anything else worth remembering" autocomplete="off">
+
+<button class="btn btn-save" id="insSaveBtn" onclick="saveIns()">Save Insurance Policy</button>
+<button class="btn btn-ghost" id="insCancelEditBtn" style="display:none" onclick="closeAddForm()">Cancel edit</button>
+
+<div class="label" style="margin-top:22px">📋 Your Policies</div>
+<div style="font-size:12px;color:var(--muted);margin-bottom:8px">Shows the latest record for each policy. Log a fresh entry when coverage or premium changes at renewal.</div>
+<div id="insItemList"></div>
+
+</div>
+
+<!-- Insurance Change History Modal -->
+<div id="insHistoryOverlay" class="cat-picker-overlay" style="display:none">
+  <div class="cat-picker-header">
+    <button class="cat-picker-back" onclick="closeInsHistory()">‹</button>
+    <div class="cat-picker-title" id="insHistoryTitle">History</div>
+    <div style="width:36px"></div>
+  </div>
+  <div class="cat-picker-list" id="insHistoryList">
+    <!-- populated by showInsHistory() -->
+  </div>
+</div>
+
 <div id="dashboardView" style="display:none">
   <div class="dash-tabs">
     <button class="sel" id="dashMonthlyBtn" onclick="showDashTab('monthly')">Monthly Detail</button>
     <button id="dashOverviewBtn" onclick="showDashTab('overview')">Summary</button>
     <button id="dashNetWorthBtn" onclick="showDashTab('networth')">Net Worth</button>
+    <button id="dashCoverageBtn" onclick="showDashTab('coverage')">Coverage</button>
   </div>
 
   <div id="dashMonthlyView">
@@ -503,6 +585,11 @@
       <div class="dtable-wrap" id="nwHistoryWrap" style="display:none"><div class="tw-head" id="nwHistoryHead"></div><div id="nwHistoryTable"></div></div>
       <div class="dtable-wrap"><div class="tw-head">Growth Projections</div><div id="nwProjectionsTable"></div></div>
     </div>
+  </div>
+
+  <div id="dashCoverageView" style="display:none">
+    <div class="cards" id="insCards"></div>
+    <div class="dtable-wrap"><div class="tw-head">Your Policies</div><div id="insCoverageTable"></div></div>
   </div>
 
 </div>
@@ -603,6 +690,12 @@
       </div>
       <div class="radial-label">Expense</div>
     </button>
+    <button type="button" class="radial-item" data-angle="60" onclick="chooseAdd('insurance')">
+      <div class="radial-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 L20 6 V12 C20 17 16.5 20.5 12 22 C7.5 20.5 4 17 4 12 V6 Z"/><path d="M9 12l2 2 4-4"/></svg>
+      </div>
+      <div class="radial-label">Insurance</div>
+    </button>
     <button type="button" class="radial-item" data-angle="120" onclick="chooseAdd('income')">
       <div class="radial-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5.67-1.5 1.5-1.5 1.5.67 1.5 1.5zm-7 0c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5.67-1.5 1.5-1.5 1.5.67 1.5 1.5z"/><path d="M12 8v8M12 8l-3 2M12 8l3 2"/></svg>
@@ -637,6 +730,15 @@
     <input type="text" id="nwCatSearch" placeholder="Search categories..." autocomplete="off" oninput="renderNWCatPickerList()">
   </div>
   <div class="cat-picker-list" id="nwCatPickerList"></div>
+</div>
+
+<div class="cat-picker-overlay" id="insCatPickerOverlay" style="display:none">
+  <div class="cat-picker-header">
+    <button type="button" class="cat-picker-back" onclick="closeInsCatPicker()">‹</button>
+    <div class="cat-picker-title">Type</div>
+    <div style="width:36px"></div>
+  </div>
+  <div class="cat-picker-list" id="insCatPickerList"></div>
 </div>
 
 <div class="cat-picker-overlay" id="onboardOverlay" style="display:none">
@@ -700,6 +802,14 @@ const NW_CAT_ICONS = {
 function nwCatIcon(cat){ return NW_CAT_ICONS[cat] ? NW_CAT_ICONS[cat]+" " : ""; }
 function isLiability(cat){ return cat === "Liabilities/Debt"; }
 const NW_LS_KEY = nsKey("iexpense_networth_v1");
+
+// ===== Insurance / Risk Coverage: what happens if something goes wrong —
+// kept extensible so more policy types (Disability, Home, Auto, Umbrella)
+// can be added later without a redesign =====
+const INS_CATS = ["Health Insurance","Life Insurance"];
+const INS_CAT_ICONS = { "Health Insurance":"🏥", "Life Insurance":"🛡️" };
+function insCatIcon(cat){ return INS_CAT_ICONS[cat] ? INS_CAT_ICONS[cat]+" " : ""; }
+const IS_LS_KEY = nsKey("iexpense_insurance_v1");
 
 // ===== Per-user preferences (name + currencies), set once on first launch =====
 // Stored only on this device — never part of the cloud-sync payload, so every
@@ -774,6 +884,11 @@ let nwSnapshots = [];
 let nwChangeLog = [];
 let nwUpdatingSnapshot = null;
 let nwViewingItemHistory = null;
+let insSel = {cat:null, currency:PRIMARY_CUR};
+let insSnapshots = [];
+let insChangeLog = [];
+let insUpdatingSnapshot = null;
+let insViewingItemHistory = null;
 function nwSetFilter(suffix, kind, value){
   if(kind==="cat"){ nwFilters[suffix].cat = value; nwFilters[suffix].item = ""; }
   else nwFilters[suffix].item = value;
@@ -805,6 +920,26 @@ function persistNW(){
 const nwData = loadNW();
 nwSnapshots = nwData.snapshots || [];
 nwChangeLog = nwData.changeLog || [];
+function loadIns(){
+  try{
+    const data = JSON.parse(localStorage.getItem(IS_LS_KEY)||"{}");
+    if(Array.isArray(data)){
+      return { snapshots: data, changeLog: [] };
+    }
+    return data;
+  }catch(e){ return { snapshots: [], changeLog: [] }; }
+}
+function ensureInsIds(){ insSnapshots.forEach(e=>{ if(!e.id) e.id=genId(); }); }
+function persistIns(){
+  ensureInsIds();
+  try{
+    const data = { version: 2, snapshots: insSnapshots, changeLog: insChangeLog };
+    localStorage.setItem(IS_LS_KEY, JSON.stringify(data));
+  }catch(e){}
+}
+const insData = loadIns();
+insSnapshots = insData.snapshots || [];
+insChangeLog = insData.changeLog || [];
 nwEntries = []; // deprecated, kept for compatibility
 function todayStr(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 // despite the historical name, this formats in whatever the user's PRIMARY
@@ -891,6 +1026,7 @@ function chooseAdd(kind){
 }
 function closeAddForm(){
   if(document.getElementById("netWorthView").style.display !== "none") cancelNWEdit();
+  else if(document.getElementById("insuranceView").style.display !== "none") cancelInsEdit();
   else cancelEdit();
   showMainTab("dashboard");
 }
@@ -949,6 +1085,44 @@ function closeNWCatPicker(){
   document.getElementById("nwCatPickerOverlay").style.display="none";
 }
 
+const insCatFieldIcon=document.getElementById("insCatFieldIcon");
+const insCatFieldLabel=document.getElementById("insCatFieldLabel");
+function insSelectCategory(cat){
+  insSel.cat=cat;
+  insCatFieldIcon.textContent = INS_CAT_ICONS[cat] || "";
+  insCatFieldLabel.textContent = cat;
+  insCatFieldLabel.classList.remove("cat-field-placeholder");
+  const isLife = cat === "Life Insurance";
+  document.getElementById("insBeneficiaryLabel").style.display = isLife ? "" : "none";
+  document.getElementById("insBeneficiary").style.display = isLife ? "" : "none";
+  closeInsCatPicker();
+}
+function renderInsCatGrid(){
+  insSel.cat = null;
+  insCatFieldIcon.textContent = "";
+  insCatFieldLabel.textContent = "Select type";
+  insCatFieldLabel.classList.add("cat-field-placeholder");
+  document.getElementById("insBeneficiaryLabel").style.display = "none";
+  document.getElementById("insBeneficiary").style.display = "none";
+}
+function renderInsCatPickerList(){
+  const list = document.getElementById("insCatPickerList");
+  list.innerHTML = INS_CATS.map(c=>`
+    <div class="cat-picker-row" data-cat="${c}">
+      <span class="cpr-icon">${INS_CAT_ICONS[c]||""}</span>
+      <span class="cpr-label">${c}</span>
+      <span class="cpr-check">${insSel.cat===c ? "✓" : ""}</span>
+    </div>`).join("");
+  [...list.children].forEach(row=>row.onclick=()=>insSelectCategory(row.dataset.cat));
+}
+function openInsCatPicker(){
+  renderInsCatPickerList();
+  document.getElementById("insCatPickerOverlay").style.display="flex";
+}
+function closeInsCatPicker(){
+  document.getElementById("insCatPickerOverlay").style.display="none";
+}
+
 const nwCurrencyRow=document.getElementById("nwCurrencyRow");
 function nwSelectCurrency(cur){
   nwSel.currency=cur;
@@ -972,6 +1146,23 @@ function renderNWCurrencyRow(){
   nwCurrencyRow.style.display = single ? "none" : "";
 }
 
+const insCurrencyRow=document.getElementById("insCurrencyRow");
+function insSelectCurrency(cur){
+  insSel.currency=cur;
+  [...insCurrencyRow.children].forEach(x=>x.classList.toggle("sel",x.dataset.cur===cur));
+  document.getElementById("insAmountWrap").style.setProperty("--ins-sym", JSON.stringify(curSym(cur)));
+}
+function renderInsCurrencyRow(){
+  insCurrencyRow.innerHTML="";
+  NW_CURRENCIES.forEach(cur=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=`${curSym(cur)} ${cur}`; b.dataset.cur=cur;
+    b.onclick=()=>insSelectCurrency(cur); insCurrencyRow.appendChild(b); });
+  insSelectCurrency(NW_CURRENCIES[0]);
+  // a single-currency user has nothing to choose here — hide the field
+  const single = NW_CURRENCIES.length < 2;
+  document.getElementById("insRegionLabel").style.display = single ? "none" : "";
+  insCurrencyRow.style.display = single ? "none" : "";
+}
+
 // which currency the Net Worth DASHBOARD totals are shown in — independent
 // of what currency any individual account was actually logged in
 function renderNWDisplayCurrencyRow(){
@@ -991,6 +1182,7 @@ function setFormType(type){
   formType = type;
   document.getElementById("entriesView").style.display = "block";
   document.getElementById("netWorthView").style.display = "none";
+  document.getElementById("insuranceView").style.display = "none";
   document.getElementById("dashboardView").style.display = "none";
   document.getElementById("tabExpenseBtn").classList.toggle("sel", type==="expense");
   document.getElementById("tabIncomeBtn").classList.toggle("sel", type==="income");
@@ -1222,10 +1414,10 @@ function cancelEdit(){
 }
 
 function backupData(){
-  // net worth history now travels with expense/income entries in the same
-  // backup file — earlier versions silently dropped nwEntries here, so a
-  // restore-round would lose every net worth snapshot the user ever logged
-  const payload = { backup:new Date().toISOString(), source:"iFinWell", entries:entries, nwSnapshots:nwSnapshots, nwChangeLog:nwChangeLog };
+  // net worth AND insurance history travel with expense/income entries in
+  // the same backup file — earlier versions silently dropped nwEntries
+  // here, so a restore-round would lose every snapshot the user ever logged
+  const payload = { backup:new Date().toISOString(), source:"iFinWell", entries:entries, nwSnapshots:nwSnapshots, nwChangeLog:nwChangeLog, insSnapshots:insSnapshots, insChangeLog:insChangeLog };
   const blob = new Blob([JSON.stringify(payload,null,1)],{type:"application/json"});
   const fname = `iexpense_backup_${payload.backup.replace(/[-:T]/g,"").slice(0,14)}.json`;
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=fname; a.click();
@@ -1266,6 +1458,8 @@ async function restoreData(evt){
     // handle both old array format and new snapshot+changelog format
     let incomingNW = [];
     let incomingNWLog = [];
+    let incomingIns = [];
+    let incomingInsLog = [];
     if(!Array.isArray(data)){
       if(data.nwSnapshots && data.nwChangeLog){
         incomingNW = data.nwSnapshots || [];
@@ -1273,8 +1467,10 @@ async function restoreData(evt){
       } else {
         incomingNW = data.nwEntries || [];
       }
+      incomingIns = data.insSnapshots || [];
+      incomingInsLog = data.insChangeLog || [];
     }
-    if((!Array.isArray(incoming) || !incoming.length) && (!Array.isArray(incomingNW) || !incomingNW.length)){
+    if((!Array.isArray(incoming) || !incoming.length) && (!Array.isArray(incomingNW) || !incomingNW.length) && (!Array.isArray(incomingIns) || !incomingIns.length)){
       toast("No entries found in file","var(--amber)"); return;
     }
     // SECURITY: Validate entry format before importing
@@ -1351,20 +1547,54 @@ async function restoreData(evt){
       });
     }
 
-    persist(); persistNW(); renderList(); renderNWItemList();
+    // insurance history: same dedupe-strictly-by-id rule as net worth above
+    function validateRestoreInsEntry(e) {
+      if(!e || typeof e !== 'object') return false;
+      if(!e.date || !/^\d{4}-\d{2}-\d{2}$/.test(e.date)) return false;
+      if(!e.category || typeof e.category !== 'string') return false;
+      if(!e.provider || typeof e.provider !== 'string' || e.provider.length > 100) return false;
+      if(e.value == null || isNaN(Number(e.value)) || Number(e.value) < 0) return false;
+      if(!e.id) return false;
+      return true;
+    }
+    const existingInsIds = new Set(insSnapshots.map(e=>e.id).filter(Boolean));
+    let addedIns = 0;
+    let rejectedIns = 0;
+    incomingIns.forEach(e=>{
+      if(!validateRestoreInsEntry(e)) { rejectedIns++; return; }
+      if(existingInsIds.has(e.id)) return;
+      const snapshot = { date:e.date, category:e.category, provider:e.provider, country:e.country||"", value:Number(e.value), currency:e.currency||"USD", premium:e.premium==null?null:Number(e.premium), policyNumber:e.policyNumber||null, coveredMembers:e.coveredMembers||null, beneficiary:e.beneficiary||null, startDate:e.startDate||e.date, renewalDate:e.renewalDate||null, notes:e.notes||null, id:e.id, createdAt:new Date().toISOString(), source:"legacy" };
+      insSnapshots.push(snapshot);
+      insChangeLog.push({ id:genId(), snapshotId:e.id, timestamp:snapshot.createdAt, operation:"create", before:{}, after:snapshot, reason:null });
+      existingInsIds.add(e.id);
+      addedIns++;
+    });
+    if(incomingInsLog && incomingInsLog.length){
+      const existingInsLogIds = new Set(insChangeLog.map(log=>log.id));
+      incomingInsLog.forEach(log=>{
+        if(!existingInsLogIds.has(log.id)){
+          insChangeLog.push(log);
+          existingInsLogIds.add(log.id);
+        }
+      });
+    }
+
+    persist(); persistNW(); persistIns(); renderList(); renderNWItemList(); renderInsItemList();
 
     // push the restored rows up to Cloud Sync right away instead of waiting
     // for the next save/delete — otherwise the two sides can stay silently
     // out of sync for however long the user goes before their next action
-    if(cloudCfg && (added || addedNW)) cloudSyncNow();
+    if(cloudCfg && (added || addedNW || addedIns)) cloudSyncNow();
 
     const parts = [];
     if(added) parts.push(`${added} entr${added===1?"y":"ies"}`);
     if(addedNW) parts.push(`${addedNW} net worth snapshot${addedNW===1?"":"s"}`);
+    if(addedIns) parts.push(`${addedIns} insurance record${addedIns===1?"":"s"}`);
     const msg = parts.length ? `Restored ${parts.join(" + ")}` : "Nothing new to restore";
     const warnings = [];
     if(rejected) warnings.push(`${rejected} malformed entry/entries skipped`);
     if(rejectedNW) warnings.push(`${rejectedNW} invalid net worth snapshot(s) skipped`);
+    if(rejectedIns) warnings.push(`${rejectedIns} invalid insurance record(s) skipped`);
     if(warnings.length) {
       toast(`${msg}. ${warnings.join("; ")}`, "var(--amber)");
     } else {
@@ -1426,6 +1656,15 @@ async function exportExcel(){
     Store:e.store||"", Payment:e.payment||"", Note:e.note||""
   })));
   XLSX.utils.book_append_sheet(wb, entriesSheet, "All Entries");
+
+  if(insSnapshots.length){
+    const insCurrentSheet = XLSX.utils.json_to_sheet(insLatestPerItem().map(({e})=>({
+      Provider:e.provider, Type:e.category, Country:e.country||"", Coverage:Number(e.value||0), Currency:e.currency||"USD",
+      Premium: e.premium!=null ? Number(e.premium) : "", "Policy Number": e.policyNumber||"", "Covered Members": e.coveredMembers||"",
+      Beneficiary: e.beneficiary||"", "Start Date": e.startDate||e.date, "Renewal Date": e.renewalDate||"", Notes: e.notes||""
+    })));
+    XLSX.utils.book_append_sheet(wb, insCurrentSheet, "Insurance");
+  }
 
   if(nwSnapshots.length){
     const nwCurrentSheet = XLSX.utils.json_to_sheet(nwLatestPerItem().map(({e})=>({
@@ -1912,6 +2151,280 @@ function undoNWSnapshot(snapshotId){
   refreshAllNWDisplays();
 }
 
+// ===== Insurance / Risk Coverage: same append-only snapshot + change log
+// pattern as Net Worth above — "provider" plays the role Net Worth's "item"
+// plays (the free-text identity a policy is tracked under), "value" holds
+// the coverage amount. =====
+function insLatestPerItem(){
+  const map = {};
+  insSnapshots.filter(s => s.source !== "undo").forEach((e,idx)=>{
+    if(!map[e.provider] || e.date >= map[e.provider].e.date) map[e.provider] = { e, idx };
+  });
+  return Object.values(map);
+}
+
+function renderInsItemList(){
+  const box=document.getElementById("insItemList"); box.innerHTML="";
+  const items = insLatestPerItem().sort((a,b)=> b.e.value - a.e.value);
+  if(!items.length){ box.innerHTML='<div class="dash-empty">🛡️ No insurance policies yet — add your first one above</div>'; return; }
+  items.forEach(({e})=>{
+    const d=document.createElement("div"); d.className="entry";
+    const left=document.createElement("div");
+    const renewalNote = e.renewalDate ? " · renews "+e.renewalDate : "";
+    left.innerHTML = `<div class="cat">${insCatIcon(e.category)}${e.provider}</div><div class="sub">${e.category}${e.country?" · "+e.country:""} · updated ${e.date}${renewalNote}</div>`;
+    const right=document.createElement("div"); right.style.display="flex"; right.style.alignItems="center";
+    const amt=document.createElement("span"); amt.className="amt"; amt.textContent=nwFmtAmount(Number(e.value), e.currency||"USD");
+    const del=document.createElement("button"); del.className="del"; del.textContent="✕";
+    del.onclick=(evt)=>delInsItem(e.provider,evt);
+    right.appendChild(amt); right.appendChild(del);
+    d.appendChild(left); d.appendChild(right);
+    d.onclick=()=>insStartUpdate(e.provider);
+    box.appendChild(d);
+  });
+}
+
+function resetInsForm(){
+  insUpdatingSnapshot=null;
+  document.getElementById("insProvider").value="";
+  document.getElementById("insCountry").value="";
+  document.getElementById("insValue").value="";
+  document.getElementById("insPremium").value="";
+  document.getElementById("insPolicyNumber").value="";
+  document.getElementById("insCoveredMembers").value="";
+  document.getElementById("insBeneficiary").value="";
+  document.getElementById("insNotes").value="";
+  document.getElementById("insStartDate").value=todayStr(); document.getElementById("insStartDate").max=todayStr();
+  document.getElementById("insRenewalDate").value="";
+  document.getElementById("insCancelEditBtn").style.display="none";
+  document.getElementById("insComparisonCardWrap").style.display="none";
+  renderInsCatGrid();
+  insSelectCurrency(NW_CURRENCIES[0]);
+  document.getElementById("insSaveBtn").textContent="Save Insurance Policy";
+  renderInsItemList();
+}
+
+function cancelInsEdit(){
+  resetInsForm();
+}
+
+function updateInsChangeWarning(){
+  const oldValue = insUpdatingSnapshot ? insUpdatingSnapshot.value : null;
+  const newValueStr = document.getElementById("insValue").value.trim();
+  const newValue = newValueStr ? parseFloat(newValueStr) : null;
+  const warningDiv = document.getElementById("insChangeWarning");
+
+  if(!oldValue || !newValue || newValue === oldValue){
+    warningDiv.innerHTML = "";
+    document.getElementById("insComparisonCard").classList.remove("alert-warning", "alert-danger");
+    return;
+  }
+
+  const pctChange = Math.abs((newValue - oldValue) / oldValue * 100);
+
+  if(pctChange >= 100){
+    document.getElementById("insComparisonCard").classList.add("alert-danger");
+    document.getElementById("insComparisonCard").classList.remove("alert-warning");
+    warningDiv.innerHTML = `<div class="alert-text">🚨 Huge change (${pctChange.toFixed(0)}%) — review the value?</div>`;
+  } else if(pctChange >= 50){
+    document.getElementById("insComparisonCard").classList.add("alert-warning");
+    document.getElementById("insComparisonCard").classList.remove("alert-danger");
+    warningDiv.innerHTML = `<div class="alert-text">⚠️ Large change (${pctChange.toFixed(0)}%) — confirm the value?</div>`;
+  } else {
+    warningDiv.innerHTML = "";
+    document.getElementById("insComparisonCard").classList.remove("alert-warning", "alert-danger");
+  }
+}
+
+function insLatestForItem(providerName){
+  const matches = insSnapshots.filter(e=>e.provider===providerName && e.source !== "undo");
+  if(!matches.length) return null;
+  return matches.reduce((a,b)=> (b.date>a.date ? b : a));
+}
+
+function insStartUpdate(providerName){
+  const latest = insLatestForItem(providerName);
+  if(!latest) return;
+  insUpdatingSnapshot = latest;
+  document.getElementById("insProvider").value = providerName;
+  document.getElementById("insCountry").value = latest.country || "";
+  document.getElementById("insValue").value = latest.value;
+  document.getElementById("insPremium").value = latest.premium!=null ? latest.premium : "";
+  document.getElementById("insPolicyNumber").value = latest.policyNumber || "";
+  document.getElementById("insCoveredMembers").value = latest.coveredMembers || "";
+  document.getElementById("insBeneficiary").value = latest.beneficiary || "";
+  document.getElementById("insNotes").value = latest.notes || "";
+  insSelectCategory(latest.category);
+  insSelectCurrency(latest.currency || PRIMARY_CUR);
+  document.getElementById("insStartDate").value = latest.startDate || todayStr(); document.getElementById("insStartDate").max = todayStr();
+  document.getElementById("insRenewalDate").value = latest.renewalDate || "";
+  document.getElementById("insCancelEditBtn").style.display = "block";
+  document.getElementById("insSaveBtn").textContent = "Update Entry";
+  document.getElementById("insComparisonCardWrap").style.display = "block";
+  document.getElementById("insComparisonLastValue").textContent = `${nwFmtAmount(latest.value, latest.currency || PRIMARY_CUR)} (updated ${latest.date})`;
+  updateInsChangeWarning();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+async function saveIns(){
+  const rawVal = document.getElementById("insValue").value;
+  const val=parseFloat(rawVal);
+  const provider=document.getElementById("insProvider").value.trim();
+  if(!insSel.cat){ toast("Pick a type","var(--red)"); return; }
+  if(!provider){ toast("Enter a provider","var(--red)"); return; }
+  if(provider.length > 100){ toast("Provider name must be less than 100 characters","var(--red)"); return; }
+  if(!val || val<=0){ toast("Enter a coverage amount","var(--red)"); return; }
+  if(/\.\d{3,}/.test(rawVal)){ toast("Amounts can have at most 2 decimal places","var(--red)"); return; }
+  const country = document.getElementById("insCountry").value.trim();
+  if(!country){ toast("Enter a country","var(--red)"); return; }
+  const premiumRaw = document.getElementById("insPremium").value.trim();
+  let premium = null;
+  if(premiumRaw){
+    premium = parseFloat(premiumRaw);
+    if(isNaN(premium) || premium < 0){ toast("Premium must be a positive number","var(--red)"); return; }
+  }
+  const startDate = document.getElementById("insStartDate").value || todayStr();
+  if(startDate > todayStr()){ toast("Start date can't be in the future","var(--red)"); return; }
+  const renewalDate = document.getElementById("insRenewalDate").value || null;
+
+  const newSnapshot = {
+    id: genId(),
+    date: startDate,
+    category: insSel.cat,
+    provider,
+    country,
+    value: Math.round(val*100)/100,
+    currency: insSel.currency||PRIMARY_CUR,
+    premium,
+    policyNumber: document.getElementById("insPolicyNumber").value.trim()||null,
+    coveredMembers: document.getElementById("insCoveredMembers").value.trim()||null,
+    beneficiary: document.getElementById("insBeneficiary").value.trim()||null,
+    startDate,
+    renewalDate,
+    notes: document.getElementById("insNotes").value.trim()||null,
+    createdAt: new Date().toISOString(),
+    source: insUpdatingSnapshot ? "correction" : "initial",
+    correctionOf: insUpdatingSnapshot ? insUpdatingSnapshot.id : null
+  };
+
+  const isUpdate = insUpdatingSnapshot !== null;
+  if(isUpdate && !confirm(`Log this update for "${newSnapshot.provider}"? Your previous entries stay untouched.`)) return;
+
+  insSnapshots.push(newSnapshot);
+
+  const logEntry = {
+    id: genId(),
+    snapshotId: newSnapshot.id,
+    timestamp: newSnapshot.createdAt,
+    operation: isUpdate ? "update" : "create",
+    before: isUpdate ? insUpdatingSnapshot : {},
+    after: newSnapshot,
+    reason: null
+  };
+  insChangeLog.push(logEntry);
+
+  persistIns();
+  toast(isUpdate ? "Updated ✓" : "Saved ✓", "var(--green)");
+  resetInsForm();
+  insUpdatingSnapshot = null;
+  showMainTab("dashboard");
+
+  if(cloudCfg){
+    try{
+      await insCloudSyncMutation(remote=>insSnapshots);
+      setCloudStatus(true, `✓ Insurance: ${insSnapshots.length} records synced to GitHub`);
+    }catch(err){
+      setCloudStatus(false, "✗ Did not sync to GitHub — data saved locally. Will retry automatically.");
+      toast("✗ Sync failed — data saved locally", "var(--red)");
+    }
+  }
+}
+
+async function delInsItem(providerName, evt){
+  if(evt) evt.stopPropagation();
+  if(!confirm(`Delete all history for "${providerName}"? This can't be undone.`)) return;
+  const idsToDelete = insSnapshots.filter(e=>e.provider===providerName).map(e=>e.id);
+  insSnapshots = insSnapshots.filter(e=>e.provider!==providerName);
+  insChangeLog = insChangeLog.filter(log=>!idsToDelete.includes(log.snapshotId));
+  persistIns();
+  addDeletedIds(INS_DELETED_IDS_KEY, idsToDelete);
+  renderInsItemList();
+
+  if(cloudCfg){
+    try{
+      await insCloudSyncMutation(remote=>insSnapshots);
+      setCloudStatus(true, `✓ Insurance: deleted "${providerName}" — synced to GitHub`);
+    }catch(err){
+      setCloudStatus(false, "✗ Deleted locally — did not sync to GitHub. Will retry automatically.");
+      toast("✗ Sync failed — deletion saved locally", "var(--red)");
+    }
+  }
+}
+
+function showInsHistory(providerName){
+  insViewingItemHistory = providerName;
+  const historyList = document.getElementById("insHistoryList");
+  document.getElementById("insHistoryTitle").textContent = `History for ${providerName}`;
+  const itemSnapshots = insSnapshots.filter(s => s.provider === providerName && s.source !== "undo").slice().reverse();
+
+  historyList.innerHTML = itemSnapshots.map((snap, idx) => {
+    const undoBtn = idx === 0 ? `<button type="button" class="history-undo-btn" onclick="undoInsSnapshot('${snap.id}')">Undo</button>` : "";
+    return `
+      <div class="nw-history-entry">
+        <div style="flex:1">
+          <div>${snap.date}</div>
+          <div>${nwFmtAmount(snap.value, snap.currency || "USD")}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px">${idx === 0 ? "Current" : "Previous"}</div>
+          ${undoBtn}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  document.getElementById("insHistoryOverlay").style.display = "flex";
+}
+
+function closeInsHistory(){
+  document.getElementById("insHistoryOverlay").style.display = "none";
+  insViewingItemHistory = null;
+}
+
+function undoInsSnapshot(snapshotId){
+  const snap = insSnapshots.find(s => s.id === snapshotId);
+  if(!snap) return;
+
+  if(!confirm(`Undo "${snap.provider}" entry from ${snap.date}?`)) return;
+
+  const undoSnapshot = { ...snap, id: genId(), createdAt: new Date().toISOString(), source: "undo", correctionOf: snapshotId };
+  insSnapshots.push(undoSnapshot);
+
+  const logEntry = {
+    id: genId(),
+    snapshotId: undoSnapshot.id,
+    timestamp: undoSnapshot.createdAt,
+    operation: "undo",
+    before: snap,
+    after: undoSnapshot,
+    reason: "User reverted change"
+  };
+  insChangeLog.push(logEntry);
+
+  if(cloudCfg){
+    insCloudSyncMutation(remote => insSnapshots).then(() => {
+      setCloudStatus(true, `✓ Insurance: undid change — synced to GitHub`);
+    }).catch(err => {
+      setCloudStatus(false, "✗ Undid locally — did not sync to GitHub. Will retry automatically.");
+      toast("✗ Sync failed — undo saved locally", "var(--red)");
+    });
+  }
+
+  persistIns();
+  toast(`✓ Undid "${snap.provider}"`, "var(--green)");
+  showInsHistory(snap.provider);
+  renderInsItemList();
+}
+
 // ===== Delete tombstones: a plain union-merge can only ADD entries, so it
 // can't tell "never existed remotely" apart from "existed remotely, then
 // got deleted here" — without this, a merge (auto-sync on load, on
@@ -1922,6 +2435,7 @@ function undoNWSnapshot(snapshotId){
 // copy, it pushes a cleanup write so the remote side converges too. =====
 const DELETED_IDS_KEY = nsKey("iexpense_deleted_ids_v1");
 const NW_DELETED_IDS_KEY = nsKey("iexpense_nw_deleted_ids_v1");
+const INS_DELETED_IDS_KEY = nsKey("iexpense_ins_deleted_ids_v1");
 function loadDeletedIds(key){ try{ return JSON.parse(localStorage.getItem(key)||"[]"); }catch(e){ return []; } }
 function addDeletedIds(key, ids){
   const cur = loadDeletedIds(key);
@@ -2063,6 +2577,25 @@ async function nwCloudSyncMutation(mutateFn, attempts){
   throw lastErr;
 }
 
+// same as above but for a third, separate insurance.json file in the same connected repo
+async function insCloudSyncMutation(mutateFn, attempts){
+  attempts = attempts || 3;
+  if(!cloudCfg) return null;
+  let lastErr;
+  for(let i=0;i<attempts;i++){
+    try{
+      const { entries: remote, sha } = await cloudFetchRemote(cloudCfg, "insurance.json");
+      const updated = mutateFn(remote);
+      await cloudWriteRemote(cloudCfg, updated, sha, "insurance.json");
+      return updated;
+    }catch(err){
+      lastErr = err;
+      if(!err.conflict) throw err;
+    }
+  }
+  throw lastErr;
+}
+
 function setCloudStatus(ok, msg){
   const el = document.getElementById("cloudStatus");
   if(!cloudCfg){ el.textContent="Not connected — saving on this device only"; el.className="cloud-status off"; return; }
@@ -2126,6 +2659,25 @@ async function cloudConnect(){
     renderNWItemList();
     renderNWItemSuggestions();
   }catch(err){ /* net worth cloud sync failed silently; core connect above already succeeded */ }
+  // insurance sync is best-effort too, same rule as net worth above
+  try{
+    const { entries: insRemote, sha: insSha } = await cloudFetchRemote(cloudCfg, "insurance.json");
+    const remoteSnapshots = insRemote.snapshots || insRemote || [];
+    const remoteChangeLog = insRemote.changeLog || [];
+    const mergedSnapshots = unionMerge(remoteSnapshots, insSnapshots, loadDeletedIds(INS_DELETED_IDS_KEY));
+    const existingLogIds = new Set(insChangeLog.map(log=>log.id));
+    remoteChangeLog.forEach(log=>{
+      if(!existingLogIds.has(log.id)){
+        insChangeLog.push(log);
+        existingLogIds.add(log.id);
+      }
+    });
+    const insMerged = { version: 2, snapshots: mergedSnapshots, changeLog: insChangeLog };
+    await cloudWriteRemote(cloudCfg, insMerged, insSha, "insurance.json");
+    insSnapshots = mergedSnapshots;
+    persistIns();
+    renderInsItemList();
+  }catch(err){ /* insurance cloud sync failed silently; core connect above already succeeded */ }
 }
 
 async function cloudSyncNow(){
@@ -2160,6 +2712,25 @@ async function cloudSyncNow(){
     nwSnapshots = nwMerged.snapshots;
     nwChangeLog = nwMerged.changeLog;
     persistNW(); renderNWItemList(); renderNWItemSuggestions();
+  }catch(err){ /* best-effort */ }
+  // insurance sync is best-effort too, same rule as net worth above
+  try{
+    const insMerged = await insCloudSyncMutation(remote=>{
+      const remoteSnapshots = remote.snapshots || remote || [];
+      const remoteChangeLog = remote.changeLog || [];
+      const mergedSnapshots = unionMerge(remoteSnapshots, insSnapshots, loadDeletedIds(INS_DELETED_IDS_KEY));
+      const existingLogIds = new Set(insChangeLog.map(log=>log.id));
+      remoteChangeLog.forEach(log=>{
+        if(!existingLogIds.has(log.id) && mergedSnapshots.some(s=>s.id === log.snapshotId)){
+          insChangeLog.push(log);
+          existingLogIds.add(log.id);
+        }
+      });
+      return { version: 2, snapshots: mergedSnapshots, changeLog: insChangeLog };
+    });
+    insSnapshots = insMerged.snapshots;
+    insChangeLog = insMerged.changeLog;
+    persistIns(); renderInsItemList();
   }catch(err){ /* best-effort */ }
 }
 
@@ -2209,12 +2780,31 @@ async function cloudPullOnLoad(){
     nwSnapshots = nwMerged;
     persistNW(); renderNWItemList(); renderNWItemSuggestions();
   }catch(err){ /* best-effort */ }
+  // insurance pull is best-effort too, same rule: never override the status set above
+  try{
+    const { entries: insRemote } = await cloudFetchRemote(cloudCfg, "insurance.json");
+    const insDeletedIds = loadDeletedIds(INS_DELETED_IDS_KEY);
+    const remoteSnapshots = insRemote.snapshots || insRemote || [];
+    const remoteChangeLog = insRemote.changeLog || [];
+    const insMerged = unionMerge(remoteSnapshots, insSnapshots, insDeletedIds);
+    if(insDeletedIds.length && remoteSnapshots.some(e=>insDeletedIds.includes(e.id))) needsPushBack = true;
+    const existingLogIds = new Set(insChangeLog.map(log=>log.id));
+    remoteChangeLog.forEach(log=>{
+      if(!existingLogIds.has(log.id) && insMerged.some(s=>s.id === log.snapshotId)){
+        insChangeLog.push(log);
+        existingLogIds.add(log.id);
+      }
+    });
+    insSnapshots = insMerged;
+    persistIns(); renderInsItemList();
+  }catch(err){ /* best-effort */ }
   if(needsPushBack) cloudSyncNow();
 }
 
 function showNetWorth(){
   document.getElementById("entriesView").style.display = "none";
   document.getElementById("dashboardView").style.display = "none";
+  document.getElementById("insuranceView").style.display = "none";
   document.getElementById("netWorthView").style.display = "block";
   document.getElementById("tabExpenseBtn").classList.remove("sel");
   document.getElementById("tabIncomeBtn").classList.remove("sel");
@@ -2225,6 +2815,15 @@ function showNetWorth(){
   hideNWItemSuggestions();
 }
 
+function showInsurance(){
+  document.getElementById("entriesView").style.display = "none";
+  document.getElementById("dashboardView").style.display = "none";
+  document.getElementById("netWorthView").style.display = "none";
+  document.getElementById("insuranceView").style.display = "block";
+  document.getElementById("fabAddBtn").style.display = "none";
+  renderInsItemList();
+}
+
 // ===== Dashboard: all data computed entirely client-side from synced entries.
 // Dashboard is the app's permanent home screen — the floating + button is the
 // only way to reach the Expense/Income/Net Worth forms (see openAddPicker). =====
@@ -2232,6 +2831,7 @@ function showMainTab(tab){
   if(tab==="dashboard"){
     document.getElementById("entriesView").style.display = "none";
     document.getElementById("netWorthView").style.display = "none";
+    document.getElementById("insuranceView").style.display = "none";
     document.getElementById("dashboardView").style.display = "block";
     document.getElementById("settingsView").style.display = "none";
     document.getElementById("tabExpenseBtn").classList.remove("sel");
@@ -2243,6 +2843,9 @@ function showMainTab(tab){
   } else if(tab==="networth"){
     document.getElementById("settingsView").style.display = "none";
     showNetWorth();
+  } else if(tab==="insurance"){
+    document.getElementById("settingsView").style.display = "none";
+    showInsurance();
   } else if(tab==="settings"){
     // Settings is a first-class view now, not a modal — hide every other
     // view, hide the floating "+" (nothing to add on the settings screen),
@@ -2250,6 +2853,7 @@ function showMainTab(tab){
     // what's currently active.
     document.getElementById("entriesView").style.display = "none";
     document.getElementById("netWorthView").style.display = "none";
+    document.getElementById("insuranceView").style.display = "none";
     document.getElementById("dashboardView").style.display = "none";
     document.getElementById("settingsView").style.display = "block";
     document.getElementById("tabExpenseBtn").classList.remove("sel");
@@ -2398,11 +3002,14 @@ function showDashTab(tab){
   document.getElementById("dashOverviewView").style.display = tab==="overview" ? "" : "none";
   document.getElementById("dashMonthlyView").style.display = tab==="monthly" ? "" : "none";
   document.getElementById("dashNetWorthView").style.display = tab==="networth" ? "block" : "none";
+  document.getElementById("dashCoverageView").style.display = tab==="coverage" ? "" : "none";
   document.getElementById("dashOverviewBtn").classList.toggle("sel", tab==="overview");
   document.getElementById("dashMonthlyBtn").classList.toggle("sel", tab==="monthly");
   document.getElementById("dashNetWorthBtn").classList.toggle("sel", tab==="networth");
+  document.getElementById("dashCoverageBtn").classList.toggle("sel", tab==="coverage");
   if(tab==="overview") renderOverview();
   else if(tab==="monthly") renderMonthlyDetail();
+  else if(tab==="coverage") renderDashCoverage();
   else renderDashNetWorth();
 }
 
@@ -2422,6 +3029,7 @@ function showNWRegion(region){
 function renderDashboard(){
   if(document.getElementById("dashOverviewView").style.display !== "none") renderOverview();
   else if(document.getElementById("dashMonthlyView").style.display !== "none") renderMonthlyDetail();
+  else if(document.getElementById("dashCoverageView").style.display !== "none") renderDashCoverage();
   else renderDashNetWorth();
 }
 
@@ -3050,6 +3658,49 @@ async function deleteFromNWDashboard(itemName, evt){
   renderDashNetWorth();
 }
 
+// ===== Coverage dashboard: what happens if something goes wrong — total
+// life/health coverage and how many policies are active, converted into
+// the user's primary currency the same way net worth totals are =====
+async function renderDashCoverage(){
+  const rateInfo = await getUsdInrRate();
+  const toCur = PRIMARY_CUR;
+  const items = insLatestPerItem().map(o=>o.e);
+
+  let lifeTotal = 0, healthTotal = 0, incomplete = false;
+  items.forEach(e=>{
+    const converted = nwConvert(Number(e.value||0), e.currency||"USD", toCur, rateInfo);
+    if(converted==null){ incomplete = true; return; }
+    if(e.category==="Life Insurance") lifeTotal += converted;
+    else if(e.category==="Health Insurance") healthTotal += converted;
+  });
+
+  const today = todayStr();
+  const upcoming = items.filter(e=>e.renewalDate && e.renewalDate >= today).sort((a,b)=>a.renewalDate<b.renewalDate?-1:1);
+  const nextRenewal = upcoming.length ? `${upcoming[0].provider} · ${upcoming[0].renewalDate}` : null;
+
+  document.getElementById("insCards").innerHTML = `
+    <div class="card"><div class="card-label">🛡️ Total Life Coverage${incomplete?" ⚠️":""}</div><div class="card-value">${nwFmtAmount(lifeTotal, toCur)}</div></div>
+    <div class="card green"><div class="card-label">🏥 Total Health Coverage</div><div class="card-value">${nwFmtAmount(healthTotal, toCur)}</div></div>
+    <div class="card orange"><div class="card-label">📋 Active Policies</div><div class="card-value">${items.length}</div></div>
+    <div class="card purple"><div class="card-label">📅 Next Renewal</div><div class="card-value" style="font-size:14px">${nextRenewal || "None scheduled"}</div></div>
+  `;
+
+  document.getElementById("insCoverageTable").innerHTML = items.length ? `<table><thead><tr><th>Provider</th><th>Type</th><th>Country</th><th>Coverage</th><th>Renews</th><th></th></tr></thead><tbody>
+    ${items.map(e=>`<tr class="entry-row" onclick="editFromInsDashboard('${e.provider.replace(/'/g,"\\'")}')"><td>${e.provider}</td><td>${insCatIcon(e.category)}${e.category}</td><td>${e.country||""}</td><td>${nwFmtAmount(Number(e.value), e.currency||"USD")}</td><td>${e.renewalDate||"—"}</td><td><button class="row-del" onclick="deleteFromInsDashboard('${e.provider.replace(/'/g,"\\'")}',event)">✕</button></td></tr>`).join("")}
+  </tbody></table>` : `<div class="dash-empty">🛡️ No insurance policies yet</div>`;
+}
+
+function editFromInsDashboard(providerName){
+  insStartUpdate(providerName);
+  showInsurance();
+}
+
+async function deleteFromInsDashboard(providerName, evt){
+  if(evt) evt.stopPropagation();
+  await delInsItem(providerName, evt);
+  renderDashCoverage();
+}
+
 // ===== Light / dark theme, persisted =====
 // The theme toggles now live in the Settings view, not in a header menu.
 // setTheme keeps the selection state in sync on those buttons if they're
@@ -3075,6 +3726,7 @@ function applyPrefs(){
   NW_CURRENCIES = SECONDARY_CUR ? [PRIMARY_CUR, SECONDARY_CUR] : [PRIMARY_CUR];
   if(!NW_CURRENCIES.includes(nwDisplayCurrency)) nwDisplayCurrency = PRIMARY_CUR;
   if(!NW_CURRENCIES.includes(nwSel.currency)) nwSel.currency = PRIMARY_CUR;
+  if(!NW_CURRENCIES.includes(insSel.currency)) insSel.currency = PRIMARY_CUR;
   document.documentElement.style.setProperty("--cur-sym", JSON.stringify(curSym(PRIMARY_CUR)));
 
   const hello = document.getElementById("helloName");
@@ -3105,6 +3757,7 @@ function applyPrefs(){
   document.getElementById("nwDisplayCurrencyRow").parentElement.style.display = SECONDARY_CUR ? "" : "none";
   renderNWCurrencyRow();
   renderNWDisplayCurrencyRow();
+  renderInsCurrencyRow();
   // If the Settings screen is currently visible, refresh its profile row so
   // the name/currency summary updates immediately after a Preferences save.
   const settingsView = document.getElementById("settingsView");
@@ -3163,9 +3816,12 @@ setFormType("expense");
 renderList();
 renderCategoryFilterOptions();
 renderNWCatGrid();
+renderInsCatGrid();
 applyPrefs();
 document.getElementById("nwDate").value=todayStr(); document.getElementById("nwDate").max=todayStr();
+document.getElementById("insStartDate").value=todayStr(); document.getElementById("insStartDate").max=todayStr();
 renderNWItemList();
+renderInsItemList();
 if(cloudCfg){
   document.getElementById("cloudSetup").style.display="none";
   document.getElementById("cloudControls").style.display="block";
