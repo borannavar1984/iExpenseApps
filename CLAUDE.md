@@ -82,3 +82,135 @@ After ANY code changes:
 8. Repeat for next task
 
 **Key principle**: Token efficiency via delegation. Main thread stays focused; heavy lifting dispersed to specialized agents with appropriate models and tools.
+
+---
+
+## Mobile App Development (iOS & Android)
+
+### Quick Setup for Claude Code
+
+Claude Code can automate mobile app setup and testing. Run this in any session:
+
+```bash
+# Clone and setup mobile app
+cd mobile
+npm install
+
+# Start development server
+npm start
+```
+
+### Project Structure
+
+```
+iExpenseApps/
+├── mobile/                    (React Native + Expo)
+│   ├── App.tsx               (Root component with navigation)
+│   ├── app/
+│   │   ├── services/         (Business logic: data model, cloud sync, calculations)
+│   │   ├── store/            (Redux state management)
+│   │   ├── hooks/            (useAppData, reduxHooks)
+│   │   ├── tabs/             (Screen components: dashboard, expenses, networth, insurance, settings)
+│   │   └── theme.ts          (Material Design 3 theme)
+│   ├── package.json
+│   ├── app.json              (Expo configuration)
+│   ├── babel.config.js
+│   ├── index.js              (Entry point)
+│   └── tsconfig.json
+├── index.html                (Web app - legacy)
+└── CLAUDE.md                 (This file)
+```
+
+### Running on iPhone/Android
+
+**Option 1: Local Testing with Expo Go (Fastest)**
+```bash
+cd mobile
+npm start
+# Scan QR code with Expo Go app on real device
+```
+
+**Option 2: Build for Local Install**
+```bash
+cd mobile
+
+# iOS (macOS required)
+eas build --platform ios --profile preview --local
+
+# Android
+eas build --platform android --profile preview --local
+```
+
+### Mobile App Features
+
+✅ **Dashboard**: Month summary, charts, trends  
+✅ **Expenses**: CRUD with category picker, date picker  
+✅ **Net Worth**: Asset snapshots, regional breakdown  
+✅ **Insurance**: Policy management with premium frequency (NEW)  
+✅ **Settings**: Theme toggle, cloud sync config  
+
+### NEW Features (Phase 2)
+
+- **Premium Frequency Selector**: Monthly or yearly insurance premiums
+- **Monthly Insurance Cost Calculation**: Automatic sum of all monthly premiums
+- **Policy Status Badges**: Active, Expiring Soon, Expired
+- **Theme Support**: Dark/light mode with Material Design 3
+
+### Cloud Sync
+
+Mobile app uses same GitHub sync as web app:
+- `entries.json` - Expenses/Income
+- `networth.json` - Net worth snapshots
+- `insurance.json` - Insurance policies
+
+Connect in Settings tab with GitHub token + repo name.
+
+### Testing Checklist
+
+- [ ] Add 1 expense, 1 income → appears in list
+- [ ] Dashboard shows month summary
+- [ ] Add health + life insurance → coverage cards update
+- [ ] Premium frequency selector works
+- [ ] Monthly cost calculates correctly
+- [ ] Theme toggle (Settings) changes app
+- [ ] Smooth scrolling with 100+ entries
+
+### Development Branches
+
+- `develop-ios` - iOS-specific development (shared `/mobile` codebase)
+- `develop-android` - Android-specific development (shared `/mobile` codebase)
+- `main` - Stable reference (web app only)
+
+Both branches share identical `/mobile` code. Native-specific code stays isolated per platform.
+
+### Common Tasks for Claude Code
+
+**Start development server:**
+```bash
+cd mobile && npm start
+```
+
+**Install dependencies:**
+```bash
+cd mobile && npm install
+```
+
+**Type check:**
+```bash
+cd mobile && npx tsc --noEmit
+```
+
+**Build for testing:**
+```bash
+cd mobile && eas build --platform ios --profile preview --local
+```
+
+### Dependencies
+
+- React Native 0.86 + Expo 57
+- React Navigation (bottom tabs)
+- Redux Toolkit + React-Redux
+- React Native Paper (Material Design 3)
+- react-native-chart-kit (Charts)
+- @react-native-async-storage/async-storage (Local persistence)
+- react-native-svg, date-fns, uuid
