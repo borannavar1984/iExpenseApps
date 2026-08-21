@@ -6,8 +6,8 @@ import { useAppDispatch, useAppSelector } from '../hooks/reduxHooks';
 import { useAppData } from '../hooks/useAppData';
 import { addSnapshot, updateSnapshot, deleteSnapshotById } from '../store/insurance';
 import { spacing, borderRadius, typography } from '../theme';
-import { generateId, today, formatDate, INS_CATS } from '../services/dataModel';
-import { insLatestPerProvider, insTotalByCoverage, insActiveCount, insStatusBadge, monthlyInsuranceCost } from '../services/calculations';
+import { generateId, today, formatDate, INS_CATS, FX_RATES } from '../services/dataModel';
+import { insLatestPerProvider, insTotalByCoverage, insActiveCount, insStatusBadge, monthlyInsuranceCost, insTotalByCoverageAndRegion, monthlyInsuranceCostByRegion } from '../services/calculations';
 import type { InsuranceSnapshot } from '../services/dataModel';
 
 interface FormState {
@@ -53,6 +53,7 @@ export default function InsuranceScreen() {
   const [showDatePicker, setShowDatePicker] = useState<'start' | 'renewal' | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [dummySync, setDummySync] = useState(false);
+  const [selectedRegion, setSelectedRegion] = useState<'US' | 'India' | 'total'>('total');
 
   const latestSnapshots = useMemo(() => {
     return insLatestPerProvider(snapshots);
@@ -62,10 +63,10 @@ export default function InsuranceScreen() {
     return Object.values(latestSnapshots).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [latestSnapshots]);
 
-  const lifeTotal = useMemo(() => insTotalByCoverage(snapshots, 'Life Insurance', userPrefs.primaryCurrency), [snapshots, userPrefs.primaryCurrency]);
-  const healthTotal = useMemo(() => insTotalByCoverage(snapshots, 'Health Insurance', userPrefs.primaryCurrency), [snapshots, userPrefs.primaryCurrency]);
+  const lifeTotal = useMemo(() => insTotalByCoverageAndRegion(snapshots, 'Life Insurance', selectedRegion, userPrefs.primaryCurrency, FX_RATES), [snapshots, selectedRegion, userPrefs.primaryCurrency]);
+  const healthTotal = useMemo(() => insTotalByCoverageAndRegion(snapshots, 'Health Insurance', selectedRegion, userPrefs.primaryCurrency, FX_RATES), [snapshots, selectedRegion, userPrefs.primaryCurrency]);
   const activeCount = useMemo(() => insActiveCount(snapshots), [snapshots]);
-  const monthlyCost = useMemo(() => monthlyInsuranceCost(snapshots), [snapshots]);
+  const monthlyCost = useMemo(() => monthlyInsuranceCostByRegion(snapshots, selectedRegion, userPrefs.primaryCurrency, FX_RATES), [snapshots, selectedRegion, userPrefs.primaryCurrency]);
 
   const handleDateChange = (event: any, selectedDate?: Date, type: 'start' | 'renewal' = 'start') => {
     if (selectedDate) {
@@ -218,15 +219,28 @@ export default function InsuranceScreen() {
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
           <View style={styles.header}>
+            <View style={styles.section}>
+              <Text style={styles.label}>View by Region</Text>
+              <SegmentedButtons
+                value={selectedRegion}
+                onValueChange={(v) => setSelectedRegion(v as 'US' | 'India' | 'total')}
+                buttons={[
+                  { value: 'US', label: 'US' },
+                  { value: 'India', label: 'India' },
+                  { value: 'total', label: 'Total' },
+                ]}
+                style={styles.segmented}
+              />
+            </View>
             <Card style={styles.summaryCard}>
               <Card.Content>
-                <Text style={styles.summaryLabel}>Life Coverage</Text>
+                <Text style={styles.summaryLabel}>Life Coverage {selectedRegion !== 'total' ? `(${selectedRegion})` : ''}</Text>
                 <Text style={styles.summaryValue}>{userPrefs.primaryCurrency} {lifeTotal.toFixed(0)}</Text>
               </Card.Content>
             </Card>
             <Card style={styles.summaryCard}>
               <Card.Content>
-                <Text style={styles.summaryLabel}>Health Coverage</Text>
+                <Text style={styles.summaryLabel}>Health Coverage {selectedRegion !== 'total' ? `(${selectedRegion})` : ''}</Text>
                 <Text style={styles.summaryValue}>{userPrefs.primaryCurrency} {healthTotal.toFixed(0)}</Text>
               </Card.Content>
             </Card>
@@ -238,7 +252,7 @@ export default function InsuranceScreen() {
             </Card>
             <Card style={styles.summaryCard}>
               <Card.Content>
-                <Text style={styles.summaryLabel}>Monthly Cost</Text>
+                <Text style={styles.summaryLabel}>Monthly Cost {selectedRegion !== 'total' ? `(${selectedRegion})` : ''}</Text>
                 <Text style={styles.summaryValue}>{userPrefs.primaryCurrency} {monthlyCost.toFixed(2)}</Text>
               </Card.Content>
             </Card>
