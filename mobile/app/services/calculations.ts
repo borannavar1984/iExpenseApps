@@ -7,6 +7,7 @@ import {
   InsuranceSnapshot,
   getMonthKey,
   roundAmount,
+  FX_RATES,
 } from './dataModel';
 
 // ============== ENTRY CALCULATIONS ==============
@@ -212,7 +213,8 @@ export function insTotalByCoverage(
 }
 
 export function monthlyInsuranceCost(
-  snapshots: InsuranceSnapshot[]
+  snapshots: InsuranceSnapshot[],
+  fxRates: { [key: string]: number } = FX_RATES
 ): number {
   const latest = insLatestPerProvider(snapshots);
   let total = 0;
@@ -225,6 +227,96 @@ export function monthlyInsuranceCost(
         ? snap.premium / 12
         : snap.premium;
     total += monthly;
+  });
+
+  return roundAmount(total);
+}
+
+export function insTotalByCoverageAndRegion(
+  snapshots: InsuranceSnapshot[],
+  category: string,
+  region: 'US' | 'India' | 'total',
+  targetCurrency: string,
+  fxRates: { [key: string]: number } = FX_RATES
+): number {
+  const latest = insLatestPerProvider(snapshots);
+  let total = 0;
+
+  const isUSRegion = (country: string) => {
+    return country.toLowerCase().includes('united states') ||
+           country.toLowerCase().includes('us') ||
+           country.toLowerCase() === 'usa';
+  };
+
+  const isIndiaRegion = (country: string) => {
+    return country.toLowerCase().includes('india') ||
+           country.toLowerCase().includes('in');
+  };
+
+  Object.values(latest).forEach((snap) => {
+    if (snap.category !== category) return;
+
+    // Filter by region
+    if (region === 'US' && !isUSRegion(snap.country)) return;
+    if (region === 'India' && !isIndiaRegion(snap.country)) return;
+    // 'total' includes all regions
+
+    // Convert to target currency if needed
+    if (snap.currency === targetCurrency) {
+      total += snap.value;
+    } else {
+      const rate = fxRates[`${snap.currency}/${targetCurrency}`];
+      if (rate) {
+        total += snap.value * rate;
+      }
+    }
+  });
+
+  return roundAmount(total);
+}
+
+export function monthlyInsuranceCostByRegion(
+  snapshots: InsuranceSnapshot[],
+  region: 'US' | 'India' | 'total',
+  targetCurrency: string,
+  fxRates: { [key: string]: number } = FX_RATES
+): number {
+  const latest = insLatestPerProvider(snapshots);
+  let total = 0;
+
+  const isUSRegion = (country: string) => {
+    return country.toLowerCase().includes('united states') ||
+           country.toLowerCase().includes('us') ||
+           country.toLowerCase() === 'usa';
+  };
+
+  const isIndiaRegion = (country: string) => {
+    return country.toLowerCase().includes('india') ||
+           country.toLowerCase().includes('in');
+  };
+
+  Object.values(latest).forEach((snap) => {
+    if (!snap.premium) return;
+
+    // Filter by region
+    if (region === 'US' && !isUSRegion(snap.country)) return;
+    if (region === 'India' && !isIndiaRegion(snap.country)) return;
+    // 'total' includes all regions
+
+    const monthly =
+      snap.premiumFrequency === 'yearly'
+        ? snap.premium / 12
+        : snap.premium;
+
+    // Convert to target currency if needed
+    if (snap.currency === targetCurrency) {
+      total += monthly;
+    } else {
+      const rate = fxRates[`${snap.currency}/${targetCurrency}`];
+      if (rate) {
+        total += monthly * rate;
+      }
+    }
   });
 
   return roundAmount(total);

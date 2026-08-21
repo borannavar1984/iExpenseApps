@@ -156,6 +156,37 @@ export const CURRENCIES = [
   'NZD',
 ];
 
+// ============== CURRENCY & REGION MAPPINGS ==============
+
+export const COUNTRY_TO_CURRENCY: { [key: string]: string } = {
+  'United States': 'USD',
+  'India': 'INR',
+  'UK': 'GBP',
+  'Canada': 'CAD',
+  'Australia': 'AUD',
+  'Japan': 'JPY',
+  'China': 'CNY',
+  'Switzerland': 'CHF',
+  'Sweden': 'SEK',
+  'New Zealand': 'NZD',
+  'EU': 'EUR',
+};
+
+export const FX_RATES: { [key: string]: number } = {
+  'USD/USD': 1,
+  'INR/INR': 1,
+  'EUR/EUR': 1,
+  'GBP/GBP': 1,
+  'USD/INR': 83.5,
+  'INR/USD': 0.012,
+  'USD/EUR': 0.92,
+  'EUR/USD': 1.09,
+  'USD/GBP': 0.79,
+  'GBP/USD': 1.27,
+  'EUR/INR': 91.2,
+  'INR/EUR': 0.011,
+};
+
 // ============== UTILITY FUNCTIONS ==============
 
 export function generateId(): string {
