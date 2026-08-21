@@ -7,7 +7,7 @@ import { useAppData } from '../hooks/useAppData';
 import { addSnapshot, updateSnapshot, deleteSnapshotById } from '../store/insurance';
 import { spacing, borderRadius, typography } from '../theme';
 import { generateId, today, formatDate, INS_CATS, FX_RATES } from '../services/dataModel';
-import { insLatestPerProvider, insTotalByCoverage, insActiveCount, insStatusBadge, monthlyInsuranceCost, insTotalByCoverageAndRegion, monthlyInsuranceCostByRegion } from '../services/calculations';
+import { insLatestPerProvider, insTotalByCoverage, insActiveCount, insStatusBadge, monthlyInsuranceCost, insTotalByCoverageAndRegion, monthlyInsuranceCostByRegion, getNextPremiumDue } from '../services/calculations';
 import type { InsuranceSnapshot } from '../services/dataModel';
 
 interface FormState {
@@ -67,6 +67,15 @@ export default function InsuranceScreen() {
   const healthTotal = useMemo(() => insTotalByCoverageAndRegion(snapshots, 'Health Insurance', selectedRegion, userPrefs.primaryCurrency, FX_RATES), [snapshots, selectedRegion, userPrefs.primaryCurrency]);
   const activeCount = useMemo(() => insActiveCount(snapshots), [snapshots]);
   const monthlyCost = useMemo(() => monthlyInsuranceCostByRegion(snapshots, selectedRegion, userPrefs.primaryCurrency, FX_RATES), [snapshots, selectedRegion, userPrefs.primaryCurrency]);
+
+  const nextPremiumDue = useMemo(() => {
+    const latest = insLatestPerProvider(snapshots);
+    const dueDates: (string | null)[] = Object.values(latest)
+      .map(snap => getNextPremiumDue(snap.startDate, snap.premiumFrequency))
+      .filter((date): date is string => date !== null)
+      .sort();
+    return dueDates.length > 0 ? dueDates[0] : null;
+  }, [snapshots]);
 
   const handleDateChange = (event: any, selectedDate?: Date, type: 'start' | 'renewal' = 'start') => {
     if (selectedDate) {
@@ -179,36 +188,45 @@ export default function InsuranceScreen() {
     return status === 'active' ? '#4CAF50' : status === 'expiring' ? '#FF9800' : '#F44336';
   };
 
-  const SnapshotRow = ({ item }: { item: InsuranceSnapshot }) => (
-    <Card style={styles.card}>
-      <Card.Content>
-        <View style={styles.header}>
-          <View style={styles.info}>
-            <Text style={styles.title}>{item.provider}</Text>
-            <Text style={styles.subtitle}>{item.category}</Text>
-            <Text style={styles.date}>{formatDate(item.startDate)}</Text>
-            <View style={{ marginTop: spacing.xs }}>
-              <Chip icon="shield" style={{ backgroundColor: getStatusColor(item.renewalDate), marginRight: spacing.xs }}>
-                {insStatusBadge(item.renewalDate)}
-              </Chip>
+  const SnapshotRow = ({ item }: { item: InsuranceSnapshot }) => {
+    const nextDueDate = getNextPremiumDue(item.startDate, item.premiumFrequency);
+
+    return (
+      <Card style={styles.card}>
+        <Card.Content>
+          <View style={styles.header}>
+            <View style={styles.info}>
+              <Text style={styles.title}>{item.provider}</Text>
+              <Text style={styles.subtitle}>{item.category}</Text>
+              <Text style={styles.date}>{formatDate(item.startDate)}</Text>
+              <View style={{ marginTop: spacing.xs }}>
+                <Chip icon="shield" style={{ backgroundColor: getStatusColor(item.renewalDate), marginRight: spacing.xs }}>
+                  {insStatusBadge(item.renewalDate)}
+                </Chip>
+              </View>
+            </View>
+            <View style={styles.cardActions}>
+              <Text style={styles.value}>{item.currency} {item.value.toFixed(0)}</Text>
+              {item.premium && (
+                <View>
+                  <Text style={styles.premium}>
+                    {item.premium.toFixed(2)}/{item.premiumFrequency === 'yearly' ? 'year' : 'month'}
+                  </Text>
+                  {nextDueDate && (
+                    <Text style={styles.dueDate}>Due: {formatDate(nextDueDate)}</Text>
+                  )}
+                </View>
+              )}
+              <View style={styles.buttons}>
+                <IconButton icon="pencil" size={18} onPress={() => handleEditSnapshot(item)} style={{ margin: 0 }} />
+                <IconButton icon="delete" size={18} iconColor="#F44336" onPress={() => handleDeleteSnapshot(item.id)} style={{ margin: 0 }} />
+              </View>
             </View>
           </View>
-          <View style={styles.cardActions}>
-            <Text style={styles.value}>{item.currency} {item.value.toFixed(0)}</Text>
-            {item.premium && (
-              <Text style={styles.premium}>
-                {userPrefs.primaryCurrency} {item.premium.toFixed(2)}/{item.premiumFrequency || 'month'}
-              </Text>
-            )}
-            <View style={styles.buttons}>
-              <IconButton icon="pencil" size={18} onPress={() => handleEditSnapshot(item)} style={{ margin: 0 }} />
-              <IconButton icon="delete" size={18} iconColor="#F44336" onPress={() => handleDeleteSnapshot(item.id)} style={{ margin: 0 }} />
-            </View>
-          </View>
-        </View>
-      </Card.Content>
-    </Card>
-  );
+        </Card.Content>
+      </Card>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -256,6 +274,14 @@ export default function InsuranceScreen() {
                 <Text style={styles.summaryValue}>{userPrefs.primaryCurrency} {monthlyCost.toFixed(2)}</Text>
               </Card.Content>
             </Card>
+            {nextPremiumDue && (
+              <Card style={styles.summaryCard}>
+                <Card.Content>
+                  <Text style={styles.summaryLabel}>Next Premium Due</Text>
+                  <Text style={styles.summaryValue}>{formatDate(nextPremiumDue)}</Text>
+                </Card.Content>
+              </Card>
+            )}
           </View>
         }
         ListEmptyComponent={
@@ -388,6 +414,7 @@ const styles = StyleSheet.create({
   cardActions: { alignItems: 'flex-end' },
   value: { ...typography.titleMedium, fontWeight: '700', color: '#2E7D32' },
   premium: { ...typography.bodySmall, color: '#79747E', marginTop: spacing.xs },
+  dueDate: { ...typography.bodySmall, color: '#F57F17', marginTop: spacing.xs, fontWeight: '500' },
   buttons: { flexDirection: 'row', marginTop: spacing.xs },
   empty: { alignItems: 'center', justifyContent: 'center', paddingVertical: spacing.xxl },
   emptyText: { ...typography.headlineSmall, textAlign: 'center' },

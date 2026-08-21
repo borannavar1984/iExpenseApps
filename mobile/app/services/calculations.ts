@@ -369,6 +369,36 @@ export function insStatusBadge(
   return 'active';
 }
 
+export function getNextPremiumDue(
+  startDate: string,
+  premiumFrequency: 'monthly' | 'yearly' | null
+): string | null {
+  if (!premiumFrequency || !startDate) return null;
+
+  const start = new Date(startDate + 'T00:00:00');
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let nextDue = new Date(start);
+
+  if (premiumFrequency === 'monthly') {
+    // Find next monthly due date (same day each month)
+    while (nextDue <= today) {
+      nextDue.setMonth(nextDue.getMonth() + 1);
+    }
+  } else if (premiumFrequency === 'yearly') {
+    // Find next yearly due date (same day each year)
+    while (nextDue <= today) {
+      nextDue.setFullYear(nextDue.getFullYear() + 1);
+    }
+  }
+
+  const year = nextDue.getFullYear();
+  const month = String(nextDue.getMonth() + 1).padStart(2, '0');
+  const day = String(nextDue.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 // ============== TREND ANALYSIS ==============
 
 export interface TrendData {
