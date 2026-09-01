@@ -160,31 +160,39 @@ export default function ExpensesScreen() {
   const EntryRow = ({ item }: { item: Entry }) => (
     <Card style={styles.entryCard}>
       <Card.Content>
-        <View style={styles.entryHeader}>
-          <View style={styles.entryInfo}>
-            <Text style={styles.entryCategory}>{item.category}</Text>
-            {item.store && <Text style={styles.entryStore}>{item.store}</Text>}
-            <Text style={styles.entryDate}>{formatDate(item.date)}</Text>
+        <View style={styles.entryRowContainer}>
+          <View style={styles.entryColumn}>
+            <Text style={styles.columnLabel}>Category</Text>
+            <Text style={styles.columnValue}>{item.category}</Text>
           </View>
-          <View style={styles.entryActions}>
-            <Text style={styles.entryAmount}>
+          <View style={styles.entryColumn}>
+            <Text style={styles.columnLabel}>Item</Text>
+            <Text style={styles.columnValue}>{item.store || '—'}</Text>
+          </View>
+          <View style={styles.entryColumn}>
+            <Text style={styles.columnLabel}>Amount</Text>
+            <Text style={[styles.columnValue, styles.amountText]}>
               -{userPrefs.primaryCurrency} {item.amount.toFixed(2)}
             </Text>
-            <View style={styles.entryButtons}>
-              <IconButton
-                icon="pencil"
-                size={18}
-                onPress={() => handleEditEntry(item)}
-                style={{ margin: 0 }}
-              />
-              <IconButton
-                icon="delete"
-                size={18}
-                iconColor="#F44336"
-                onPress={() => handleDeleteEntry(item.id)}
-                style={{ margin: 0 }}
-              />
-            </View>
+          </View>
+          <View style={styles.entryColumn}>
+            <Text style={styles.columnLabel}>Date</Text>
+            <Text style={styles.columnValue}>{formatDate(item.date)}</Text>
+          </View>
+          <View style={styles.entryActions}>
+            <IconButton
+              icon="pencil"
+              size={16}
+              onPress={() => handleEditEntry(item)}
+              style={{ margin: 0 }}
+            />
+            <IconButton
+              icon="delete"
+              size={16}
+              iconColor="#F44336"
+              onPress={() => handleDeleteEntry(item.id)}
+              style={{ margin: 0 }}
+            />
           </View>
         </View>
       </Card.Content>
@@ -369,6 +377,32 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     elevation: 1,
   },
+  entryRowContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  entryColumn: {
+    flex: 1,
+    minWidth: 0,
+  },
+  columnLabel: {
+    ...typography.labelSmall,
+    color: '#79747E',
+    marginBottom: spacing.xs,
+  },
+  columnValue: {
+    ...typography.bodyMedium,
+    fontWeight: '500',
+  },
+  amountText: {
+    color: '#F44336',
+    fontWeight: '700',
+  },
+  entryActions: {
+    flexDirection: 'row',
+    gap: 0,
+  },
   entryHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -390,9 +424,6 @@ const styles = StyleSheet.create({
     ...typography.bodySmall,
     color: '#79747E',
     marginTop: spacing.xs,
-  },
-  entryActions: {
-    alignItems: 'flex-end',
   },
   entryAmount: {
     ...typography.titleMedium,
