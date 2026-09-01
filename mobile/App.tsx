@@ -11,6 +11,7 @@ import { useAppData } from './app/hooks/useAppData';
 
 import DashboardScreen from './app/tabs/dashboard';
 import ExpensesScreen from './app/tabs/expenses';
+import IncomeScreen from './app/tabs/income';
 import NetWorthScreen from './app/tabs/networth';
 import InsuranceScreen from './app/tabs/insurance';
 import SettingsScreen from './app/tabs/settings';
@@ -47,6 +48,14 @@ function TabNavigator() {
         options={{
           title: 'Expenses',
           tabBarLabel: 'Expenses',
+        }}
+      />
+      <Tab.Screen
+        name="Income"
+        component={IncomeScreen}
+        options={{
+          title: 'Income',
+          tabBarLabel: 'Income',
         }}
       />
       <Tab.Screen
