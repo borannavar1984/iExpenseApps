@@ -5,6 +5,7 @@ import { setEntries } from '../store/entries';
 import { setSnapshots as setNWSnapshots, setChangeLog as setNWChangeLog } from '../store/networth';
 import { setSnapshots as setInsSnapshots, setChangeLog as setInsChangeLog } from '../store/insurance';
 import { setUserPreferences, setCloudConfig } from '../store/preferences';
+import { pullFromCloud } from '../services/cloudSync';
 import type { Entry, NWSnapshot, NWChangeLog, InsuranceSnapshot, InsuranceChangeLog, UserPreferences, CloudConfig } from '../services/dataModel';
 
 const STORAGE_KEYS = {
@@ -72,7 +73,32 @@ export const useAppData = () => {
       }
 
       if (storedCloudConfig[1]) {
-        dispatch(setCloudConfig(JSON.parse(storedCloudConfig[1])));
+        const cloudConfig = JSON.parse(storedCloudConfig[1]);
+        dispatch(setCloudConfig(cloudConfig));
+        console.log('Cloud config loaded:', { owner: cloudConfig.owner, repo: cloudConfig.repo });
+
+        // Pull latest data from GitHub if cloud is configured
+        try {
+          console.log('Pulling from cloud...');
+          const cloudData = await pullFromCloud(cloudConfig);
+          console.log('Cloud data pulled:', { entries: cloudData.entries.length, nwSnapshots: cloudData.nwSnapshots.length, insSnapshots: cloudData.insSnapshots.length });
+          if (cloudData.nwSnapshots.length > 0) {
+            console.log('Dispatching NW snapshots:', cloudData.nwSnapshots.length);
+            dispatch(setNWSnapshots(cloudData.nwSnapshots));
+          }
+          if (cloudData.entries.length > 0) {
+            console.log('Dispatching entries:', cloudData.entries.length);
+            dispatch(setEntries(cloudData.entries));
+          }
+          if (cloudData.insSnapshots.length > 0) {
+            console.log('Dispatching insurance snapshots:', cloudData.insSnapshots.length);
+            dispatch(setInsSnapshots(cloudData.insSnapshots));
+          }
+        } catch (cloudError) {
+          console.error('Cloud pull on startup failed:', cloudError);
+        }
+      } else {
+        console.log('No cloud config stored');
       }
     } catch (error) {
       console.error('Error loading app data:', error);
