@@ -1224,8 +1224,14 @@ document.getElementById("fStore").addEventListener("keydown",(e)=>{ if(e.key==="
 
 // recent-store quick picks, scoped to the current expense/income mode
 const HIDDEN_CHIPS_KEY = nsKey("iexpense_hidden_chips_v1");
+const MAX_HIDDEN_CHIPS = 100;
 function loadHiddenChips(){ try{ return JSON.parse(localStorage.getItem(HIDDEN_CHIPS_KEY)||"[]"); }catch(e){ return []; } }
-function saveHiddenChips(list){ try{ localStorage.setItem(HIDDEN_CHIPS_KEY, JSON.stringify(list)); }catch(e){} }
+function saveHiddenChips(list){
+  try{
+    const capped = list.slice(-MAX_HIDDEN_CHIPS);
+    localStorage.setItem(HIDDEN_CHIPS_KEY, JSON.stringify(capped));
+  }catch(e){}
+}
 function hideChip(storeName){
   const hidden = loadHiddenChips();
   if(!hidden.includes(storeName)) hidden.push(storeName);
