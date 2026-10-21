@@ -2032,8 +2032,8 @@ async function saveNW(){
       await nwCloudSyncMutation(remote=>{
         // Ensure we work with snapshots array for merging
         const remoteSnapshots = Array.isArray(remote) ? remote : (remote.snapshots || []);
-        // Always return array format for GitHub compatibility
-        return nwSnapshots;
+        // Return full wrapped format to preserve changeLog
+        return { version: 2, snapshots: nwSnapshots, changeLog: nwChangeLog };
       });
       // Sync succeeded - show success message
       setCloudStatus(true, `✓ Net worth: ${nwSnapshots.length} items synced to GitHub`);
@@ -2062,8 +2062,8 @@ async function delNWItem(itemName, evt){
   if(cloudCfg){
     try{
       await nwCloudSyncMutation(remote=>{
-        // Filter out deleted items from snapshots, return array format for GitHub
-        return nwSnapshots;
+        // Filter out deleted items from snapshots, return wrapped format with changeLog
+        return { version: 2, snapshots: nwSnapshots, changeLog: nwChangeLog };
       });
       setCloudStatus(true, `✓ Net worth: deleted "${itemName}" — synced to GitHub`);
       console.log("✓ Deletion synced successfully");
@@ -2139,8 +2139,8 @@ function undoNWSnapshot(snapshotId){
 
   if(cloudCfg){
     nwCloudSyncMutation(remote => {
-      // Return snapshots as array for GitHub compatibility
-      return nwSnapshots;
+      // Return full wrapped format to preserve changeLog
+      return { version: 2, snapshots: nwSnapshots, changeLog: nwChangeLog };
     }).then(() => {
       setCloudStatus(true, `✓ Net worth: undid change — synced to GitHub`);
       console.log("✓ Undo synced successfully");
@@ -2336,7 +2336,7 @@ async function saveIns(){
 
   if(cloudCfg){
     try{
-      await insCloudSyncMutation(remote=>insSnapshots);
+      await insCloudSyncMutation(remote=>({ version: 2, snapshots: insSnapshots, changeLog: insChangeLog }));
       setCloudStatus(true, `✓ Insurance: ${insSnapshots.length} records synced to GitHub`);
     }catch(err){
       setCloudStatus(false, "✗ Did not sync to GitHub — data saved locally. Will retry automatically.");
@@ -2357,7 +2357,7 @@ async function delInsItem(providerName, evt){
 
   if(cloudCfg){
     try{
-      await insCloudSyncMutation(remote=>insSnapshots);
+      await insCloudSyncMutation(remote=>({ version: 2, snapshots: insSnapshots, changeLog: insChangeLog }));
       setCloudStatus(true, `✓ Insurance: deleted "${providerName}" — synced to GitHub`);
     }catch(err){
       setCloudStatus(false, "✗ Deleted locally — did not sync to GitHub. Will retry automatically.");
@@ -2417,7 +2417,7 @@ function undoInsSnapshot(snapshotId){
   insChangeLog.push(logEntry);
 
   if(cloudCfg){
-    insCloudSyncMutation(remote => insSnapshots).then(() => {
+    insCloudSyncMutation(remote => ({ version: 2, snapshots: insSnapshots, changeLog: insChangeLog })).then(() => {
       setCloudStatus(true, `✓ Insurance: undid change — synced to GitHub`);
     }).catch(err => {
       setCloudStatus(false, "✗ Undid locally — did not sync to GitHub. Will retry automatically.");
