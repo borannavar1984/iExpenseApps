@@ -2528,7 +2528,7 @@ async function cloudFetchRemote(cfg, filename){
   const data = await res.json();
   let remoteEntries=[];
   try{ remoteEntries = JSON.parse(b64ToUtf8(data.content)); }catch(e){ remoteEntries=[]; }
-  if(!Array.isArray(remoteEntries)) remoteEntries=[];
+  // Don't validate array type — networth.json and insurance.json are objects, entries.json is array
   return { entries: remoteEntries, sha: data.sha };
 }
 
