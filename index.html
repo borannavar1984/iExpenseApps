@@ -1291,8 +1291,19 @@ function renderList(){
     const isIncome = e.type==="income";
     const d=document.createElement("div"); d.className="entry"+(isIncome?" income":"")+(idx===editIndex?" editing":"");
     const sign = isIncome ? "+" : "";
-    d.innerHTML=`<div><div class="cat">${catIcon(e.category)}${e.category}</div><div class="sub">${e.date} · ${e.store||"—"}${!isIncome && e.payment?" · "+e.payment:""}${e.note?" · "+e.note:""}</div></div>
-      <div style="display:flex;align-items:center"><span class="amt">${sign}${fmtUSD(Number(e.amount))}</span><button class="del" onclick="delEntry(${idx},event)">✕</button></div>`;
+    const catDiv = document.createElement("div");
+    const catLabel = document.createElement("div"); catLabel.className="cat"; catLabel.innerHTML=catIcon(e.category); catLabel.appendChild(document.createTextNode(e.category));
+    const subDiv = document.createElement("div"); subDiv.className="sub";
+    subDiv.appendChild(document.createTextNode(e.date + " · " + (e.store||"—") + ((!isIncome && e.payment) ? " · " + e.payment : "") + (e.note ? " · " + e.note : "")));
+    catDiv.appendChild(catLabel);
+    catDiv.appendChild(subDiv);
+    const amtDiv = document.createElement("div"); amtDiv.style.display="flex"; amtDiv.style.alignItems="center";
+    const amtSpan = document.createElement("span"); amtSpan.className="amt"; amtSpan.textContent=sign+fmtUSD(Number(e.amount));
+    const delBtn = document.createElement("button"); delBtn.className="del"; delBtn.textContent="✕"; delBtn.onclick=()=>delEntry(idx,event);
+    amtDiv.appendChild(amtSpan);
+    amtDiv.appendChild(delBtn);
+    d.appendChild(catDiv);
+    d.appendChild(amtDiv);
     d.onclick=()=>editEntry(idx);
     box.appendChild(d);
   });
@@ -1882,7 +1893,9 @@ function renderNWItemList(){
     const sign = isLiability(e.category) ? "-" : "";
     const d=document.createElement("div"); d.className="entry";
     const left=document.createElement("div");
-    left.innerHTML = `<div class="cat">${nwCatIcon(e.category)}${e.item}</div><div class="sub">${e.category} · updated ${e.date}${e.growthRate!=null?" · "+e.growthRate+"%/yr":""}</div>`;
+    const catDiv=document.createElement("div"); catDiv.className="cat"; catDiv.innerHTML=nwCatIcon(e.category); catDiv.appendChild(document.createTextNode(e.item));
+    const subDiv=document.createElement("div"); subDiv.className="sub"; subDiv.textContent=e.category + " · updated " + e.date + (e.growthRate!=null ? " · " + e.growthRate + "%/yr" : "");
+    left.appendChild(catDiv); left.appendChild(subDiv);
     const right=document.createElement("div"); right.style.display="flex"; right.style.alignItems="center";
     const amt=document.createElement("span"); amt.className="amt"; amt.textContent=`${sign}${nwFmtAmount(Number(e.value), e.currency||"USD")}`;
     const del=document.createElement("button"); del.className="del"; del.textContent="✕";
@@ -2077,21 +2090,25 @@ function showNWHistory(itemName){
   document.getElementById("nwHistoryTitle").textContent = `History for ${itemName}`;
   const itemSnapshots = nwSnapshots.filter(s => s.item === itemName && s.source !== "undo").slice().reverse();
 
-  historyList.innerHTML = itemSnapshots.map((snap, idx) => {
-    const undoBtn = idx === 0 ? `<button type="button" class="history-undo-btn" onclick="undoNWSnapshot('${snap.id}')">Undo</button>` : "";
-    return `
-      <div class="nw-history-entry">
-        <div style="flex:1">
-          <div>${snap.date}</div>
-          <div>${nwFmtAmount(snap.value, snap.currency || "USD")}</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:6px">${idx === 0 ? "Current" : "Previous"}</div>
-          ${undoBtn}
-        </div>
-      </div>
-    `;
-  }).join("");
+  historyList.innerHTML = "";
+  itemSnapshots.forEach((snap, idx) => {
+    const entry = document.createElement("div"); entry.className = "nw-history-entry";
+    const left = document.createElement("div"); left.style.flex = "1";
+    const dateDiv = document.createElement("div"); dateDiv.textContent = snap.date;
+    const amtDiv = document.createElement("div"); amtDiv.textContent = nwFmtAmount(snap.value, snap.currency || "USD");
+    left.appendChild(dateDiv); left.appendChild(amtDiv);
+    const right = document.createElement("div"); right.style.textAlign = "right";
+    const label = document.createElement("div"); label.style.fontSize = "12px"; label.style.color = "var(--muted)"; label.style.marginBottom = "6px";
+    label.textContent = idx === 0 ? "Current" : "Previous";
+    right.appendChild(label);
+    if(idx === 0){
+      const btn = document.createElement("button"); btn.type = "button"; btn.className = "history-undo-btn"; btn.textContent = "Undo";
+      btn.dataset.snapId = snap.id; btn.onclick = (e) => undoNWSnapshot(snap.id);
+      right.appendChild(btn);
+    }
+    entry.appendChild(left); entry.appendChild(right);
+    historyList.appendChild(entry);
+  });
 
   document.getElementById("nwHistoryOverlay").style.display = "flex";
 }
@@ -2172,8 +2189,10 @@ function renderInsItemList(){
   items.forEach(({e})=>{
     const d=document.createElement("div"); d.className="entry";
     const left=document.createElement("div");
-    const renewalNote = e.renewalDate ? " · renews "+e.renewalDate : "";
-    left.innerHTML = `<div class="cat">${insCatIcon(e.category)}${e.provider}</div><div class="sub">${e.category}${e.country?" · "+e.country:""} · updated ${e.date}${renewalNote}</div>`;
+    const renewalNote = e.renewalDate ? " · renews " + e.renewalDate : "";
+    const catDiv=document.createElement("div"); catDiv.className="cat"; catDiv.innerHTML=insCatIcon(e.category); catDiv.appendChild(document.createTextNode(e.provider));
+    const subDiv=document.createElement("div"); subDiv.className="sub"; subDiv.textContent=e.category + (e.country ? " · " + e.country : "") + " · updated " + e.date + renewalNote;
+    left.appendChild(catDiv); left.appendChild(subDiv);
     const right=document.createElement("div"); right.style.display="flex"; right.style.alignItems="center";
     const amt=document.createElement("span"); amt.className="amt"; amt.textContent=nwFmtAmount(Number(e.value), e.currency||"USD");
     const del=document.createElement("button"); del.className="del"; del.textContent="✕";
@@ -2368,21 +2387,25 @@ function showInsHistory(providerName){
   document.getElementById("insHistoryTitle").textContent = `History for ${providerName}`;
   const itemSnapshots = insSnapshots.filter(s => s.provider === providerName && s.source !== "undo").slice().reverse();
 
-  historyList.innerHTML = itemSnapshots.map((snap, idx) => {
-    const undoBtn = idx === 0 ? `<button type="button" class="history-undo-btn" onclick="undoInsSnapshot('${snap.id}')">Undo</button>` : "";
-    return `
-      <div class="nw-history-entry">
-        <div style="flex:1">
-          <div>${snap.date}</div>
-          <div>${nwFmtAmount(snap.value, snap.currency || "USD")}</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:6px">${idx === 0 ? "Current" : "Previous"}</div>
-          ${undoBtn}
-        </div>
-      </div>
-    `;
-  }).join("");
+  historyList.innerHTML = "";
+  itemSnapshots.forEach((snap, idx) => {
+    const entry = document.createElement("div"); entry.className = "nw-history-entry";
+    const left = document.createElement("div"); left.style.flex = "1";
+    const dateDiv = document.createElement("div"); dateDiv.textContent = snap.date;
+    const amtDiv = document.createElement("div"); amtDiv.textContent = nwFmtAmount(snap.value, snap.currency || "USD");
+    left.appendChild(dateDiv); left.appendChild(amtDiv);
+    const right = document.createElement("div"); right.style.textAlign = "right";
+    const label = document.createElement("div"); label.style.fontSize = "12px"; label.style.color = "var(--muted)"; label.style.marginBottom = "6px";
+    label.textContent = idx === 0 ? "Current" : "Previous";
+    right.appendChild(label);
+    if(idx === 0){
+      const btn = document.createElement("button"); btn.type = "button"; btn.className = "history-undo-btn"; btn.textContent = "Undo";
+      btn.dataset.snapId = snap.id; btn.onclick = (e) => undoInsSnapshot(snap.id);
+      right.appendChild(btn);
+    }
+    entry.appendChild(left); entry.appendChild(right);
+    historyList.appendChild(entry);
+  });
 
   document.getElementById("insHistoryOverlay").style.display = "flex";
 }
