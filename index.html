@@ -8,7 +8,9 @@
 <meta name="apple-mobile-web-app-title" content="iFinWell">
 <meta name="theme-color" content="#121712">
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180-dark.png" media="(prefers-color-scheme: dark)">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512-dark.png" media="(prefers-color-scheme: dark)">
 <title>iFinWell</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1224,14 +1226,8 @@ document.getElementById("fStore").addEventListener("keydown",(e)=>{ if(e.key==="
 
 // recent-store quick picks, scoped to the current expense/income mode
 const HIDDEN_CHIPS_KEY = nsKey("iexpense_hidden_chips_v1");
-const MAX_HIDDEN_CHIPS = 100;
 function loadHiddenChips(){ try{ return JSON.parse(localStorage.getItem(HIDDEN_CHIPS_KEY)||"[]"); }catch(e){ return []; } }
-function saveHiddenChips(list){
-  try{
-    const capped = list.slice(-MAX_HIDDEN_CHIPS);
-    localStorage.setItem(HIDDEN_CHIPS_KEY, JSON.stringify(capped));
-  }catch(e){}
-}
+function saveHiddenChips(list){ try{ localStorage.setItem(HIDDEN_CHIPS_KEY, JSON.stringify(list)); }catch(e){} }
 function hideChip(storeName){
   const hidden = loadHiddenChips();
   if(!hidden.includes(storeName)) hidden.push(storeName);
@@ -1930,7 +1926,7 @@ function updateNWChangeWarning(){
     return;
   }
 
-  const pctChange = Math.abs((newValue - oldValue) / oldValue * 100);
+  const pctChange = oldValue === 0 ? (newValue === 0 ? 0 : 100) : Math.abs((newValue - oldValue) / oldValue * 100);
 
   if(pctChange >= 100){
     document.getElementById("nwComparisonCard").classList.add("alert-danger");
@@ -2032,8 +2028,8 @@ async function saveNW(){
       await nwCloudSyncMutation(remote=>{
         // Ensure we work with snapshots array for merging
         const remoteSnapshots = Array.isArray(remote) ? remote : (remote.snapshots || []);
-        // Return full wrapped format to preserve changeLog
-        return { version: 2, snapshots: nwSnapshots, changeLog: nwChangeLog };
+        // Always return array format for GitHub compatibility
+        return nwSnapshots;
       });
       // Sync succeeded - show success message
       setCloudStatus(true, `✓ Net worth: ${nwSnapshots.length} items synced to GitHub`);
@@ -2062,8 +2058,8 @@ async function delNWItem(itemName, evt){
   if(cloudCfg){
     try{
       await nwCloudSyncMutation(remote=>{
-        // Filter out deleted items from snapshots, return wrapped format with changeLog
-        return { version: 2, snapshots: nwSnapshots, changeLog: nwChangeLog };
+        // Filter out deleted items from snapshots, return array format for GitHub
+        return nwSnapshots;
       });
       setCloudStatus(true, `✓ Net worth: deleted "${itemName}" — synced to GitHub`);
       console.log("✓ Deletion synced successfully");
@@ -2139,8 +2135,8 @@ function undoNWSnapshot(snapshotId){
 
   if(cloudCfg){
     nwCloudSyncMutation(remote => {
-      // Return full wrapped format to preserve changeLog
-      return { version: 2, snapshots: nwSnapshots, changeLog: nwChangeLog };
+      // Return snapshots as array for GitHub compatibility
+      return nwSnapshots;
     }).then(() => {
       setCloudStatus(true, `✓ Net worth: undid change — synced to GitHub`);
       console.log("✓ Undo synced successfully");
@@ -2225,7 +2221,7 @@ function updateInsChangeWarning(){
     return;
   }
 
-  const pctChange = Math.abs((newValue - oldValue) / oldValue * 100);
+  const pctChange = oldValue === 0 ? (newValue === 0 ? 0 : 100) : Math.abs((newValue - oldValue) / oldValue * 100);
 
   if(pctChange >= 100){
     document.getElementById("insComparisonCard").classList.add("alert-danger");
@@ -2336,7 +2332,7 @@ async function saveIns(){
 
   if(cloudCfg){
     try{
-      await insCloudSyncMutation(remote=>({ version: 2, snapshots: insSnapshots, changeLog: insChangeLog }));
+      await insCloudSyncMutation(remote=>insSnapshots);
       setCloudStatus(true, `✓ Insurance: ${insSnapshots.length} records synced to GitHub`);
     }catch(err){
       setCloudStatus(false, "✗ Did not sync to GitHub — data saved locally. Will retry automatically.");
@@ -2357,7 +2353,7 @@ async function delInsItem(providerName, evt){
 
   if(cloudCfg){
     try{
-      await insCloudSyncMutation(remote=>({ version: 2, snapshots: insSnapshots, changeLog: insChangeLog }));
+      await insCloudSyncMutation(remote=>insSnapshots);
       setCloudStatus(true, `✓ Insurance: deleted "${providerName}" — synced to GitHub`);
     }catch(err){
       setCloudStatus(false, "✗ Deleted locally — did not sync to GitHub. Will retry automatically.");
@@ -2417,7 +2413,7 @@ function undoInsSnapshot(snapshotId){
   insChangeLog.push(logEntry);
 
   if(cloudCfg){
-    insCloudSyncMutation(remote => ({ version: 2, snapshots: insSnapshots, changeLog: insChangeLog })).then(() => {
+    insCloudSyncMutation(remote => insSnapshots).then(() => {
       setCloudStatus(true, `✓ Insurance: undid change — synced to GitHub`);
     }).catch(err => {
       setCloudStatus(false, "✗ Undid locally — did not sync to GitHub. Will retry automatically.");
@@ -2528,7 +2524,7 @@ async function cloudFetchRemote(cfg, filename){
   const data = await res.json();
   let remoteEntries=[];
   try{ remoteEntries = JSON.parse(b64ToUtf8(data.content)); }catch(e){ remoteEntries=[]; }
-  // Don't validate array type — networth.json and insurance.json are objects, entries.json is array
+  if(!remoteEntries) remoteEntries=[];
   return { entries: remoteEntries, sha: data.sha };
 }
 
