@@ -2031,6 +2031,21 @@ function b64ToUtf8(str){ return decodeURIComponent(escape(atob(str.replace(/\n/g
 function cloudApiUrl(cfg, filename){ return `https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/${filename||"entries.json"}`; }
 function mergeKey(e){ return e.id || [(e.type||"expense"),e.date,e.category,e.amount,e.store,e.note].join("|"); }
 
+// entries.json is a plain array, but networth.json / insurance.json are
+// stored as { version:2, snapshots:[...], changeLog:[...] }. Every caller of
+// those two files already reads `remote.snapshots || remote`, so the wrapped
+// object must be passed through as-is. Turning anything that isn't an array
+// into [] here made every device silently ignore the cloud copy of net worth
+// and insurance (and then push its local-only copy back over it).
+function normalizeRemoteData(data, filename){
+  const isEntriesFile = !filename || filename==="entries.json";
+  if(Array.isArray(data)) return data;
+  if(!isEntriesFile && data && typeof data==="object" && Array.isArray(data.snapshots)){
+    return { ...data, snapshots: data.snapshots, changeLog: Array.isArray(data.changeLog) ? data.changeLog : [] };
+  }
+  return [];
+}
+
 async function cloudFetchRemote(cfg, filename){
   const res = await fetch(cloudApiUrl(cfg, filename), { headers:{ Authorization:`Bearer ${cfg.token}`, Accept:"application/vnd.github+json" } });
   if(res.status===404) return { entries:[], sha:null };
@@ -2038,7 +2053,7 @@ async function cloudFetchRemote(cfg, filename){
   const data = await res.json();
   let remoteEntries=[];
   try{ remoteEntries = JSON.parse(b64ToUtf8(data.content)); }catch(e){ remoteEntries=[]; }
-  if(!Array.isArray(remoteEntries)) remoteEntries=[];
+  remoteEntries = normalizeRemoteData(remoteEntries, filename);
   return { entries: remoteEntries, sha: data.sha };
 }
 
