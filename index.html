@@ -93,8 +93,8 @@
     background:color-mix(in srgb, var(--accent) 18%, var(--card2));
   }
   .grid button.opt.sel[data-icon]::before{background:color-mix(in srgb, #fff 20%, transparent)}
-  input[type=text],input[type=date],input[type=tel]{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:16px;padding:13px 14px;font-size:16px;outline:none;transition:border-color .12s,box-shadow .12s}
-  input:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent)}
+  input[type=text],input[type=date],input[type=tel]{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:14px 16px;font-size:16px;outline:none;transition:all .2s ease;box-shadow:var(--shadow-sm)}
+  input:focus{border-color:var(--accent);background:var(--card2);box-shadow:0 0 0 3px rgba(16,185,129,.1),var(--shadow);transform:translateY(-2px)}
   .amount-wrap{position:relative}
   .amount-wrap::before{content:var(--cur-sym,"$");position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:18px}
   #nwAmountWrap::before{content:var(--nw-sym,var(--cur-sym,"$"))}
@@ -3168,6 +3168,14 @@ showMainTab("dashboard"); // Dashboard is the app's home screen; the + button is
 // a truly fresh install (no prefs, no data — see the migration block up top)
 // starts with the one-time welcome/preferences screen
 if(!prefs) openPrefs();
+
+// Quick-add FAB functionality
+document.getElementById("quickAddFab")?.addEventListener("click", ()=>{
+  formType="expense";
+  showForm();
+  document.getElementById("fAmount").focus();
+});
 </script>
+<button class="fab" id="quickAddFab" title="Quick add expense">+</button>
 </body>
 </html>
