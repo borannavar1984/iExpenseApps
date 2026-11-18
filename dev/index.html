@@ -8,7 +8,9 @@
 <meta name="apple-mobile-web-app-title" content="iExpense">
 <meta name="theme-color" content="#121712">
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180-dark.png" media="(prefers-color-scheme: dark)">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512-dark.png" media="(prefers-color-scheme: dark)">
 <title>iExpense</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,34 +23,41 @@
      secondary, on a soft cream (light) / warm near-black (dark) surface,
      replacing the previous cool blue/navy palette. Same CSS-variable
      architecture as before, so every component just re-skins automatically. */
+  /* Modern Color System - Refined for Better UX */
   :root{
-    --bg:#121712; --card:#1b231c; --card2:#242d25; --border:#37443a;
-    --text:#f1eee6; --muted:#9caa9e; --accent:#a3e635; --accent2:#1b4332;
-    --green:#4ade80; --red:#fb7185; --amber:#fbbf24; --purple:#c084fc;
-    --ctatext:#14210a;
+    --bg:#0f1419; --card:#1a1f2e; --card2:#232a3a; --border:#2d3748;
+    --text:#e2e8f0; --muted:#a0aec0; --accent:#10b981; --accent2:#059669;
+    --green:#34d399; --red:#f87171; --amber:#fcd34d; --purple:#a78bfa;
+    --ctatext:#0f172a; --shadow:0 10px 25px rgba(0,0,0,0.3);
+    --shadow-sm:0 4px 12px rgba(0,0,0,0.15);
   }
   :root[data-theme="light"]{
-    --bg:#fbf6ec; --card:#ffffff; --card2:#f4eedf; --border:#e7dfc9;
-    --text:#2b2a20; --muted:#8a836e; --accent:#6b9c1b; --accent2:#1b4332;
-    --green:#15803d; --red:#dc2626; --amber:#c2790a; --purple:#8b5cf6;
-    --ctatext:#14210a;
+    --bg:#f8fafc; --card:#ffffff; --card2:#f1f5f9; --border:#e2e8f0;
+    --text:#1e293b; --muted:#64748b; --accent:#059669; --accent2:#047857;
+    --green:#10b981; --red:#ef4444; --amber:#d97706; --purple:#8b5cf6;
+    --ctatext:#ffffff; --shadow:0 10px 25px rgba(0,0,0,0.1);
+    --shadow-sm:0 4px 12px rgba(0,0,0,0.08);
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html{-webkit-font-smoothing:antialiased}
+  html{-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
   body{
     background:var(--bg);color:var(--text);
     font-family:'Poppins',-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-    padding:calc(14px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) calc(90px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left));
-    max-width:520px;margin:0 auto;
+    padding:calc(16px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(100px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
+    max-width:600px;margin:0 auto;
+    line-height:1.6;
+    letter-spacing:0.3px;
   }
   header{
     display:flex;justify-content:space-between;align-items:center;
-    position:sticky;top:env(safe-area-inset-top);z-index:20;background:var(--bg);
-    margin:0 -14px 14px;
-    padding:14px 14px 12px;
+    position:sticky;top:env(safe-area-inset-top);z-index:20;background:rgba(15,20,25,.95);
+    backdrop-filter:blur(10px);
+    margin:0 -16px 20px;
+    padding:16px 16px 14px;
     border-bottom:1px solid var(--border);
+    box-shadow:var(--shadow-sm);
   }
-  h1{font-size:22px;font-weight:700;letter-spacing:-.2px}
+  h1{font-size:28px;font-weight:800;letter-spacing:-.3px;background:linear-gradient(135deg, var(--accent), var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
   h1 span{color:var(--accent)}
   .badge{background:var(--card2);border:1px solid var(--border);color:var(--muted);font-size:12px;padding:4px 10px;border-radius:20px;white-space:nowrap}
   .badge b{color:var(--amber)}
@@ -72,9 +81,10 @@
   .store-suggest-row:active{background:var(--card2)}
   .store-suggest-row .ssr-label{flex:1;font-size:15px}
   .store-suggest-row .ssr-remove{background:var(--red);color:#fff;border:none;width:22px;height:22px;border-radius:50%;font-size:13px;line-height:1;cursor:pointer;flex:none;font-weight:700;padding:0}
-  button.opt{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:16px;padding:12px 6px;font-size:13.5px;font-weight:500;cursor:pointer;transition:transform .1s ease,background .12s,border-color .12s}
-  button.opt.sel{background:var(--accent2);border-color:var(--accent2);color:#fff;font-weight:700}
-  button.opt:active{transform:scale(.95)}
+  button.opt{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:12px 6px;font-size:13.5px;font-weight:600;cursor:pointer;transition:all .2s ease;box-shadow:var(--shadow-sm)}
+  button.opt.sel{background:var(--accent);border-color:var(--accent);color:var(--ctatext);font-weight:700;box-shadow:0 4px 12px rgba(16,185,129,.25)}
+  button.opt:active{transform:scale(.96);opacity:.9}
+  button.opt:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.2)}
   .chip-row button.opt{padding:10px 14px;border-radius:999px;flex:0 0 auto}
   .grid button.opt{position:relative;padding:8px 5px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.1;font-size:12px}
   .grid button.opt[data-icon]::before{
@@ -83,8 +93,8 @@
     background:color-mix(in srgb, var(--accent) 18%, var(--card2));
   }
   .grid button.opt.sel[data-icon]::before{background:color-mix(in srgb, #fff 20%, transparent)}
-  input[type=text],input[type=date],input[type=tel]{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:16px;padding:13px 14px;font-size:16px;outline:none;transition:border-color .12s,box-shadow .12s}
-  input:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent)}
+  input[type=text],input[type=date],input[type=tel]{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:14px 16px;font-size:16px;outline:none;transition:all .2s ease;box-shadow:var(--shadow-sm)}
+  input:focus{border-color:var(--accent);background:var(--card2);box-shadow:0 0 0 3px rgba(16,185,129,.1),var(--shadow);transform:translateY(-2px)}
   .amount-wrap{position:relative}
   .amount-wrap::before{content:var(--cur-sym,"$");position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:18px}
   #nwAmountWrap::before{content:var(--nw-sym,var(--cur-sym,"$"))}
@@ -97,18 +107,26 @@
   .fx-manual-row .fx-label{font-size:13px;color:var(--muted)}
   .fx-manual-row .btn-fx{background:var(--accent2);color:#fff;border:none;border-radius:999px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer}
   .link-btn{background:none;border:none;color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;padding:0;margin-left:4px;text-decoration:underline}
-  .btn{width:100%;border:none;border-radius:999px;padding:16px;font-size:17px;font-weight:700;cursor:pointer;margin-top:18px;transition:transform .1s ease,opacity .1s ease}
-  .btn:active{transform:scale(.97);opacity:.85}
-  .btn-save{background:var(--accent);color:var(--ctatext)}
-  .btn-export{background:var(--green);color:#06281c;margin-top:10px}
-  .btn-ghost{background:var(--card2);color:var(--muted);font-size:14px;padding:12px;margin-top:10px;border-radius:999px}
-  .entry{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;font-size:14px;cursor:pointer;transition:transform .1s ease,border-color .12s}
-  .entry:active{transform:scale(.98)}
-  .entry.editing{border-color:var(--accent);background:var(--card2)}
-  .entry .cat{font-weight:600}
-  .entry .sub{color:var(--muted);font-size:12px;margin-top:2px}
-  .entry .amt{font-weight:700;font-size:16px;margin-right:10px}
-  .entry .del{color:var(--red);background:none;border:none;font-size:18px;padding:4px 6px;cursor:pointer}
+  .btn{width:100%;border:none;border-radius:12px;padding:16px;font-size:17px;font-weight:700;cursor:pointer;margin-top:18px;transition:all .2s ease;box-shadow:var(--shadow-sm)}
+  .btn:active{transform:scale(.97);opacity:.9}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.2)}
+  .btn-save{background:var(--accent);color:var(--ctatext);box-shadow:0 4px 15px rgba(16,185,129,.3)}
+  .btn-export{background:var(--green);color:#0f172a;margin-top:10px}
+  .btn-ghost{background:var(--card2);color:var(--muted);font-size:14px;padding:12px;margin-top:10px;border-radius:12px}
+
+  /* Floating Action Button (FAB) - Quick Add */
+  .fab{position:fixed;bottom:calc(80px + env(safe-area-inset-bottom));right:16px;width:56px;height:56px;border-radius:50%;background:var(--accent);color:var(--ctatext);border:none;font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(16,185,129,.35);transition:all .2s ease;z-index:40;font-weight:700}
+  .fab:active{transform:scale(.92);box-shadow:0 4px 12px rgba(16,185,129,.25)}
+  .fab:hover{transform:scale(1.08);box-shadow:0 12px 32px rgba(16,185,129,.4)}
+  .entry{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;font-size:14px;cursor:pointer;transition:all .2s ease;box-shadow:var(--shadow-sm)}
+  .entry:active{transform:scale(.99);opacity:.9}
+  .entry:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.15);border-color:var(--accent)}
+  .entry.editing{border-color:var(--accent);background:var(--card2);box-shadow:0 0 0 3px rgba(16,185,129,.1)}
+  .entry .cat{font-weight:700;font-size:15px;color:var(--text)}
+  .entry .sub{color:var(--muted);font-size:13px;margin-top:4px}
+  .entry .amt{font-weight:700;font-size:17px;margin-right:12px;color:var(--accent)}
+  .entry .del{color:var(--red);background:none;border:none;font-size:20px;padding:4px 6px;cursor:pointer;opacity:.6;transition:opacity .2s;font-weight:700}
+  .entry .del:hover{opacity:1}
   .toast{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:var(--green);color:#06281c;padding:12px 22px;border-radius:24px;font-weight:700;font-size:14px;display:none;z-index:99;box-shadow:0 6px 24px rgba(0,0,0,.35);max-width:calc(100% - 48px);text-align:center}
   .tabs{display:flex;gap:6px;margin-bottom:16px}
   .tabs button{flex:1;background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:16px;padding:10px 4px;font-size:12.5px;font-weight:600;cursor:pointer;transition:transform .1s ease,background .12s,border-color .12s}
@@ -926,19 +944,42 @@ function closeCatPicker(){
 // forms, which open as a full-screen view on top of Dashboard and return to
 // it on Save, Update, or Cancel =====
 function openAddPicker(){
+  console.log("[DEBUG] openAddPicker() - showing overlay");
   document.getElementById("addPickerOverlay").style.display="flex";
 }
 function closeAddPicker(){
+  console.log("[DEBUG] closeAddPicker() - hiding overlay");
   document.getElementById("addPickerOverlay").style.display="none";
 }
 function chooseAdd(kind){
+  console.log("[DEBUG] chooseAdd() called with kind:", kind);
   closeAddPicker();
   showMainTab(kind);
+  console.log("[DEBUG] chooseAdd() completed");
 }
 function closeAddForm(){
-  if(document.getElementById("netWorthView").style.display !== "none") cancelNWEdit();
-  else cancelEdit();
-  showMainTab("dashboard");
+  console.log("[DEBUG] closeAddForm() called");
+  console.log("[DEBUG] netWorthView display:", document.getElementById("netWorthView").style.display);
+  try {
+    if(document.getElementById("netWorthView").style.display !== "none") {
+      console.log("[DEBUG] Calling cancelNWEdit()");
+      cancelNWEdit();
+    } else {
+      console.log("[DEBUG] Calling cancelEdit()");
+      cancelEdit();
+    }
+  } catch(e) {
+    console.error("[DEBUG] Error in cancelEdit/cancelNWEdit:", e);
+  }
+  console.log("[DEBUG] Calling showMainTab('dashboard')");
+  try {
+    showMainTab("dashboard");
+    console.log("[DEBUG] showMainTab completed");
+    console.log("[DEBUG] dashboardView display:", document.getElementById("dashboardView").style.display);
+    console.log("[DEBUG] entriesView display:", document.getElementById("entriesView").style.display);
+  } catch(e) {
+    console.error("[DEBUG] Error in showMainTab:", e);
+  }
 }
 
 const payRow=document.getElementById("payRow");
@@ -1038,10 +1079,6 @@ function setFormType(type){
   document.getElementById("entriesView").style.display = "block";
   document.getElementById("netWorthView").style.display = "none";
   document.getElementById("dashboardView").style.display = "none";
-  document.getElementById("tabExpenseBtn").classList.toggle("sel", type==="expense");
-  document.getElementById("tabIncomeBtn").classList.toggle("sel", type==="income");
-  document.getElementById("tabNetWorthBtn").classList.remove("sel");
-  document.getElementById("tabDashboardBtn").classList.remove("sel");
   document.getElementById("storeLabel").textContent = type==="expense" ? "Store / Merchant" : "Source";
   document.getElementById("fStore").placeholder = type==="expense" ? "e.g. Costco" : "e.g. Salary";
   document.getElementById("paymentSection").style.display = type==="expense" ? "block" : "none";
@@ -2209,10 +2246,6 @@ function showNetWorth(){
   document.getElementById("entriesView").style.display = "none";
   document.getElementById("dashboardView").style.display = "none";
   document.getElementById("netWorthView").style.display = "block";
-  document.getElementById("tabExpenseBtn").classList.remove("sel");
-  document.getElementById("tabIncomeBtn").classList.remove("sel");
-  document.getElementById("tabNetWorthBtn").classList.add("sel");
-  document.getElementById("tabDashboardBtn").classList.remove("sel");
   document.getElementById("fabAddBtn").style.display = "none";
   renderNWItemList();
   hideNWItemSuggestions();
@@ -2227,10 +2260,6 @@ function showMainTab(tab){
     document.getElementById("netWorthView").style.display = "none";
     document.getElementById("dashboardView").style.display = "block";
     document.getElementById("settingsView").style.display = "none";
-    document.getElementById("tabExpenseBtn").classList.remove("sel");
-    document.getElementById("tabIncomeBtn").classList.remove("sel");
-    document.getElementById("tabNetWorthBtn").classList.remove("sel");
-    document.getElementById("tabDashboardBtn").classList.add("sel");
     document.getElementById("fabAddBtn").style.display = "flex";
     renderDashboard();
   } else if(tab==="networth"){
@@ -2245,10 +2274,6 @@ function showMainTab(tab){
     document.getElementById("netWorthView").style.display = "none";
     document.getElementById("dashboardView").style.display = "none";
     document.getElementById("settingsView").style.display = "block";
-    document.getElementById("tabExpenseBtn").classList.remove("sel");
-    document.getElementById("tabIncomeBtn").classList.remove("sel");
-    document.getElementById("tabNetWorthBtn").classList.remove("sel");
-    document.getElementById("tabDashboardBtn").classList.remove("sel");
     document.getElementById("fabAddBtn").style.display = "none";
     renderSettings();
     // Land the user at the top of the Settings screen so the back chevron
@@ -3143,6 +3168,14 @@ showMainTab("dashboard"); // Dashboard is the app's home screen; the + button is
 // a truly fresh install (no prefs, no data — see the migration block up top)
 // starts with the one-time welcome/preferences screen
 if(!prefs) openPrefs();
+
+// Quick-add FAB functionality
+document.getElementById("quickAddFab")?.addEventListener("click", ()=>{
+  formType="expense";
+  showForm();
+  document.getElementById("fAmount").focus();
+});
 </script>
+<button class="fab" id="quickAddFab" title="Quick add expense">+</button>
 </body>
 </html>
