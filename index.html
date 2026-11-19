@@ -212,20 +212,23 @@
   .cat-picker-back{background:var(--card2);border:1px solid var(--border);color:var(--text);width:36px;height:36px;min-width:36px;border-radius:50%;font-size:20px;cursor:pointer;line-height:1}
   .cat-picker-title{font-weight:700;font-size:17px}
   .add-form-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-  .fab-add{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom));width:60px;height:60px;border-radius:50%;background:var(--accent);color:var(--ctatext);font-size:30px;line-height:1;border:none;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer;z-index:150;display:none;align-items:center;justify-content:center;padding:0;transition:background .2s ease,transform .2s ease,box-shadow .2s ease}
-  .fab-add:hover{transform:translateX(-50%) scale(1.08);box-shadow:0 8px 24px rgba(0,0,0,.45)}
-  .fab-add:active{transform:translateX(-50%) scale(.92)}
+  .fab-add{position:fixed;right:calc(20px + env(safe-area-inset-right));bottom:calc(86px + env(safe-area-inset-bottom));width:60px;height:60px;border-radius:50%;background:var(--accent);color:var(--ctatext);font-size:30px;line-height:1;border:none;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer;z-index:150;display:none;align-items:center;justify-content:center;padding:0;transition:background .2s ease,transform .2s ease,box-shadow .2s ease}
+  .fab-add:hover{transform:scale(1.08);box-shadow:0 8px 24px rgba(0,0,0,.45)}
+  .fab-add:active{transform:scale(.92)}
   .radial-menu-backdrop{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:140}
-  .radial-menu{position:fixed;bottom:calc(166px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:260px;height:180px}
-  .radial-item{position:absolute;width:70px;height:70px;border-radius:50%;background:var(--accent);color:var(--ctatext);border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;box-shadow:0 6px 18px rgba(0,0,0,.35);font-size:11px;font-weight:600;z-index:151;pointer-events:auto;transition:transform .2s ease,background .12s,box-shadow .2s ease;font-family:inherit}
-  .radial-item:hover{transform:scale(1.08);box-shadow:0 8px 24px rgba(0,0,0,.45)}
-  .radial-item:active{transform:scale(.92)}
-  .radial-icon{width:32px;height:32px;display:flex;align-items:center;justify-content:center;line-height:1}
-  .radial-label{font-size:10px;font-weight:600;white-space:nowrap}
-  .radial-item[data-angle="0"]{top:0;left:15px}
-  .radial-item[data-angle="60"]{top:0;right:15px}
-  .radial-item[data-angle="120"]{top:110px;left:0}
-  .radial-item[data-angle="240"]{top:110px;right:0}
+  /* + menu: one straight column above the + button. The kinds you log most
+     sit at the bottom, closest to your thumb; rarely used ones float up top. */
+  .radial-menu{position:fixed;bottom:calc(160px + env(safe-area-inset-bottom));right:calc(16px + env(safe-area-inset-right));display:flex;flex-direction:column;gap:10px;align-items:stretch;width:220px;max-height:calc(100vh - 180px - env(safe-area-inset-bottom));overflow-y:auto;padding:4px}
+  .radial-item{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:12px;height:56px;padding:0 18px 0 10px;border-radius:28px;background:var(--card);color:var(--text);border:1px solid var(--border);cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.3);font-family:inherit;z-index:151;opacity:0;translate:0 14px;animation:pm-in .22s ease forwards;transition:transform .1s ease}
+  .radial-item:active{transform:scale(.96)}
+  .radial-item.top-pick{background:var(--accent);color:var(--ctatext);border-color:var(--accent)}
+  .radial-icon{width:38px;height:38px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;flex:none}
+  .radial-item.top-pick .radial-icon{background:rgba(255,255,255,.35)}
+  .radial-icon svg{width:22px;height:22px}
+  .radial-label{font-size:15px;font-weight:700;white-space:nowrap}
+  .radial-sub{font-size:11px;font-weight:500;opacity:.7;margin-left:auto}
+  @keyframes pm-in{to{opacity:1;translate:0 0}}
+  @media (prefers-reduced-motion:reduce){.radial-item{animation:none;opacity:1;translate:none}}
   .cat-picker-list{overflow-y:auto;flex:1;padding:8px 14px calc(24px + env(safe-area-inset-bottom))}
   .cat-picker-row{display:flex;align-items:center;gap:14px;padding:14px 4px;border-bottom:1px solid var(--card2);cursor:pointer}
   .cat-picker-row:active{background:var(--card2)}
@@ -336,6 +339,13 @@
   .hm-badge.locked .n{color:var(--muted)}
   .hm-empty{background:var(--card);border:1px dashed var(--border);border-radius:16px;padding:16px;text-align:center;color:var(--muted);font-size:13.5px}
   .hm-share{width:100%;margin:16px 0 8px}
+  .hm-save-head{background:linear-gradient(135deg,color-mix(in srgb,var(--green) 22%,var(--card)),var(--card));border:1px solid var(--border);border-radius:18px;padding:14px 16px;margin-bottom:8px}
+  .hm-save-head .k{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .hm-save-head .v{font-size:30px;font-weight:800;color:var(--green);line-height:1.15}
+  .hm-save-head .v span{font-size:14px;font-weight:600;color:var(--muted);margin-left:4px}
+  .hm-save-head .s{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .hm-save-amt{flex:none;align-self:center;font-weight:800;color:var(--green);font-size:15px;white-space:nowrap}
+  .hm-save-amt span{font-size:11px;font-weight:600;color:var(--muted)}
   .confetti-piece{position:fixed;top:-12px;width:9px;height:14px;border-radius:2px;z-index:200;pointer-events:none;animation:confetti-fall 1.5s ease-in forwards}
   @keyframes confetti-fall{to{transform:translate(var(--dx),105vh) rotate(var(--rot));opacity:.2}}
   @media (prefers-reduced-motion:reduce){.confetti-piece{display:none}.hm-ring .fg{transition:none}}
@@ -759,29 +769,35 @@
 
 <div id="addPickerOverlay" class="radial-menu-backdrop" style="display:none" onclick="closeAddPicker()">
   <div class="radial-menu" onclick="event.stopPropagation()">
-    <button type="button" class="radial-item" data-angle="0" onclick="chooseAdd('expense')">
+    <button type="button" class="radial-item" data-kind="expense" onclick="chooseAdd('expense')">
       <div class="radial-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 6h18M3 18h18M6 8v8M9 8v8M12 8v8M15 8v8M18 8v8"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
       </div>
       <div class="radial-label">Expense</div>
     </button>
-    <button type="button" class="radial-item" data-angle="60" onclick="chooseAdd('insurance')">
+    <button type="button" class="radial-item" data-kind="insurance" onclick="chooseAdd('insurance')">
       <div class="radial-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 L20 6 V12 C20 17 16.5 20.5 12 22 C7.5 20.5 4 17 4 12 V6 Z"/><path d="M9 12l2 2 4-4"/></svg>
       </div>
       <div class="radial-label">Insurance</div>
     </button>
-    <button type="button" class="radial-item" data-angle="120" onclick="chooseAdd('income')">
+    <button type="button" class="radial-item" data-kind="income" onclick="chooseAdd('income')">
       <div class="radial-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5.67-1.5 1.5-1.5 1.5.67 1.5 1.5zm-7 0c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5.67-1.5 1.5-1.5 1.5.67 1.5 1.5z"/><path d="M12 8v8M12 8l-3 2M12 8l3 2"/></svg>
       </div>
       <div class="radial-label">Income</div>
     </button>
-    <button type="button" class="radial-item" data-angle="240" onclick="chooseAdd('networth')">
+    <button type="button" class="radial-item" data-kind="networth" onclick="chooseAdd('networth')">
       <div class="radial-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M6 6h12v3H6zM6 11h12v7H6z"/><path d="M10 9v5M14 9v5"/></svg>
       </div>
       <div class="radial-label">Net Worth</div>
+    </button>
+    <button type="button" class="radial-item" data-kind="budget" onclick="chooseAdd('budget')">
+      <div class="radial-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/></svg>
+      </div>
+      <div class="radial-label">Budget</div>
     </button>
   </div>
 </div>
@@ -1090,6 +1106,23 @@ function closeCatPicker(){
 // forms, which open as a full-screen view on top of Dashboard and return to
 // it on Save, Update, or Cancel =====
 function openAddPicker(){
+  // most-used kind ends up at the bottom, right above the + button
+  const use = {
+    expense: entries.filter(e=>(e.type||"expense")==="expense").length,
+    income: entries.filter(e=>e.type==="income").length,
+    networth: nwSnapshots.length,
+    insurance: insSnapshots.length,
+    budget: (prefs && prefs.monthlyBudget) ? 1 : 0
+  };
+  const tie = { expense:5, income:4, networth:3, insurance:2, budget:1 };
+  const menu = document.querySelector("#addPickerOverlay .radial-menu");
+  const items = [...menu.querySelectorAll(".radial-item")];
+  items.sort((a,b)=> (use[a.dataset.kind]-use[b.dataset.kind]) || (tie[a.dataset.kind]-tie[b.dataset.kind]));
+  items.forEach((el,i)=>{
+    menu.appendChild(el);
+    el.classList.toggle("top-pick", i===items.length-1);
+    el.style.animationDelay = ((items.length-1-i)*35)+"ms"; // bottom one pops first
+  });
   document.getElementById("addPickerOverlay").style.display="flex";
 }
 function closeAddPicker(){
@@ -1097,6 +1130,15 @@ function closeAddPicker(){
 }
 function chooseAdd(kind){
   closeAddPicker();
+  if(kind==="budget"){
+    if(!prefs){ openPrefs(); return; }
+    showMainTab("dashboard");
+    showDashTab("today");
+    hmEditingBudget = true;
+    renderHome();
+    try{ window.scrollTo(0,0); }catch(e){}
+    return;
+  }
   showMainTab(kind);
 }
 function closeAddForm(){
@@ -4000,17 +4042,19 @@ function hmMonthPace(){
   return { mtd, lastSame, hasLast, day:dd, daysInMonth:hmDaysInMonth(y,m) };
 }
 
-// a reasonable starting budget: the average of the last three full months
+// your budget: what you set yourself, or else the average of your last
+// five full months (worked out fresh each time, never stored)
 function hmSuggestBudget(){
-  const t = todayStr(), [y,m] = t.split("-").map(Number);
-  const exp = hmExpenses(), totals = [];
-  for(let i=1;i<=3;i++){
-    const ym = hmDay(new Date(y, m-1-i, 1)).slice(0,7);
-    const s = hmSum(exp.filter(e=>e.date.slice(0,7)===ym));
-    if(s>0) totals.push(s);
-  }
+  const months = hmLastFullMonths(5), exp = hmExpenses();
+  const totals = months.map(ym=>hmSum(exp.filter(e=>e.date.slice(0,7)===ym))).filter(v=>v>0);
   if(!totals.length) return 0;
   return Math.round(totals.reduce((a,b)=>a+b,0)/totals.length/50)*50;
+}
+function hmBudget(){
+  const own = prefs && Number(prefs.monthlyBudget) || 0;
+  if(own>0) return { amount:own, auto:false };
+  const sug = hmSuggestBudget();
+  return { amount:sug, auto:sug>0, months:hmLastFullMonths(5).length };
 }
 
 // The insight feed: each rule looks at your own history and only speaks up
@@ -4107,6 +4151,104 @@ function hmInsights(){
   return out.sort((a,b)=>b.score-a.score).slice(0,5);
 }
 
+// ===== "How to save more": a personal plan built from your last 5 full
+// months. Each idea carries a realistic monthly amount so the total is
+// something you can actually act on, not a generic lecture. =====
+function hmLastFullMonths(n){
+  const t = todayStr(), [y,m] = t.split("-").map(Number), out = [];
+  const exp = hmExpenses();
+  const earliest = exp.reduce((a,e)=>e.date<a?e.date:a, t);
+  // a month you started logging partway through isn't a full month of data
+  const first = Number(earliest.slice(8))<=5 ? earliest.slice(0,7) : hmDay(new Date(Number(earliest.slice(0,4)), Number(earliest.slice(5,7)), 1)).slice(0,7);
+  for(let i=1;i<=n;i++){
+    const ym = hmDay(new Date(y, m-1-i, 1)).slice(0,7);
+    if(ym < first) break;
+    out.push(ym);
+  }
+  return out;
+}
+const HM_TRIM = { "Dining Out":0.25, "Entertainment":0.25, "Shopping":0.2, "Personal":0.15, "Groceries":0.1, "Gas":0.1, "Transport":0.15, "Kids/Activities":0.1, "Others":0.15 };
+function hmSavePlan(){
+  const months = hmLastFullMonths(5);
+  if(months.length < 2) return null;
+  const set = new Set(months), exp = hmExpenses().filter(e=>set.has(e.date.slice(0,7)));
+  const n = months.length, perMonth = v => v/n;
+  const ideas = [];
+  // 1. trim the flexible categories you spend most on
+  const byCat = {};
+  exp.forEach(e=>{ byCat[e.category]=(byCat[e.category]||0)+Number(e.amount); });
+  Object.entries(byCat).filter(([c])=>HM_TRIM[c]).map(([c,v])=>({c, avg:perMonth(v)}))
+    .sort((a,b)=>b.avg-a.avg).slice(0,3).forEach(({c,avg})=>{
+      const save = avg*HM_TRIM[c];
+      if(save < 15) return;
+      const how = { "Dining Out":"Cook one more dinner a week", "Entertainment":"Pick one free weekend plan", "Shopping":"Use a 48-hour wait before non-essentials",
+        "Personal":"Stretch the time between treats", "Groceries":"Shop from a list and use what's at home first", "Gas":"Combine errands into one trip",
+        "Transport":"Swap a few rides for one planned trip", "Kids/Activities":"Review which activities get used", "Others":"Check what's landing in Others" }[c];
+      ideas.push({ ic:CAT_ICONS[c]||"💡", t:`${c}: trim ${Math.round(HM_TRIM[c]*100)}%`, b:`You average ${fmt0(avg)} a month. ${how}.`, save });
+    });
+  // 2. subscriptions
+  const subs = exp.filter(e=>e.category==="Subscriptions");
+  if(subs.length){
+    const avg = perMonth(hmSum(subs)), save = avg*0.25;
+    if(save >= 5) ideas.push({ ic:"🔁", t:"Cancel one or two subscriptions", b:`They average ${fmt0(avg)} a month (${fmt0(avg*12)} a year). Keep the ones you used this week.`, save });
+  }
+  // 3. fewer trips to your most-visited store
+  const stores = {};
+  exp.forEach(e=>{ const k=(e.store||"").trim(); if(!k || HM_FIXED.has(e.category)) return; const key=k.toLowerCase(); (stores[key]=stores[key]||{name:k,n:0,sum:0}); stores[key].n++; stores[key].sum+=Number(e.amount); });
+  const top = Object.values(stores).filter(s=>s.n/n >= 3).sort((a,b)=>b.sum-a.sum)[0];
+  if(top){
+    const visit = top.sum/top.n;
+    ideas.push({ ic:"📍", t:`One fewer ${top.name} trip a month`, b:`You go about ${Math.round(top.n/n)} times a month, around ${fmt0(visit)} a visit.`, save:visit*0.6 });
+  }
+  // 4. small buys
+  const small = exp.filter(e=>Number(e.amount)<15 && !HM_FIXED.has(e.category));
+  if(small.length/n >= 4){
+    const avg = perMonth(hmSum(small));
+    ideas.push({ ic:"🪙", t:"Skip half the small buys", b:`About ${Math.round(small.length/n)} a month under ${curSym(PRIMARY_CUR)}15, adding up to ${fmt0(avg)}.`, save:avg/2 });
+  }
+  ideas.sort((a,b)=>b.save-a.save);
+  const total = ideas.reduce((s,i)=>s+i.save,0);
+  // savings rate and a pay-yourself-first nudge
+  const inc = perMonth(hmSum(entries.filter(e=>e.type==="income" && e.date && set.has(e.date.slice(0,7)))));
+  const out = perMonth(hmSum(exp));
+  let rateLine = null;
+  if(inc > 0){
+    const rate = (inc-out)/inc;
+    const autoSave = Math.floor((inc-out)*0.8/50)*50;
+    rateLine = rate >= 0.2 && autoSave >= 50
+      ? { ic:"🏦", t:`You keep ${Math.round(rate*100)}% of what you earn`, b:`Move ${fmt0(autoSave)} to savings each month, right after payday, before it gets spent.` }
+      : rate >= 0.2 ? null
+      : { ic:"🎯", t:`You keep ${Math.max(0,Math.round(rate*100))}% of what you earn`, b:`Getting to 20% means spending ${fmt0(out-inc*0.8)} less a month. The ideas below get you ${fmt0(total)} of that.` };
+  }
+  return { ideas:ideas.slice(0,4), total, rateLine, months:n };
+}
+const HM_TIPS = [
+  "Pay yourself first: move savings out on payday, then spend what's left.",
+  "Wait 48 hours before any big non-essential buy. Most urges fade.",
+  "Shop with a list and a full stomach. Impulse buys drop a lot.",
+  "Check subscriptions every quarter. Cancel anything you didn't open last month.",
+  "Plan one no-spend day a week. It adds up to over 50 a year.",
+  "Round up: each time you log, save the difference to the next round number.",
+  "Big costs first: rent, car and insurance save more than skipping coffee.",
+  "Cook in batches on Sunday. Busy weeknights are when takeout wins.",
+  "Use cash or a debit card for fun money. It makes the limit feel real.",
+  "Before buying, ask: would I buy this again at full price?",
+  "Compare prices once a year for phone, internet and insurance.",
+  "Celebrate wins cheaply: a walk, a call home, a movie at home."
+];
+function hmTipOfDay(){
+  const t = new Date(), start = new Date(t.getFullYear(),0,0);
+  return HM_TIPS[Math.floor((t-start)/864e5) % HM_TIPS.length];
+}
+function hmSavePlanHtml(){
+  const p = hmSavePlan();
+  const tip = `<div class="hm-ins info"><div class="ic">💬</div><div><div class="t">Tip of the day</div><div class="b">${escH(hmTipOfDay())}</div></div></div>`;
+  if(!p || (!p.ideas.length && !p.rateLine)) return `<div class="hm-sec"><h3>💰 How to save more</h3></div>${tip}`;
+  const head = p.total >= 10 ? `<div class="hm-save-head"><div class="k">You could save about</div><div class="v">${fmt0(p.total)}<span>/month</span></div><div class="s">That's ${fmt0(p.total*12)} a year, from your last ${p.months} months</div></div>` : "";
+  const rows = (p.rateLine?[p.rateLine]:[]).concat(p.ideas).map(i=>`<div class="hm-ins good"><div class="ic">${i.ic}</div><div style="flex:1"><div class="t">${escH(i.t)}</div><div class="b">${escH(i.b)}</div></div>${i.save?`<div class="hm-save-amt">+${fmt0(i.save)}<span>/mo</span></div>`:""}</div>`).join("");
+  return `<div class="hm-sec"><h3>💰 How to save more</h3><span>Your personal plan</span></div>${head}${rows}${tip}`;
+}
+
 // one-tap "log it again": your most repeated places, with a typical amount
 function hmQuickLogs(){
   const t = todayStr(), d90 = hmAddDays(t,-90), groups = {};
@@ -4159,7 +4301,7 @@ function hmBadgeCtx(){
     const out = hmSum(exp.filter(e=>e.date.slice(0,7)===m));
     return inc>0 && (inc-out)/inc>=0.2;
   });
-  const budget = prefs && Number(prefs.monthlyBudget) || 0;
+  const budget = prefs && Number(prefs.monthlyBudget) || 0; // only a budget you set yourself counts for the badge
   const underBudget = budget>0 && months.some(m=>m<cur && hmSum(exp.filter(e=>e.date.slice(0,7)===m))>0 && hmSum(exp.filter(e=>e.date.slice(0,7)===m))<=budget);
   const spentDays = new Set(exp.map(e=>e.date));
   const noSpend = loadNoSpend().filter(d=>!spentDays.has(d)).length;
@@ -4206,20 +4348,21 @@ function renderHome(){
     : s.today ? (s.cur>=s.best ? "That's your best streak yet. 🙌" : `Best streak: ${s.best} days. Keep going!`)
     : `Log something today to keep your ${s.cur}-day streak alive.`;
 
-  const budget = prefs && Number(prefs.monthlyBudget) || 0;
+  const bInfo = hmBudget(), budget = bInfo.amount;
   let budgetHtml;
   if(hmEditingBudget){
     const sug = budget || hmSuggestBudget();
-    budgetHtml = `<div style="flex:1"><div class="hm-budget-txt">Monthly spending budget${sug&&!budget?` <span style="color:var(--muted)">(your recent average is about ${fmt0(sug)})</span>`:""}</div>
+    const avg = hmSuggestBudget();
+    budgetHtml = `<div style="flex:1"><div class="hm-budget-txt">Monthly spending budget${avg?` <span style="color:var(--muted)">(your ${hmLastFullMonths(5).length}-month average is about ${fmt0(avg)})</span>`:""}</div>
       <div class="hm-budget-edit"><div class="amount-wrap" style="flex:1"><input type="tel" inputmode="decimal" id="hmBudgetInput" value="${sug||""}" placeholder="0"></div>
       <button class="hm-btn" onclick="saveBudget()">Save</button><button class="hm-btn ghost" onclick="hmEditingBudget=false;renderHome()">✕</button></div>
-      ${budget?`<button class="hm-link" style="color:var(--red)" onclick="clearBudget()">Remove budget</button>`:""}</div>`;
+      ${!bInfo.auto&&budget?`<button class="hm-link" onclick="clearBudget()">Go back to the automatic budget</button>`:""}</div>`;
   } else if(budget>0){
     const left = budget - p.mtd, daysLeft = p.daysInMonth - p.day + 1;
     const txt = left>=0
       ? `<b>${fmt0(left)}</b> left this month<br><span style="color:var(--muted)">About ${fmt0(left/daysLeft)} a day for ${daysLeft} day${daysLeft===1?"":"s"}</span>`
       : `<b style="color:var(--red)">${fmt0(-left)} over</b> this month's budget<br><span style="color:var(--muted)">A few no-spend days will help</span>`;
-    budgetHtml = `${hmRing(p.mtd/budget)}<div class="hm-budget-txt" style="flex:1">${txt}<br><button class="hm-link" onclick="hmEditingBudget=true;renderHome()">Budget ${fmt0(budget)} · Edit</button></div>`;
+    budgetHtml = `${hmRing(p.mtd/budget)}<div class="hm-budget-txt" style="flex:1">${txt}<br><button class="hm-link" onclick="hmEditingBudget=true;renderHome()">${bInfo.auto?`Auto budget ${fmt0(budget)}, your ${bInfo.months}-month average · Change`:`Budget ${fmt0(budget)} · Edit`}</button></div>`;
   } else {
     budgetHtml = `<div class="hm-budget-txt" style="flex:1">🎯 Set a monthly budget to see what's safe to spend each day.<br><button class="hm-link" onclick="hmEditingBudget=true;renderHome()">Set a budget ›</button></div>`;
   }
@@ -4249,7 +4392,7 @@ function renderHome(){
     <div class="hm-streak-note">${streakNote}</div>
     <div class="hm-budget">${budgetHtml}</div>
     ${noSpendHtml}
-  </div>${quickHtml}${insHtml}${hmBadgesHtml()}
+  </div>${quickHtml}${insHtml}${hmSavePlanHtml()}${hmBadgesHtml()}
   <button class="hm-btn ghost hm-share" onclick="shareProgress()">📣 Share my progress</button>`;
   const bi = document.getElementById("hmBudgetInput");
   if(bi){ try{ bi.focus(); bi.select(); }catch(e){} bi.onkeydown = e=>{ if(e.key==="Enter") saveBudget(); }; }
