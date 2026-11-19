@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="iExpense">
+<meta name="apple-mobile-web-app-title" content="iFinWell">
 <meta name="theme-color" content="#121712">
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180-dark.png" media="(prefers-color-scheme: dark)">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512-dark.png" media="(prefers-color-scheme: dark)">
-<title>iExpense</title>
+<title>iFinWell</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -23,41 +23,34 @@
      secondary, on a soft cream (light) / warm near-black (dark) surface,
      replacing the previous cool blue/navy palette. Same CSS-variable
      architecture as before, so every component just re-skins automatically. */
-  /* Modern Color System - Refined for Better UX */
   :root{
-    --bg:#0f1419; --card:#1a1f2e; --card2:#232a3a; --border:#2d3748;
-    --text:#e2e8f0; --muted:#a0aec0; --accent:#10b981; --accent2:#059669;
-    --green:#34d399; --red:#f87171; --amber:#fcd34d; --purple:#a78bfa;
-    --ctatext:#0f172a; --shadow:0 10px 25px rgba(0,0,0,0.3);
-    --shadow-sm:0 4px 12px rgba(0,0,0,0.15);
+    --bg:#121712; --card:#1b231c; --card2:#242d25; --border:#37443a;
+    --text:#f1eee6; --muted:#9caa9e; --accent:#a3e635; --accent2:#1b4332;
+    --green:#4ade80; --red:#fb7185; --amber:#fbbf24; --purple:#c084fc;
+    --ctatext:#14210a;
   }
   :root[data-theme="light"]{
-    --bg:#f8fafc; --card:#ffffff; --card2:#f1f5f9; --border:#e2e8f0;
-    --text:#1e293b; --muted:#64748b; --accent:#059669; --accent2:#047857;
-    --green:#10b981; --red:#ef4444; --amber:#d97706; --purple:#8b5cf6;
-    --ctatext:#ffffff; --shadow:0 10px 25px rgba(0,0,0,0.1);
-    --shadow-sm:0 4px 12px rgba(0,0,0,0.08);
+    --bg:#fbf6ec; --card:#ffffff; --card2:#f4eedf; --border:#e7dfc9;
+    --text:#2b2a20; --muted:#8a836e; --accent:#6b9c1b; --accent2:#1b4332;
+    --green:#15803d; --red:#dc2626; --amber:#c2790a; --purple:#8b5cf6;
+    --ctatext:#14210a;
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html{-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
+  html{-webkit-font-smoothing:antialiased}
   body{
     background:var(--bg);color:var(--text);
     font-family:'Poppins',-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-    padding:calc(16px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(100px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
-    max-width:600px;margin:0 auto;
-    line-height:1.6;
-    letter-spacing:0.3px;
+    padding:calc(14px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) calc(90px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left));
+    max-width:520px;margin:0 auto;
   }
   header{
     display:flex;justify-content:space-between;align-items:center;
-    position:sticky;top:env(safe-area-inset-top);z-index:20;background:rgba(15,20,25,.95);
-    backdrop-filter:blur(10px);
-    margin:0 -16px 20px;
-    padding:16px 16px 14px;
+    position:sticky;top:env(safe-area-inset-top);z-index:20;background:var(--bg);
+    margin:0 -14px 14px;
+    padding:14px 14px 12px;
     border-bottom:1px solid var(--border);
-    box-shadow:var(--shadow-sm);
   }
-  h1{font-size:28px;font-weight:800;letter-spacing:-.3px;background:linear-gradient(135deg, var(--accent), var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  h1{font-size:22px;font-weight:700;letter-spacing:-.2px}
   h1 span{color:var(--accent)}
   .badge{background:var(--card2);border:1px solid var(--border);color:var(--muted);font-size:12px;padding:4px 10px;border-radius:20px;white-space:nowrap}
   .badge b{color:var(--amber)}
@@ -81,10 +74,9 @@
   .store-suggest-row:active{background:var(--card2)}
   .store-suggest-row .ssr-label{flex:1;font-size:15px}
   .store-suggest-row .ssr-remove{background:var(--red);color:#fff;border:none;width:22px;height:22px;border-radius:50%;font-size:13px;line-height:1;cursor:pointer;flex:none;font-weight:700;padding:0}
-  button.opt{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:12px 6px;font-size:13.5px;font-weight:600;cursor:pointer;transition:all .2s ease;box-shadow:var(--shadow-sm)}
-  button.opt.sel{background:var(--accent);border-color:var(--accent);color:var(--ctatext);font-weight:700;box-shadow:0 4px 12px rgba(16,185,129,.25)}
-  button.opt:active{transform:scale(.96);opacity:.9}
-  button.opt:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.2)}
+  button.opt{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:16px;padding:12px 6px;font-size:13.5px;font-weight:500;cursor:pointer;transition:transform .1s ease,background .12s,border-color .12s}
+  button.opt.sel{background:var(--accent2);border-color:var(--accent2);color:#fff;font-weight:700}
+  button.opt:active{transform:scale(.95)}
   .chip-row button.opt{padding:10px 14px;border-radius:999px;flex:0 0 auto}
   .grid button.opt{position:relative;padding:8px 5px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.1;font-size:12px}
   .grid button.opt[data-icon]::before{
@@ -93,11 +85,12 @@
     background:color-mix(in srgb, var(--accent) 18%, var(--card2));
   }
   .grid button.opt.sel[data-icon]::before{background:color-mix(in srgb, #fff 20%, transparent)}
-  input[type=text],input[type=date],input[type=tel]{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:14px 16px;font-size:16px;outline:none;transition:all .2s ease;box-shadow:var(--shadow-sm)}
-  input:focus{border-color:var(--accent);background:var(--card2);box-shadow:0 0 0 3px rgba(16,185,129,.1),var(--shadow);transform:translateY(-2px)}
+  input[type=text],input[type=date],input[type=tel]{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:16px;padding:13px 14px;font-size:16px;outline:none;transition:border-color .12s,box-shadow .12s}
+  input:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent)}
   .amount-wrap{position:relative}
   .amount-wrap::before{content:var(--cur-sym,"$");position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:18px}
   #nwAmountWrap::before{content:var(--nw-sym,var(--cur-sym,"$"))}
+  #insAmountWrap::before{content:var(--ins-sym,var(--cur-sym,"$"))}
   select.ob-select{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:16px;padding:13px 14px;font-size:16px;outline:none;appearance:none;-webkit-appearance:none}
   .ob-body{padding:16px 18px calc(24px + env(safe-area-inset-bottom));overflow-y:auto;flex:1}
   .ob-intro{font-size:14px;color:var(--muted);line-height:1.5;margin:2px 0 6px}
@@ -107,26 +100,18 @@
   .fx-manual-row .fx-label{font-size:13px;color:var(--muted)}
   .fx-manual-row .btn-fx{background:var(--accent2);color:#fff;border:none;border-radius:999px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer}
   .link-btn{background:none;border:none;color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;padding:0;margin-left:4px;text-decoration:underline}
-  .btn{width:100%;border:none;border-radius:12px;padding:16px;font-size:17px;font-weight:700;cursor:pointer;margin-top:18px;transition:all .2s ease;box-shadow:var(--shadow-sm)}
-  .btn:active{transform:scale(.97);opacity:.9}
-  .btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.2)}
-  .btn-save{background:var(--accent);color:var(--ctatext);box-shadow:0 4px 15px rgba(16,185,129,.3)}
-  .btn-export{background:var(--green);color:#0f172a;margin-top:10px}
-  .btn-ghost{background:var(--card2);color:var(--muted);font-size:14px;padding:12px;margin-top:10px;border-radius:12px}
-
-  /* Floating Action Button (FAB) - Quick Add */
-  .fab{position:fixed;bottom:calc(80px + env(safe-area-inset-bottom));right:16px;width:56px;height:56px;border-radius:50%;background:var(--accent);color:var(--ctatext);border:none;font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(16,185,129,.35);transition:all .2s ease;z-index:40;font-weight:700}
-  .fab:active{transform:scale(.92);box-shadow:0 4px 12px rgba(16,185,129,.25)}
-  .fab:hover{transform:scale(1.08);box-shadow:0 12px 32px rgba(16,185,129,.4)}
-  .entry{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;font-size:14px;cursor:pointer;transition:all .2s ease;box-shadow:var(--shadow-sm)}
-  .entry:active{transform:scale(.99);opacity:.9}
-  .entry:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.15);border-color:var(--accent)}
-  .entry.editing{border-color:var(--accent);background:var(--card2);box-shadow:0 0 0 3px rgba(16,185,129,.1)}
-  .entry .cat{font-weight:700;font-size:15px;color:var(--text)}
-  .entry .sub{color:var(--muted);font-size:13px;margin-top:4px}
-  .entry .amt{font-weight:700;font-size:17px;margin-right:12px;color:var(--accent)}
-  .entry .del{color:var(--red);background:none;border:none;font-size:20px;padding:4px 6px;cursor:pointer;opacity:.6;transition:opacity .2s;font-weight:700}
-  .entry .del:hover{opacity:1}
+  .btn{width:100%;border:none;border-radius:999px;padding:16px;font-size:17px;font-weight:700;cursor:pointer;margin-top:18px;transition:transform .1s ease,opacity .1s ease}
+  .btn:active{transform:scale(.97);opacity:.85}
+  .btn-save{background:var(--accent);color:var(--ctatext)}
+  .btn-export{background:var(--green);color:#06281c;margin-top:10px}
+  .btn-ghost{background:var(--card2);color:var(--muted);font-size:14px;padding:12px;margin-top:10px;border-radius:999px}
+  .entry{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;font-size:14px;cursor:pointer;transition:transform .1s ease,border-color .12s}
+  .entry:active{transform:scale(.98)}
+  .entry.editing{border-color:var(--accent);background:var(--card2)}
+  .entry .cat{font-weight:600}
+  .entry .sub{color:var(--muted);font-size:12px;margin-top:2px}
+  .entry .amt{font-weight:700;font-size:16px;margin-right:10px}
+  .entry .del{color:var(--red);background:none;border:none;font-size:18px;padding:4px 6px;cursor:pointer}
   .toast{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:var(--green);color:#06281c;padding:12px 22px;border-radius:24px;font-weight:700;font-size:14px;display:none;z-index:99;box-shadow:0 6px 24px rgba(0,0,0,.35);max-width:calc(100% - 48px);text-align:center}
   .tabs{display:flex;gap:6px;margin-bottom:16px}
   .tabs button{flex:1;background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:16px;padding:10px 4px;font-size:12.5px;font-weight:600;cursor:pointer;transition:transform .1s ease,background .12s,border-color .12s}
@@ -227,19 +212,20 @@
   .cat-picker-back{background:var(--card2);border:1px solid var(--border);color:var(--text);width:36px;height:36px;min-width:36px;border-radius:50%;font-size:20px;cursor:pointer;line-height:1}
   .cat-picker-title{font-weight:700;font-size:17px}
   .add-form-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-  .fab-add{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom));width:60px;height:60px;border-radius:50%;background:var(--accent);color:var(--ctatext);font-size:30px;line-height:1;border:none;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer;z-index:150;display:flex;align-items:center;justify-content:center;padding:0;transition:background .2s ease,transform .2s ease,box-shadow .2s ease}
+  .fab-add{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom));width:60px;height:60px;border-radius:50%;background:var(--accent);color:var(--ctatext);font-size:30px;line-height:1;border:none;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer;z-index:150;display:none;align-items:center;justify-content:center;padding:0;transition:background .2s ease,transform .2s ease,box-shadow .2s ease}
   .fab-add:hover{transform:translateX(-50%) scale(1.08);box-shadow:0 8px 24px rgba(0,0,0,.45)}
   .fab-add:active{transform:translateX(-50%) scale(.92)}
   .radial-menu-backdrop{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:140}
-  .radial-menu{position:fixed;bottom:calc(86px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:240px;height:120px}
+  .radial-menu{position:fixed;bottom:calc(166px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:260px;height:180px}
   .radial-item{position:absolute;width:70px;height:70px;border-radius:50%;background:var(--accent);color:var(--ctatext);border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;box-shadow:0 6px 18px rgba(0,0,0,.35);font-size:11px;font-weight:600;z-index:151;pointer-events:auto;transition:transform .2s ease,background .12s,box-shadow .2s ease;font-family:inherit}
   .radial-item:hover{transform:scale(1.08);box-shadow:0 8px 24px rgba(0,0,0,.45)}
   .radial-item:active{transform:scale(.92)}
   .radial-icon{width:32px;height:32px;display:flex;align-items:center;justify-content:center;line-height:1}
   .radial-label{font-size:10px;font-weight:600;white-space:nowrap}
-  .radial-item[data-angle="0"]{top:-30px;left:50%;transform:translateX(-50%)}
-  .radial-item[data-angle="120"]{top:25px;left:0}
-  .radial-item[data-angle="240"]{top:25px;right:0}
+  .radial-item[data-angle="0"]{top:0;left:15px}
+  .radial-item[data-angle="60"]{top:0;right:15px}
+  .radial-item[data-angle="120"]{top:110px;left:0}
+  .radial-item[data-angle="240"]{top:110px;right:0}
   .cat-picker-list{overflow-y:auto;flex:1;padding:8px 14px calc(24px + env(safe-area-inset-bottom))}
   .cat-picker-row{display:flex;align-items:center;gap:14px;padding:14px 4px;border-bottom:1px solid var(--card2);cursor:pointer}
   .cat-picker-row:active{background:var(--card2)}
@@ -299,7 +285,7 @@
 <body>
 <header>
   <div>
-    <h1>i<span>Expense</span></h1>
+    <h1>i<span>FinWell</span></h1>
     <div id="helloName" style="display:none;font-size:11.5px;color:var(--muted);font-weight:600;margin-top:1px"></div>
   </div>
   <div style="display:flex;align-items:center;gap:8px">
@@ -312,8 +298,14 @@
   </div>
 </header>
 
+<div class="tabs" style="display:none">
+  <button class="sel" id="tabExpenseBtn" onclick="showMainTab('expense')">🧾 Expense</button>
+  <button id="tabIncomeBtn" onclick="showMainTab('income')">💰 Income</button>
+  <button id="tabNetWorthBtn" onclick="showMainTab('networth')">💎 Net Worth</button>
+  <button id="tabDashboardBtn" onclick="showMainTab('dashboard')">📊 Dashboard</button>
+</div>
 
-<div id="entriesView" style="display:none">
+<div id="entriesView">
 
 <div class="add-form-header">
   <button type="button" class="cat-picker-back" onclick="closeAddForm()">‹</button>
@@ -420,11 +412,91 @@
   </div>
 </div>
 
-<div id="dashboardView">
+<div id="insuranceView" style="display:none">
+
+<div class="add-form-header">
+  <button type="button" class="cat-picker-back" onclick="closeAddForm()">‹</button>
+  <div class="cat-picker-title">Add Insurance Policy</div>
+</div>
+
+<div class="label">Type</div>
+<button type="button" class="cat-field" id="insCatFieldBtn" onclick="openInsCatPicker()">
+  <span class="cpr-icon" id="insCatFieldIcon"></span>
+  <span class="cat-field-label cat-field-placeholder" id="insCatFieldLabel">Select type</span>
+  <span class="cat-field-chevron">›</span>
+</button>
+
+<div class="label">Provider</div>
+<input type="text" id="insProvider" placeholder="e.g. Blue Cross, LIC" autocomplete="off">
+
+<div id="insComparisonCardWrap" style="display:none">
+  <div class="nw-value-comparison-card" id="insComparisonCard">
+    <div class="comp-label">📊 Last Coverage</div>
+    <div class="comp-value" id="insComparisonLastValue">—</div>
+    <div class="comp-arrow">➜</div>
+    <div class="comp-label">New Coverage</div>
+    <div id="insChangeWarning"></div>
+  </div>
+  <button type="button" class="comp-btn" id="insViewHistoryBtn" onclick="showInsHistory(document.getElementById('insProvider').value)">View History</button>
+</div>
+
+<div class="label">Country</div>
+<input type="text" id="insCountry" placeholder="e.g. US, India" autocomplete="off">
+
+<div class="label" id="insRegionLabel">Currency</div>
+<div class="chip-row" id="insCurrencyRow"></div>
+
+<div class="label">Coverage Amount</div>
+<div class="amount-wrap" id="insAmountWrap"><input type="tel" id="insValue" inputmode="decimal" placeholder="0.00" oninput="updateInsChangeWarning()"></div>
+
+<div class="label">Premium (optional)</div>
+<div class="amount-wrap"><input type="tel" id="insPremium" inputmode="decimal" placeholder="0.00"></div>
+
+<div class="label">Policy Number (optional)</div>
+<input type="text" id="insPolicyNumber" placeholder="e.g. HC-123456" autocomplete="off">
+
+<div class="label">Covered Members (optional)</div>
+<input type="text" id="insCoveredMembers" placeholder="e.g. Self + Spouse + 2 kids" autocomplete="off">
+
+<div class="label" id="insBeneficiaryLabel" style="display:none">Beneficiary</div>
+<input type="text" id="insBeneficiary" placeholder="e.g. Spouse" autocomplete="off" style="display:none">
+
+<div class="label">Start Date</div>
+<input type="date" id="insStartDate">
+
+<div class="label">Renewal / Expiry Date (optional)</div>
+<input type="date" id="insRenewalDate">
+
+<div class="label">Notes (optional)</div>
+<input type="text" id="insNotes" placeholder="Anything else worth remembering" autocomplete="off">
+
+<button class="btn btn-save" id="insSaveBtn" onclick="saveIns()">Save Insurance Policy</button>
+<button class="btn btn-ghost" id="insCancelEditBtn" style="display:none" onclick="closeAddForm()">Cancel edit</button>
+
+<div class="label" style="margin-top:22px">📋 Your Policies</div>
+<div style="font-size:12px;color:var(--muted);margin-bottom:8px">Shows the latest record for each policy. Log a fresh entry when coverage or premium changes at renewal.</div>
+<div id="insItemList"></div>
+
+</div>
+
+<!-- Insurance Change History Modal -->
+<div id="insHistoryOverlay" class="cat-picker-overlay" style="display:none">
+  <div class="cat-picker-header">
+    <button class="cat-picker-back" onclick="closeInsHistory()">‹</button>
+    <div class="cat-picker-title" id="insHistoryTitle">History</div>
+    <div style="width:36px"></div>
+  </div>
+  <div class="cat-picker-list" id="insHistoryList">
+    <!-- populated by showInsHistory() -->
+  </div>
+</div>
+
+<div id="dashboardView" style="display:none">
   <div class="dash-tabs">
     <button class="sel" id="dashMonthlyBtn" onclick="showDashTab('monthly')">Monthly Detail</button>
     <button id="dashOverviewBtn" onclick="showDashTab('overview')">Summary</button>
     <button id="dashNetWorthBtn" onclick="showDashTab('networth')">Net Worth</button>
+    <button id="dashCoverageBtn" onclick="showDashTab('coverage')">Coverage</button>
   </div>
 
   <div id="dashMonthlyView">
@@ -466,7 +538,7 @@
 
     <div id="nwRegionUSView" style="display:none">
       <div class="cards" id="nwCardsUS"></div>
-      <div class="chart-card"><h4>Net Worth Trend (Weekly)</h4><canvas id="nwTrendChartUS" height="180"></canvas><div class="dash-empty" id="nwTrendChartUSEmpty" style="display:none"></div></div>
+      <div class="chart-card"><h4>Net Worth Trend (Monthly)</h4><canvas id="nwTrendChartUS" height="180"></canvas><div class="dash-empty" id="nwTrendChartUSEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Breakdown by Category</h4><canvas id="nwCatChartUS" height="220"></canvas><div class="dash-empty" id="nwCatChartUSEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Net Worth Growth Projection</h4><canvas id="nwProjectionChartUS" height="200"></canvas><div class="dash-empty" id="nwProjectionChartUSEmpty" style="display:none"></div><div style="font-size:12px;color:var(--muted);margin-top:6px" id="nwProjectionChartUSWarn"></div></div>
       <div class="dash-month">
@@ -480,7 +552,7 @@
 
     <div id="nwRegionINView" style="display:none">
       <div class="cards" id="nwCardsIN"></div>
-      <div class="chart-card"><h4>Net Worth Trend (Weekly)</h4><canvas id="nwTrendChartIN" height="180"></canvas><div class="dash-empty" id="nwTrendChartINEmpty" style="display:none"></div></div>
+      <div class="chart-card"><h4>Net Worth Trend (Monthly)</h4><canvas id="nwTrendChartIN" height="180"></canvas><div class="dash-empty" id="nwTrendChartINEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Breakdown by Category</h4><canvas id="nwCatChartIN" height="220"></canvas><div class="dash-empty" id="nwCatChartINEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Net Worth Growth Projection</h4><canvas id="nwProjectionChartIN" height="200"></canvas><div class="dash-empty" id="nwProjectionChartINEmpty" style="display:none"></div><div style="font-size:12px;color:var(--muted);margin-top:6px" id="nwProjectionChartINWarn"></div></div>
       <div class="dash-month">
@@ -504,7 +576,7 @@
       </div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:14px" id="nwRateStatus"></div>
       <div class="cards" id="nwCards"></div>
-      <div class="chart-card"><h4>Net Worth Trend (Weekly)</h4><canvas id="nwTrendChart" height="180"></canvas><div class="dash-empty" id="nwTrendChartEmpty" style="display:none"></div></div>
+      <div class="chart-card"><h4>Net Worth Trend (Monthly)</h4><canvas id="nwTrendChart" height="180"></canvas><div class="dash-empty" id="nwTrendChartEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Breakdown by Category</h4><canvas id="nwCatChart" height="220"></canvas><div class="dash-empty" id="nwCatChartEmpty" style="display:none"></div></div>
       <div class="chart-card"><h4>Net Worth Growth Projection</h4><canvas id="nwProjectionChart" height="200"></canvas><div class="dash-empty" id="nwProjectionChartEmpty" style="display:none"></div><div style="font-size:12px;color:var(--muted);margin-top:6px" id="nwProjectionChartWarn"></div></div>
       <div class="dash-month">
@@ -515,6 +587,11 @@
       <div class="dtable-wrap" id="nwHistoryWrap" style="display:none"><div class="tw-head" id="nwHistoryHead"></div><div id="nwHistoryTable"></div></div>
       <div class="dtable-wrap"><div class="tw-head">Growth Projections</div><div id="nwProjectionsTable"></div></div>
     </div>
+  </div>
+
+  <div id="dashCoverageView" style="display:none">
+    <div class="cards" id="insCards"></div>
+    <div class="dtable-wrap"><div class="tw-head">Your Policies</div><div id="insCoverageTable"></div></div>
   </div>
 
 </div>
@@ -572,7 +649,7 @@
     <div class="cloud-status" id="cloudStatus">Not connected — saving on this device only</div>
     <div id="cloudSetup">
       <input type="text" id="cloudOwner" placeholder="GitHub username" autocomplete="off">
-      <input type="text" id="cloudRepo" placeholder="Private data repo name (e.g. iExpense-data)" autocomplete="off" style="margin-top:8px">
+      <input type="text" id="cloudRepo" placeholder="Private data repo name (e.g. iFinWell-data)" autocomplete="off" style="margin-top:8px">
       <input type="password" id="cloudToken" placeholder="Personal access token" autocomplete="off" style="margin-top:8px">
       <button class="btn btn-export" onclick="cloudConnect()">Connect &amp; Sync</button>
     </div>
@@ -580,6 +657,16 @@
       <button class="btn btn-ghost" onclick="cloudDisconnect()">Disconnect</button>
     </div>
     <div class="settings-hint">Your data stays in your own private GitHub repo. No third party sees it.</div>
+  </div>
+
+  <!-- Dev preview only: one tap copies this browser's production data into
+       the dev copy so dev can be tested against real data. It only READS
+       production (local storage, or the production cloud repo with GET
+       requests) and never writes to it. Hidden on the production site. -->
+  <div class="settings-section" id="devCopySection" style="display:none">
+    <div class="settings-section-label">🧪 Dev data</div>
+    <button class="btn btn-ghost" onclick="copyProdDataToDev()">Copy production data into dev</button>
+    <div class="settings-hint">Copies production's data over dev's. Production is only read, never changed.</div>
   </div>
 
   <!-- Backup + Restore + Excel export. Backup/Restore is hidden on the
@@ -601,7 +688,7 @@
        prod or dev right now?" without inspecting the URL bar. -->
   <div class="settings-footer">
     <div class="settings-env" id="settingsEnvBadge">Production</div>
-    <div class="settings-version">iExpense · <span id="settingsVersion">v1</span></div>
+    <div class="settings-version">iFinWell · <span id="settingsVersion">v1</span></div>
   </div>
 </div>
 
@@ -614,6 +701,12 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 6h18M3 18h18M6 8v8M9 8v8M12 8v8M15 8v8M18 8v8"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
       </div>
       <div class="radial-label">Expense</div>
+    </button>
+    <button type="button" class="radial-item" data-angle="60" onclick="chooseAdd('insurance')">
+      <div class="radial-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 L20 6 V12 C20 17 16.5 20.5 12 22 C7.5 20.5 4 17 4 12 V6 Z"/><path d="M9 12l2 2 4-4"/></svg>
+      </div>
+      <div class="radial-label">Insurance</div>
     </button>
     <button type="button" class="radial-item" data-angle="120" onclick="chooseAdd('income')">
       <div class="radial-icon">
@@ -651,10 +744,19 @@
   <div class="cat-picker-list" id="nwCatPickerList"></div>
 </div>
 
+<div class="cat-picker-overlay" id="insCatPickerOverlay" style="display:none">
+  <div class="cat-picker-header">
+    <button type="button" class="cat-picker-back" onclick="closeInsCatPicker()">‹</button>
+    <div class="cat-picker-title">Type</div>
+    <div style="width:36px"></div>
+  </div>
+  <div class="cat-picker-list" id="insCatPickerList"></div>
+</div>
+
 <div class="cat-picker-overlay" id="onboardOverlay" style="display:none">
   <div class="cat-picker-header">
     <div style="width:36px"></div>
-    <div class="cat-picker-title" id="obTitle">Welcome to iExpense 👋</div>
+    <div class="cat-picker-title" id="obTitle">Welcome to iFinWell 👋</div>
     <div style="width:36px"></div>
   </div>
   <div class="ob-body">
@@ -687,7 +789,7 @@
 const IS_DEV_PREVIEW = location.pathname.includes("/dev/");
 function nsKey(key){ return IS_DEV_PREVIEW ? key+"_dev" : key; }
 if(IS_DEV_PREVIEW){
-  document.title = "iExpense (DEV)";
+  document.title = "iFinWell (DEV)";
   document.querySelector("header h1").insertAdjacentHTML("beforeend",
     ' <span style="font-size:11px;background:var(--amber);color:#3a2a00;padding:2px 8px;border-radius:10px;vertical-align:middle;font-weight:800;">DEV</span>');
 }
@@ -713,6 +815,14 @@ function nwCatIcon(cat){ return NW_CAT_ICONS[cat] ? NW_CAT_ICONS[cat]+" " : ""; 
 function isLiability(cat){ return cat === "Liabilities/Debt"; }
 const NW_LS_KEY = nsKey("iexpense_networth_v1");
 
+// ===== Insurance / Risk Coverage: what happens if something goes wrong —
+// kept extensible so more policy types (Disability, Home, Auto, Umbrella)
+// can be added later without a redesign =====
+const INS_CATS = ["Health Insurance","Life Insurance"];
+const INS_CAT_ICONS = { "Health Insurance":"🏥", "Life Insurance":"🛡️" };
+function insCatIcon(cat){ return INS_CAT_ICONS[cat] ? INS_CAT_ICONS[cat]+" " : ""; }
+const IS_LS_KEY = nsKey("iexpense_insurance_v1");
+
 // ===== Per-user preferences (name + currencies), set once on first launch =====
 // Stored only on this device — never part of the cloud-sync payload, so every
 // person the app link is shared with gets their own name/currency setup while
@@ -733,70 +843,14 @@ const CURRENCY_INFO = {
   MXN:{sym:"Mex$",label:"Mexican Peso"}
 };
 function curSym(cur){ return CURRENCY_INFO[cur] ? CURRENCY_INFO[cur].sym : cur+" "; }
-
-// ===== STORAGE SERVICE: Abstraction layer for localStorage (web) / AsyncStorage (mobile) =====
-// On web: synchronous operations using localStorage
-// On mobile: asynchronous operations using React Native AsyncStorage
-// Call pattern: const val = StorageService.getSync(key) on web, or await StorageService.get(key) on mobile
-const StorageService = {
-  // Synchronous methods (web only, uses localStorage)
-  getSync: (key) => {
-    try { return JSON.parse(localStorage.getItem(key) || "null"); }
-    catch(e) { return null; }
-  },
-  setSync: (key, value) => {
-    try { localStorage.setItem(key, JSON.stringify(value)); return true; }
-    catch(e) { console.warn(`Storage full or error saving ${key}:`, e); return false; }
-  },
-  removeSync: (key) => {
-    try { localStorage.removeItem(key); return true; }
-    catch(e) { return false; }
-  },
-
-  // Asynchronous methods (compatible with AsyncStorage on mobile)
-  get: async (key) => {
-    try { return JSON.parse(localStorage.getItem(key) || "null"); }
-    catch(e) { return null; }
-  },
-  set: async (key, value) => {
-    try { localStorage.setItem(key, JSON.stringify(value)); return true; }
-    catch(e) { console.warn(`Storage full or error saving ${key}:`, e); return false; }
-  },
-  remove: async (key) => {
-    try { localStorage.removeItem(key); return true; }
-    catch(e) { return false; }
-  },
-
-  // Check if storage is available and has space
-  isAvailable: () => {
-    try {
-      const test = "__storage_test__";
-      localStorage.setItem(test, "1");
-      localStorage.removeItem(test);
-      return true;
-    } catch(e) { return false; }
-  },
-
-  // Get approximate storage usage (for quota management)
-  getUsage: () => {
-    let total = 0;
-    for(const key in localStorage) {
-      if(localStorage.hasOwnProperty(key)) {
-        total += localStorage[key].length + key.length;
-      }
-    }
-    return { used: total, estimate: total + " bytes" };
-  }
-};
-
-function loadPrefs(){ return StorageService.getSync(PREFS_KEY); }
-function savePrefs(){ StorageService.setSync(PREFS_KEY, prefs); }
+function loadPrefs(){ try{ return JSON.parse(localStorage.getItem(PREFS_KEY)||"null"); }catch(e){ return null; } }
+function savePrefs(){ try{ localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); }catch(e){} }
 let prefs = loadPrefs();
 // Anyone already using the app before preferences existed keeps today's exact
 // behavior (USD primary + INR secondary) without ever seeing the onboarding
 // screen — only a truly fresh install (no data at all) gets asked.
 if(!prefs){
-  const hasData = !!(StorageService.getSync(LS_KEY) || StorageService.getSync(NW_LS_KEY) || StorageService.getSync(nsKey("iexpense_cloud_cfg")));
+  const hasData = !!(localStorage.getItem(LS_KEY) || localStorage.getItem(NW_LS_KEY) || localStorage.getItem(nsKey("iexpense_cloud_cfg")));
   if(hasData){
     prefs = { name:"", primaryCurrency:"USD", secondaryCurrency:"INR", onboarded:true, migrated:true };
     savePrefs();
@@ -842,33 +896,62 @@ let nwSnapshots = [];
 let nwChangeLog = [];
 let nwUpdatingSnapshot = null;
 let nwViewingItemHistory = null;
+let insSel = {cat:null, currency:PRIMARY_CUR};
+let insSnapshots = [];
+let insChangeLog = [];
+let insUpdatingSnapshot = null;
+let insViewingItemHistory = null;
 function nwSetFilter(suffix, kind, value){
   if(kind==="cat"){ nwFilters[suffix].cat = value; nwFilters[suffix].item = ""; }
   else nwFilters[suffix].item = value;
   renderDashNetWorth();
 }
 
-function load(){ const val = StorageService.getSync(LS_KEY); return Array.isArray(val) ? val : []; }
+function load(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||"[]"); }catch(e){ return []; } }
 function genId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
 function ensureIds(){ entries.forEach(e=>{ if(!e.id) e.id=genId(); }); }
-function persist(){ ensureIds(); StorageService.setSync(LS_KEY, entries); }
+function persist(){ ensureIds(); try{ localStorage.setItem(LS_KEY, JSON.stringify(entries)); }catch(e){} }
 persist(); // backfill ids on any pre-existing data
 function loadNW(){
-  const data = StorageService.getSync(NW_LS_KEY);
-  if(Array.isArray(data)){
-    return { snapshots: data, changeLog: [] };
-  }
-  return data && typeof data === 'object' ? data : { snapshots: [], changeLog: [] };
+  try{
+    const data = JSON.parse(localStorage.getItem(NW_LS_KEY)||"{}");
+    if(Array.isArray(data)){
+      return { snapshots: data, changeLog: [] };
+    }
+    return data;
+  }catch(e){ return { snapshots: [], changeLog: [] }; }
 }
 function ensureNWIds(){ nwSnapshots.forEach(e=>{ if(!e.id) e.id=genId(); }); }
 function persistNW(){
   ensureNWIds();
-  const data = { version: 2, snapshots: nwSnapshots, changeLog: nwChangeLog };
-  StorageService.setSync(NW_LS_KEY, data);
+  try{
+    const data = { version: 2, snapshots: nwSnapshots, changeLog: nwChangeLog };
+    localStorage.setItem(NW_LS_KEY, JSON.stringify(data));
+  }catch(e){}
 }
 const nwData = loadNW();
 nwSnapshots = nwData.snapshots || [];
 nwChangeLog = nwData.changeLog || [];
+function loadIns(){
+  try{
+    const data = JSON.parse(localStorage.getItem(IS_LS_KEY)||"{}");
+    if(Array.isArray(data)){
+      return { snapshots: data, changeLog: [] };
+    }
+    return data;
+  }catch(e){ return { snapshots: [], changeLog: [] }; }
+}
+function ensureInsIds(){ insSnapshots.forEach(e=>{ if(!e.id) e.id=genId(); }); }
+function persistIns(){
+  ensureInsIds();
+  try{
+    const data = { version: 2, snapshots: insSnapshots, changeLog: insChangeLog };
+    localStorage.setItem(IS_LS_KEY, JSON.stringify(data));
+  }catch(e){}
+}
+const insData = loadIns();
+insSnapshots = insData.snapshots || [];
+insChangeLog = insData.changeLog || [];
 nwEntries = []; // deprecated, kept for compatibility
 function todayStr(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 // despite the historical name, this formats in whatever the user's PRIMARY
@@ -944,42 +1027,20 @@ function closeCatPicker(){
 // forms, which open as a full-screen view on top of Dashboard and return to
 // it on Save, Update, or Cancel =====
 function openAddPicker(){
-  console.log("[DEBUG] openAddPicker() - showing overlay");
   document.getElementById("addPickerOverlay").style.display="flex";
 }
 function closeAddPicker(){
-  console.log("[DEBUG] closeAddPicker() - hiding overlay");
   document.getElementById("addPickerOverlay").style.display="none";
 }
 function chooseAdd(kind){
-  console.log("[DEBUG] chooseAdd() called with kind:", kind);
   closeAddPicker();
   showMainTab(kind);
-  console.log("[DEBUG] chooseAdd() completed");
 }
 function closeAddForm(){
-  console.log("[DEBUG] closeAddForm() called");
-  console.log("[DEBUG] netWorthView display:", document.getElementById("netWorthView").style.display);
-  try {
-    if(document.getElementById("netWorthView").style.display !== "none") {
-      console.log("[DEBUG] Calling cancelNWEdit()");
-      cancelNWEdit();
-    } else {
-      console.log("[DEBUG] Calling cancelEdit()");
-      cancelEdit();
-    }
-  } catch(e) {
-    console.error("[DEBUG] Error in cancelEdit/cancelNWEdit:", e);
-  }
-  console.log("[DEBUG] Calling showMainTab('dashboard')");
-  try {
-    showMainTab("dashboard");
-    console.log("[DEBUG] showMainTab completed");
-    console.log("[DEBUG] dashboardView display:", document.getElementById("dashboardView").style.display);
-    console.log("[DEBUG] entriesView display:", document.getElementById("entriesView").style.display);
-  } catch(e) {
-    console.error("[DEBUG] Error in showMainTab:", e);
-  }
+  if(document.getElementById("netWorthView").style.display !== "none") cancelNWEdit();
+  else if(document.getElementById("insuranceView").style.display !== "none") cancelInsEdit();
+  else cancelEdit();
+  showMainTab("dashboard");
 }
 
 const payRow=document.getElementById("payRow");
@@ -1036,6 +1097,44 @@ function closeNWCatPicker(){
   document.getElementById("nwCatPickerOverlay").style.display="none";
 }
 
+const insCatFieldIcon=document.getElementById("insCatFieldIcon");
+const insCatFieldLabel=document.getElementById("insCatFieldLabel");
+function insSelectCategory(cat){
+  insSel.cat=cat;
+  insCatFieldIcon.textContent = INS_CAT_ICONS[cat] || "";
+  insCatFieldLabel.textContent = cat;
+  insCatFieldLabel.classList.remove("cat-field-placeholder");
+  const isLife = cat === "Life Insurance";
+  document.getElementById("insBeneficiaryLabel").style.display = isLife ? "" : "none";
+  document.getElementById("insBeneficiary").style.display = isLife ? "" : "none";
+  closeInsCatPicker();
+}
+function renderInsCatGrid(){
+  insSel.cat = null;
+  insCatFieldIcon.textContent = "";
+  insCatFieldLabel.textContent = "Select type";
+  insCatFieldLabel.classList.add("cat-field-placeholder");
+  document.getElementById("insBeneficiaryLabel").style.display = "none";
+  document.getElementById("insBeneficiary").style.display = "none";
+}
+function renderInsCatPickerList(){
+  const list = document.getElementById("insCatPickerList");
+  list.innerHTML = INS_CATS.map(c=>`
+    <div class="cat-picker-row" data-cat="${c}">
+      <span class="cpr-icon">${INS_CAT_ICONS[c]||""}</span>
+      <span class="cpr-label">${c}</span>
+      <span class="cpr-check">${insSel.cat===c ? "✓" : ""}</span>
+    </div>`).join("");
+  [...list.children].forEach(row=>row.onclick=()=>insSelectCategory(row.dataset.cat));
+}
+function openInsCatPicker(){
+  renderInsCatPickerList();
+  document.getElementById("insCatPickerOverlay").style.display="flex";
+}
+function closeInsCatPicker(){
+  document.getElementById("insCatPickerOverlay").style.display="none";
+}
+
 const nwCurrencyRow=document.getElementById("nwCurrencyRow");
 function nwSelectCurrency(cur){
   nwSel.currency=cur;
@@ -1059,6 +1158,23 @@ function renderNWCurrencyRow(){
   nwCurrencyRow.style.display = single ? "none" : "";
 }
 
+const insCurrencyRow=document.getElementById("insCurrencyRow");
+function insSelectCurrency(cur){
+  insSel.currency=cur;
+  [...insCurrencyRow.children].forEach(x=>x.classList.toggle("sel",x.dataset.cur===cur));
+  document.getElementById("insAmountWrap").style.setProperty("--ins-sym", JSON.stringify(curSym(cur)));
+}
+function renderInsCurrencyRow(){
+  insCurrencyRow.innerHTML="";
+  NW_CURRENCIES.forEach(cur=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=`${curSym(cur)} ${cur}`; b.dataset.cur=cur;
+    b.onclick=()=>insSelectCurrency(cur); insCurrencyRow.appendChild(b); });
+  insSelectCurrency(NW_CURRENCIES[0]);
+  // a single-currency user has nothing to choose here — hide the field
+  const single = NW_CURRENCIES.length < 2;
+  document.getElementById("insRegionLabel").style.display = single ? "none" : "";
+  insCurrencyRow.style.display = single ? "none" : "";
+}
+
 // which currency the Net Worth DASHBOARD totals are shown in — independent
 // of what currency any individual account was actually logged in
 function renderNWDisplayCurrencyRow(){
@@ -1078,7 +1194,12 @@ function setFormType(type){
   formType = type;
   document.getElementById("entriesView").style.display = "block";
   document.getElementById("netWorthView").style.display = "none";
+  document.getElementById("insuranceView").style.display = "none";
   document.getElementById("dashboardView").style.display = "none";
+  document.getElementById("tabExpenseBtn").classList.toggle("sel", type==="expense");
+  document.getElementById("tabIncomeBtn").classList.toggle("sel", type==="income");
+  document.getElementById("tabNetWorthBtn").classList.remove("sel");
+  document.getElementById("tabDashboardBtn").classList.remove("sel");
   document.getElementById("storeLabel").textContent = type==="expense" ? "Store / Merchant" : "Source";
   document.getElementById("fStore").placeholder = type==="expense" ? "e.g. Costco" : "e.g. Salary";
   document.getElementById("paymentSection").style.display = type==="expense" ? "block" : "none";
@@ -1115,8 +1236,8 @@ document.getElementById("fStore").addEventListener("keydown",(e)=>{ if(e.key==="
 
 // recent-store quick picks, scoped to the current expense/income mode
 const HIDDEN_CHIPS_KEY = nsKey("iexpense_hidden_chips_v1");
-function loadHiddenChips(){ const val = StorageService.getSync(HIDDEN_CHIPS_KEY); return Array.isArray(val) ? val : []; }
-function saveHiddenChips(list){ StorageService.setSync(HIDDEN_CHIPS_KEY, list); }
+function loadHiddenChips(){ try{ return JSON.parse(localStorage.getItem(HIDDEN_CHIPS_KEY)||"[]"); }catch(e){ return []; } }
+function saveHiddenChips(list){ try{ localStorage.setItem(HIDDEN_CHIPS_KEY, JSON.stringify(list)); }catch(e){} }
 function hideChip(storeName){
   const hidden = loadHiddenChips();
   if(!hidden.includes(storeName)) hidden.push(storeName);
@@ -1203,6 +1324,15 @@ async function saveEntry(){
   if(!sel.cat){ toast("Pick a category","var(--red)"); return; }
   if(!amt || amt<=0){ toast("Enter an amount","var(--red)"); return; }
   if(/\.\d{3,}/.test(rawAmt)){ toast("Amounts can have at most 2 decimal places","var(--red)"); return; }
+
+  // Validate category matches type (income categories should only be used with income, expense with expense)
+  const validCategories = formType==="income" ? INC_CATS : EXP_CATS;
+  if(!validCategories.includes(sel.cat)){
+    const expected = formType==="income" ? "income" : "expense";
+    toast('Category "' + sel.cat + '" doesn\'t match ' + expected + ' type — pick a different category',"var(--red)");
+    return;
+  }
+
   const candidate = { date:document.getElementById("fDate").value||todayStr(), type:formType, category:sel.cat, amount:Math.round(amt*100)/100,
     store:document.getElementById("fStore").value.trim(), payment:formType==="expense" ? (sel.pay||"") : "", note:document.getElementById("fNote").value.trim() };
   if(candidate.date > todayStr()){ toast("Date can't be in the future","var(--red)"); return; }
@@ -1295,11 +1425,51 @@ function cancelEdit(){
   resetForm();
 }
 
+// ===== Dev preview: copy production data into the dev copy =====
+// Same site origin, so the dev page can read production's (unsuffixed)
+// storage keys. Production keys are only read; writes go to "_dev" keys.
+// Cloud settings/tokens are deliberately NOT copied, so dev can never end up
+// writing to the production cloud repo.
+const PROD_DATA_KEYS = ["iexpense_entries_v1","iexpense_networth_v1","iexpense_insurance_v1",
+  "iexpense_prefs_v1","iexpense_fx_rate","iexpense_fx_manual","iexpense_hidden_chips_v1",
+  "iexpense_nw_hidden_items_v1","iexpense_deleted_ids_v1","iexpense_nw_deleted_ids_v1","iexpense_ins_deleted_ids_v1"];
+async function copyProdDataToDev(){
+  if(!IS_DEV_PREVIEW) return; // never runs on the production site
+  if(!confirm("Copy production's data over dev's data? Production is not changed.")) return;
+  let copied = 0;
+  PROD_DATA_KEYS.forEach(k=>{
+    const v = localStorage.getItem(k);
+    if(v!==null){ localStorage.setItem(k+"_dev", v); copied++; }
+  });
+  // production data may live only in its cloud repo on this browser: read it
+  // (GET only) with production's saved cloud settings, if they're here
+  let cloudNote = "";
+  try{
+    const prodCfg = JSON.parse(localStorage.getItem("iexpense_cloud_cfg")||"null");
+    const prodToken = localStorage.getItem("iexpense_cloud_cfg_token");
+    if(prodCfg && prodCfg.owner && prodCfg.repo && prodToken){
+      const cfg = { ...prodCfg, token: prodToken };
+      const files = [["entries.json","iexpense_entries_v1"],["networth.json","iexpense_networth_v1"],["insurance.json","iexpense_insurance_v1"]];
+      for(const [file,key] of files){
+        const { entries: remote, sha } = await cloudFetchRemote(cfg, file);
+        if(sha){ localStorage.setItem(key+"_dev", JSON.stringify(remote)); copied++; }
+      }
+      cloudNote = " (including production's cloud copy)";
+    }
+  }catch(e){ cloudNote = " (couldn't read production's cloud copy: "+e.message+")"; }
+  if(!copied){
+    toast("No production data found in this browser. Open the production app here first, then try again.","var(--red)");
+    return;
+  }
+  toast("Copied production data into dev"+cloudNote);
+  setTimeout(()=>location.reload(), 1200);
+}
+
 function backupData(){
-  // net worth history now travels with expense/income entries in the same
-  // backup file — earlier versions silently dropped nwEntries here, so a
-  // restore-round would lose every net worth snapshot the user ever logged
-  const payload = { backup:new Date().toISOString(), source:"iExpense", entries:entries, nwSnapshots:nwSnapshots, nwChangeLog:nwChangeLog };
+  // net worth AND insurance history travel with expense/income entries in
+  // the same backup file — earlier versions silently dropped nwEntries
+  // here, so a restore-round would lose every snapshot the user ever logged
+  const payload = { backup:new Date().toISOString(), source:"iFinWell", entries:entries, nwSnapshots:nwSnapshots, nwChangeLog:nwChangeLog, insSnapshots:insSnapshots, insChangeLog:insChangeLog };
   const blob = new Blob([JSON.stringify(payload,null,1)],{type:"application/json"});
   const fname = `iexpense_backup_${payload.backup.replace(/[-:T]/g,"").slice(0,14)}.json`;
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=fname; a.click();
@@ -1310,7 +1480,7 @@ function exportNWHistory(){
   const timestamp = new Date().toISOString();
   const backup = {
     backup: `net-worth-${timestamp.split('T')[0]}`,
-    source: "iExpense (Net Worth)",
+    source: "iFinWell (Net Worth)",
     exportedAt: timestamp,
     snapshots: nwSnapshots,
     changeLog: nwChangeLog
@@ -1340,6 +1510,8 @@ async function restoreData(evt){
     // handle both old array format and new snapshot+changelog format
     let incomingNW = [];
     let incomingNWLog = [];
+    let incomingIns = [];
+    let incomingInsLog = [];
     if(!Array.isArray(data)){
       if(data.nwSnapshots && data.nwChangeLog){
         incomingNW = data.nwSnapshots || [];
@@ -1347,8 +1519,10 @@ async function restoreData(evt){
       } else {
         incomingNW = data.nwEntries || [];
       }
+      incomingIns = data.insSnapshots || [];
+      incomingInsLog = data.insChangeLog || [];
     }
-    if((!Array.isArray(incoming) || !incoming.length) && (!Array.isArray(incomingNW) || !incomingNW.length)){
+    if((!Array.isArray(incoming) || !incoming.length) && (!Array.isArray(incomingNW) || !incomingNW.length) && (!Array.isArray(incomingIns) || !incomingIns.length)){
       toast("No entries found in file","var(--amber)"); return;
     }
     // SECURITY: Validate entry format before importing
@@ -1425,20 +1599,54 @@ async function restoreData(evt){
       });
     }
 
-    persist(); persistNW(); renderList(); renderNWItemList();
+    // insurance history: same dedupe-strictly-by-id rule as net worth above
+    function validateRestoreInsEntry(e) {
+      if(!e || typeof e !== 'object') return false;
+      if(!e.date || !/^\d{4}-\d{2}-\d{2}$/.test(e.date)) return false;
+      if(!e.category || typeof e.category !== 'string') return false;
+      if(!e.provider || typeof e.provider !== 'string' || e.provider.length > 100) return false;
+      if(e.value == null || isNaN(Number(e.value)) || Number(e.value) < 0) return false;
+      if(!e.id) return false;
+      return true;
+    }
+    const existingInsIds = new Set(insSnapshots.map(e=>e.id).filter(Boolean));
+    let addedIns = 0;
+    let rejectedIns = 0;
+    incomingIns.forEach(e=>{
+      if(!validateRestoreInsEntry(e)) { rejectedIns++; return; }
+      if(existingInsIds.has(e.id)) return;
+      const snapshot = { date:e.date, category:e.category, provider:e.provider, country:e.country||"", value:Number(e.value), currency:e.currency||"USD", premium:e.premium==null?null:Number(e.premium), policyNumber:e.policyNumber||null, coveredMembers:e.coveredMembers||null, beneficiary:e.beneficiary||null, startDate:e.startDate||e.date, renewalDate:e.renewalDate||null, notes:e.notes||null, id:e.id, createdAt:new Date().toISOString(), source:"legacy" };
+      insSnapshots.push(snapshot);
+      insChangeLog.push({ id:genId(), snapshotId:e.id, timestamp:snapshot.createdAt, operation:"create", before:{}, after:snapshot, reason:null });
+      existingInsIds.add(e.id);
+      addedIns++;
+    });
+    if(incomingInsLog && incomingInsLog.length){
+      const existingInsLogIds = new Set(insChangeLog.map(log=>log.id));
+      incomingInsLog.forEach(log=>{
+        if(!existingInsLogIds.has(log.id)){
+          insChangeLog.push(log);
+          existingInsLogIds.add(log.id);
+        }
+      });
+    }
+
+    persist(); persistNW(); persistIns(); renderList(); renderNWItemList(); renderInsItemList();
 
     // push the restored rows up to Cloud Sync right away instead of waiting
     // for the next save/delete — otherwise the two sides can stay silently
     // out of sync for however long the user goes before their next action
-    if(cloudCfg && (added || addedNW)) cloudSyncNow();
+    if(cloudCfg && (added || addedNW || addedIns)) cloudSyncNow();
 
     const parts = [];
     if(added) parts.push(`${added} entr${added===1?"y":"ies"}`);
     if(addedNW) parts.push(`${addedNW} net worth snapshot${addedNW===1?"":"s"}`);
+    if(addedIns) parts.push(`${addedIns} insurance record${addedIns===1?"":"s"}`);
     const msg = parts.length ? `Restored ${parts.join(" + ")}` : "Nothing new to restore";
     const warnings = [];
     if(rejected) warnings.push(`${rejected} malformed entry/entries skipped`);
     if(rejectedNW) warnings.push(`${rejectedNW} invalid net worth snapshot(s) skipped`);
+    if(rejectedIns) warnings.push(`${rejectedIns} invalid insurance record(s) skipped`);
     if(warnings.length) {
       toast(`${msg}. ${warnings.join("; ")}`, "var(--amber)");
     } else {
@@ -1466,7 +1674,7 @@ async function exportExcel(){
   const wb = XLSX.utils.book_new();
   // "Charts" is appended first so it's the sheet Excel opens to by default —
   // the same idea as the app's own Dashboard-as-home redesign.
-  const chartsSheet = XLSX.utils.aoa_to_sheet([["iExpense Report — Charts"]]);
+  const chartsSheet = XLSX.utils.aoa_to_sheet([["iFinWell Report — Charts"]]);
   XLSX.utils.book_append_sheet(wb, chartsSheet, "Charts");
 
   const summarySheet = XLSX.utils.aoa_to_sheet([
@@ -1500,6 +1708,15 @@ async function exportExcel(){
     Store:e.store||"", Payment:e.payment||"", Note:e.note||""
   })));
   XLSX.utils.book_append_sheet(wb, entriesSheet, "All Entries");
+
+  if(insSnapshots.length){
+    const insCurrentSheet = XLSX.utils.json_to_sheet(insLatestPerItem().map(({e})=>({
+      Provider:e.provider, Type:e.category, Country:e.country||"", Coverage:Number(e.value||0), Currency:e.currency||"USD",
+      Premium: e.premium!=null ? Number(e.premium) : "", "Policy Number": e.policyNumber||"", "Covered Members": e.coveredMembers||"",
+      Beneficiary: e.beneficiary||"", "Start Date": e.startDate||e.date, "Renewal Date": e.renewalDate||"", Notes: e.notes||""
+    })));
+    XLSX.utils.book_append_sheet(wb, insCurrentSheet, "Insurance");
+  }
 
   if(nwSnapshots.length){
     const nwCurrentSheet = XLSX.utils.json_to_sheet(nwLatestPerItem().map(({e})=>({
@@ -1625,8 +1842,8 @@ function downloadBlob(blob, filename){
 // scoped to whichever category is currently selected (pick "Cash & Bank"
 // first and only your bank items show up when you start typing) =====
 const NW_HIDDEN_ITEMS_KEY = nsKey("iexpense_nw_hidden_items_v1");
-function loadNWHiddenItems(){ const val = StorageService.getSync(NW_HIDDEN_ITEMS_KEY); return Array.isArray(val) ? val : []; }
-function saveNWHiddenItems(list){ StorageService.setSync(NW_HIDDEN_ITEMS_KEY, list); }
+function loadNWHiddenItems(){ try{ return JSON.parse(localStorage.getItem(NW_HIDDEN_ITEMS_KEY)||"[]"); }catch(e){ return []; } }
+function saveNWHiddenItems(list){ try{ localStorage.setItem(NW_HIDDEN_ITEMS_KEY, JSON.stringify(list)); }catch(e){} }
 function nwHideItem(item){
   const hidden = loadNWHiddenItems();
   if(!hidden.includes(item)) hidden.push(item);
@@ -1986,6 +2203,280 @@ function undoNWSnapshot(snapshotId){
   refreshAllNWDisplays();
 }
 
+// ===== Insurance / Risk Coverage: same append-only snapshot + change log
+// pattern as Net Worth above — "provider" plays the role Net Worth's "item"
+// plays (the free-text identity a policy is tracked under), "value" holds
+// the coverage amount. =====
+function insLatestPerItem(){
+  const map = {};
+  insSnapshots.filter(s => s.source !== "undo").forEach((e,idx)=>{
+    if(!map[e.provider] || e.date >= map[e.provider].e.date) map[e.provider] = { e, idx };
+  });
+  return Object.values(map);
+}
+
+function renderInsItemList(){
+  const box=document.getElementById("insItemList"); box.innerHTML="";
+  const items = insLatestPerItem().sort((a,b)=> b.e.value - a.e.value);
+  if(!items.length){ box.innerHTML='<div class="dash-empty">🛡️ No insurance policies yet — add your first one above</div>'; return; }
+  items.forEach(({e})=>{
+    const d=document.createElement("div"); d.className="entry";
+    const left=document.createElement("div");
+    const renewalNote = e.renewalDate ? " · renews "+e.renewalDate : "";
+    left.innerHTML = `<div class="cat">${insCatIcon(e.category)}${e.provider}</div><div class="sub">${e.category}${e.country?" · "+e.country:""} · updated ${e.date}${renewalNote}</div>`;
+    const right=document.createElement("div"); right.style.display="flex"; right.style.alignItems="center";
+    const amt=document.createElement("span"); amt.className="amt"; amt.textContent=nwFmtAmount(Number(e.value), e.currency||"USD");
+    const del=document.createElement("button"); del.className="del"; del.textContent="✕";
+    del.onclick=(evt)=>delInsItem(e.provider,evt);
+    right.appendChild(amt); right.appendChild(del);
+    d.appendChild(left); d.appendChild(right);
+    d.onclick=()=>insStartUpdate(e.provider);
+    box.appendChild(d);
+  });
+}
+
+function resetInsForm(){
+  insUpdatingSnapshot=null;
+  document.getElementById("insProvider").value="";
+  document.getElementById("insCountry").value="";
+  document.getElementById("insValue").value="";
+  document.getElementById("insPremium").value="";
+  document.getElementById("insPolicyNumber").value="";
+  document.getElementById("insCoveredMembers").value="";
+  document.getElementById("insBeneficiary").value="";
+  document.getElementById("insNotes").value="";
+  document.getElementById("insStartDate").value=todayStr(); document.getElementById("insStartDate").max=todayStr();
+  document.getElementById("insRenewalDate").value="";
+  document.getElementById("insCancelEditBtn").style.display="none";
+  document.getElementById("insComparisonCardWrap").style.display="none";
+  renderInsCatGrid();
+  insSelectCurrency(NW_CURRENCIES[0]);
+  document.getElementById("insSaveBtn").textContent="Save Insurance Policy";
+  renderInsItemList();
+}
+
+function cancelInsEdit(){
+  resetInsForm();
+}
+
+function updateInsChangeWarning(){
+  const oldValue = insUpdatingSnapshot ? insUpdatingSnapshot.value : null;
+  const newValueStr = document.getElementById("insValue").value.trim();
+  const newValue = newValueStr ? parseFloat(newValueStr) : null;
+  const warningDiv = document.getElementById("insChangeWarning");
+
+  if(!oldValue || !newValue || newValue === oldValue){
+    warningDiv.innerHTML = "";
+    document.getElementById("insComparisonCard").classList.remove("alert-warning", "alert-danger");
+    return;
+  }
+
+  const pctChange = Math.abs((newValue - oldValue) / oldValue * 100);
+
+  if(pctChange >= 100){
+    document.getElementById("insComparisonCard").classList.add("alert-danger");
+    document.getElementById("insComparisonCard").classList.remove("alert-warning");
+    warningDiv.innerHTML = `<div class="alert-text">🚨 Huge change (${pctChange.toFixed(0)}%) — review the value?</div>`;
+  } else if(pctChange >= 50){
+    document.getElementById("insComparisonCard").classList.add("alert-warning");
+    document.getElementById("insComparisonCard").classList.remove("alert-danger");
+    warningDiv.innerHTML = `<div class="alert-text">⚠️ Large change (${pctChange.toFixed(0)}%) — confirm the value?</div>`;
+  } else {
+    warningDiv.innerHTML = "";
+    document.getElementById("insComparisonCard").classList.remove("alert-warning", "alert-danger");
+  }
+}
+
+function insLatestForItem(providerName){
+  const matches = insSnapshots.filter(e=>e.provider===providerName && e.source !== "undo");
+  if(!matches.length) return null;
+  return matches.reduce((a,b)=> (b.date>a.date ? b : a));
+}
+
+function insStartUpdate(providerName){
+  const latest = insLatestForItem(providerName);
+  if(!latest) return;
+  insUpdatingSnapshot = latest;
+  document.getElementById("insProvider").value = providerName;
+  document.getElementById("insCountry").value = latest.country || "";
+  document.getElementById("insValue").value = latest.value;
+  document.getElementById("insPremium").value = latest.premium!=null ? latest.premium : "";
+  document.getElementById("insPolicyNumber").value = latest.policyNumber || "";
+  document.getElementById("insCoveredMembers").value = latest.coveredMembers || "";
+  document.getElementById("insBeneficiary").value = latest.beneficiary || "";
+  document.getElementById("insNotes").value = latest.notes || "";
+  insSelectCategory(latest.category);
+  insSelectCurrency(latest.currency || PRIMARY_CUR);
+  document.getElementById("insStartDate").value = latest.startDate || todayStr(); document.getElementById("insStartDate").max = todayStr();
+  document.getElementById("insRenewalDate").value = latest.renewalDate || "";
+  document.getElementById("insCancelEditBtn").style.display = "block";
+  document.getElementById("insSaveBtn").textContent = "Update Entry";
+  document.getElementById("insComparisonCardWrap").style.display = "block";
+  document.getElementById("insComparisonLastValue").textContent = `${nwFmtAmount(latest.value, latest.currency || PRIMARY_CUR)} (updated ${latest.date})`;
+  updateInsChangeWarning();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+async function saveIns(){
+  const rawVal = document.getElementById("insValue").value;
+  const val=parseFloat(rawVal);
+  const provider=document.getElementById("insProvider").value.trim();
+  if(!insSel.cat){ toast("Pick a type","var(--red)"); return; }
+  if(!provider){ toast("Enter a provider","var(--red)"); return; }
+  if(provider.length > 100){ toast("Provider name must be less than 100 characters","var(--red)"); return; }
+  if(!val || val<=0){ toast("Enter a coverage amount","var(--red)"); return; }
+  if(/\.\d{3,}/.test(rawVal)){ toast("Amounts can have at most 2 decimal places","var(--red)"); return; }
+  const country = document.getElementById("insCountry").value.trim();
+  if(!country){ toast("Enter a country","var(--red)"); return; }
+  const premiumRaw = document.getElementById("insPremium").value.trim();
+  let premium = null;
+  if(premiumRaw){
+    premium = parseFloat(premiumRaw);
+    if(isNaN(premium) || premium < 0){ toast("Premium must be a positive number","var(--red)"); return; }
+  }
+  const startDate = document.getElementById("insStartDate").value || todayStr();
+  if(startDate > todayStr()){ toast("Start date can't be in the future","var(--red)"); return; }
+  const renewalDate = document.getElementById("insRenewalDate").value || null;
+
+  const newSnapshot = {
+    id: genId(),
+    date: startDate,
+    category: insSel.cat,
+    provider,
+    country,
+    value: Math.round(val*100)/100,
+    currency: insSel.currency||PRIMARY_CUR,
+    premium,
+    policyNumber: document.getElementById("insPolicyNumber").value.trim()||null,
+    coveredMembers: document.getElementById("insCoveredMembers").value.trim()||null,
+    beneficiary: document.getElementById("insBeneficiary").value.trim()||null,
+    startDate,
+    renewalDate,
+    notes: document.getElementById("insNotes").value.trim()||null,
+    createdAt: new Date().toISOString(),
+    source: insUpdatingSnapshot ? "correction" : "initial",
+    correctionOf: insUpdatingSnapshot ? insUpdatingSnapshot.id : null
+  };
+
+  const isUpdate = insUpdatingSnapshot !== null;
+  if(isUpdate && !confirm(`Log this update for "${newSnapshot.provider}"? Your previous entries stay untouched.`)) return;
+
+  insSnapshots.push(newSnapshot);
+
+  const logEntry = {
+    id: genId(),
+    snapshotId: newSnapshot.id,
+    timestamp: newSnapshot.createdAt,
+    operation: isUpdate ? "update" : "create",
+    before: isUpdate ? insUpdatingSnapshot : {},
+    after: newSnapshot,
+    reason: null
+  };
+  insChangeLog.push(logEntry);
+
+  persistIns();
+  toast(isUpdate ? "Updated ✓" : "Saved ✓", "var(--green)");
+  resetInsForm();
+  insUpdatingSnapshot = null;
+  showMainTab("dashboard");
+
+  if(cloudCfg){
+    try{
+      await insCloudSyncMutation(remote=>insSnapshots);
+      setCloudStatus(true, `✓ Insurance: ${insSnapshots.length} records synced to GitHub`);
+    }catch(err){
+      setCloudStatus(false, "✗ Did not sync to GitHub — data saved locally. Will retry automatically.");
+      toast("✗ Sync failed — data saved locally", "var(--red)");
+    }
+  }
+}
+
+async function delInsItem(providerName, evt){
+  if(evt) evt.stopPropagation();
+  if(!confirm(`Delete all history for "${providerName}"? This can't be undone.`)) return;
+  const idsToDelete = insSnapshots.filter(e=>e.provider===providerName).map(e=>e.id);
+  insSnapshots = insSnapshots.filter(e=>e.provider!==providerName);
+  insChangeLog = insChangeLog.filter(log=>!idsToDelete.includes(log.snapshotId));
+  persistIns();
+  addDeletedIds(INS_DELETED_IDS_KEY, idsToDelete);
+  renderInsItemList();
+
+  if(cloudCfg){
+    try{
+      await insCloudSyncMutation(remote=>insSnapshots);
+      setCloudStatus(true, `✓ Insurance: deleted "${providerName}" — synced to GitHub`);
+    }catch(err){
+      setCloudStatus(false, "✗ Deleted locally — did not sync to GitHub. Will retry automatically.");
+      toast("✗ Sync failed — deletion saved locally", "var(--red)");
+    }
+  }
+}
+
+function showInsHistory(providerName){
+  insViewingItemHistory = providerName;
+  const historyList = document.getElementById("insHistoryList");
+  document.getElementById("insHistoryTitle").textContent = `History for ${providerName}`;
+  const itemSnapshots = insSnapshots.filter(s => s.provider === providerName && s.source !== "undo").slice().reverse();
+
+  historyList.innerHTML = itemSnapshots.map((snap, idx) => {
+    const undoBtn = idx === 0 ? `<button type="button" class="history-undo-btn" onclick="undoInsSnapshot('${snap.id}')">Undo</button>` : "";
+    return `
+      <div class="nw-history-entry">
+        <div style="flex:1">
+          <div>${snap.date}</div>
+          <div>${nwFmtAmount(snap.value, snap.currency || "USD")}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px">${idx === 0 ? "Current" : "Previous"}</div>
+          ${undoBtn}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  document.getElementById("insHistoryOverlay").style.display = "flex";
+}
+
+function closeInsHistory(){
+  document.getElementById("insHistoryOverlay").style.display = "none";
+  insViewingItemHistory = null;
+}
+
+function undoInsSnapshot(snapshotId){
+  const snap = insSnapshots.find(s => s.id === snapshotId);
+  if(!snap) return;
+
+  if(!confirm(`Undo "${snap.provider}" entry from ${snap.date}?`)) return;
+
+  const undoSnapshot = { ...snap, id: genId(), createdAt: new Date().toISOString(), source: "undo", correctionOf: snapshotId };
+  insSnapshots.push(undoSnapshot);
+
+  const logEntry = {
+    id: genId(),
+    snapshotId: undoSnapshot.id,
+    timestamp: undoSnapshot.createdAt,
+    operation: "undo",
+    before: snap,
+    after: undoSnapshot,
+    reason: "User reverted change"
+  };
+  insChangeLog.push(logEntry);
+
+  if(cloudCfg){
+    insCloudSyncMutation(remote => insSnapshots).then(() => {
+      setCloudStatus(true, `✓ Insurance: undid change — synced to GitHub`);
+    }).catch(err => {
+      setCloudStatus(false, "✗ Undid locally — did not sync to GitHub. Will retry automatically.");
+      toast("✗ Sync failed — undo saved locally", "var(--red)");
+    });
+  }
+
+  persistIns();
+  toast(`✓ Undid "${snap.provider}"`, "var(--green)");
+  showInsHistory(snap.provider);
+  renderInsItemList();
+}
+
 // ===== Delete tombstones: a plain union-merge can only ADD entries, so it
 // can't tell "never existed remotely" apart from "existed remotely, then
 // got deleted here" — without this, a merge (auto-sync on load, on
@@ -1996,32 +2487,77 @@ function undoNWSnapshot(snapshotId){
 // copy, it pushes a cleanup write so the remote side converges too. =====
 const DELETED_IDS_KEY = nsKey("iexpense_deleted_ids_v1");
 const NW_DELETED_IDS_KEY = nsKey("iexpense_nw_deleted_ids_v1");
-function loadDeletedIds(key){ const val = StorageService.getSync(key); return Array.isArray(val) ? val : []; }
+const INS_DELETED_IDS_KEY = nsKey("iexpense_ins_deleted_ids_v1");
+function loadDeletedIds(key){ try{ return JSON.parse(localStorage.getItem(key)||"[]"); }catch(e){ return []; } }
 function addDeletedIds(key, ids){
   const cur = loadDeletedIds(key);
   ids.forEach(id=>{ if(!cur.includes(id)) cur.push(id); });
-  StorageService.setSync(key, cur);
+  try{ localStorage.setItem(key, JSON.stringify(cur)); }catch(e){}
 }
 
 // ===== Cloud Sync: GitHub repo (private) acts as the shared data store =====
-// The token is persisted (fine-grained PAT, scoped by the user to exactly one
-// private repo with only Contents read/write — see CLOUD_SYNC_SETUP.md) so
-// sync survives a page reload / app restart without re-entering it every
-// time. An in-memory-only token was tried and reverted: this is a PWA that
-// gets closed and reopened constantly, so every reload silently lost the
-// token, cloud sync failed 401 on every request, and the status pill got
-// stuck on "Offline or cloud unreachable" — effectively breaking sync
-// permanently until the user manually reconnected each time.
 const CLOUD_KEY = nsKey("iexpense_cloud_cfg");
-let cloudCfg = null;
+let cloudCfg = null; // Configuration with token restored from sessionStorage
+let cloudToken = null; // Legacy: kept for compatibility
 function loadCloudCfg(){
-  return StorageService.getSync(CLOUD_KEY);
+  try{
+    const stored = JSON.parse(localStorage.getItem(CLOUD_KEY)||"null");
+    if (stored && stored.token) {
+      // SECURITY: Remove token from localStorage if present (old insecure data)
+      localStorage.removeItem(CLOUD_KEY);
+      return null; // Don't load it - token shouldn't be in localStorage
+    }
+    // SECURITY: Try sessionStorage first (browser), then localStorage (PWA/mobile)
+    if (stored) {
+      let token = null;
+      if (typeof sessionStorage !== 'undefined') {
+        token = sessionStorage.getItem('iexpense_cloud_token');
+      }
+      if (!token && typeof localStorage !== 'undefined') {
+        // Fallback: get token from localStorage for PWA/mobile compatibility
+        const tokenKey = CLOUD_KEY + '_token';
+        try {
+          token = localStorage.getItem(tokenKey);
+        } catch(e) {}
+      }
+      if (token) {
+        return { ...stored, token };
+      }
+    }
+    return stored;
+  }catch(e){ return null; }
 }
 function saveCloudCfg(cfg){
-  StorageService.setSync(CLOUD_KEY, cfg);
+  // SECURITY: Save config without token to localStorage
+  const toStore = {...cfg};
+  delete toStore.token; // Remove token before config storage
+  localStorage.setItem(CLOUD_KEY, JSON.stringify(toStore));
+  // SECURITY: Store token in sessionStorage (browser) and localStorage (PWA/mobile fallback)
+  if (cfg.token) {
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.setItem('iexpense_cloud_token', cfg.token);
+    }
+    if (typeof localStorage !== 'undefined') {
+      // Also save to localStorage for PWA/mobile compatibility
+      const tokenKey = CLOUD_KEY + '_token';
+      try {
+        localStorage.setItem(tokenKey, cfg.token);
+      } catch(e) { console.warn('Could not save token to storage'); }
+    }
+  }
 }
 function clearCloudCfg(){
-  StorageService.removeSync(CLOUD_KEY);
+  localStorage.removeItem(CLOUD_KEY);
+  cloudToken = null; // Clear in-memory token too
+  if (typeof sessionStorage !== 'undefined') {
+    sessionStorage.removeItem('iexpense_cloud_token');
+  }
+  if (typeof localStorage !== 'undefined') {
+    const tokenKey = CLOUD_KEY + '_token';
+    try {
+      localStorage.removeItem(tokenKey);
+    } catch(e) {}
+  }
 }
 cloudCfg = loadCloudCfg();
 
@@ -2058,7 +2594,7 @@ async function cloudFetchRemote(cfg, filename){
 }
 
 async function cloudWriteRemote(cfg, newEntries, sha, filename){
-  const body = { message:"iExpense sync", content: utf8ToB64(JSON.stringify(newEntries,null,1)) };
+  const body = { message:"iFinWell sync", content: utf8ToB64(JSON.stringify(newEntries,null,1)) };
   if(sha) body.sha = sha;
   const res = await fetch(cloudApiUrl(cfg, filename), {
     method:"PUT",
@@ -2099,6 +2635,25 @@ async function nwCloudSyncMutation(mutateFn, attempts){
       const { entries: remote, sha } = await cloudFetchRemote(cloudCfg, "networth.json");
       const updated = mutateFn(remote);
       await cloudWriteRemote(cloudCfg, updated, sha, "networth.json");
+      return updated;
+    }catch(err){
+      lastErr = err;
+      if(!err.conflict) throw err;
+    }
+  }
+  throw lastErr;
+}
+
+// same as above but for a third, separate insurance.json file in the same connected repo
+async function insCloudSyncMutation(mutateFn, attempts){
+  attempts = attempts || 3;
+  if(!cloudCfg) return null;
+  let lastErr;
+  for(let i=0;i<attempts;i++){
+    try{
+      const { entries: remote, sha } = await cloudFetchRemote(cloudCfg, "insurance.json");
+      const updated = mutateFn(remote);
+      await cloudWriteRemote(cloudCfg, updated, sha, "insurance.json");
       return updated;
     }catch(err){
       lastErr = err;
@@ -2171,6 +2726,25 @@ async function cloudConnect(){
     renderNWItemList();
     renderNWItemSuggestions();
   }catch(err){ /* net worth cloud sync failed silently; core connect above already succeeded */ }
+  // insurance sync is best-effort too, same rule as net worth above
+  try{
+    const { entries: insRemote, sha: insSha } = await cloudFetchRemote(cloudCfg, "insurance.json");
+    const remoteSnapshots = insRemote.snapshots || insRemote || [];
+    const remoteChangeLog = insRemote.changeLog || [];
+    const mergedSnapshots = unionMerge(remoteSnapshots, insSnapshots, loadDeletedIds(INS_DELETED_IDS_KEY));
+    const existingLogIds = new Set(insChangeLog.map(log=>log.id));
+    remoteChangeLog.forEach(log=>{
+      if(!existingLogIds.has(log.id)){
+        insChangeLog.push(log);
+        existingLogIds.add(log.id);
+      }
+    });
+    const insMerged = { version: 2, snapshots: mergedSnapshots, changeLog: insChangeLog };
+    await cloudWriteRemote(cloudCfg, insMerged, insSha, "insurance.json");
+    insSnapshots = mergedSnapshots;
+    persistIns();
+    renderInsItemList();
+  }catch(err){ /* insurance cloud sync failed silently; core connect above already succeeded */ }
 }
 
 async function cloudSyncNow(){
@@ -2205,6 +2779,25 @@ async function cloudSyncNow(){
     nwSnapshots = nwMerged.snapshots;
     nwChangeLog = nwMerged.changeLog;
     persistNW(); renderNWItemList(); renderNWItemSuggestions();
+  }catch(err){ /* best-effort */ }
+  // insurance sync is best-effort too, same rule as net worth above
+  try{
+    const insMerged = await insCloudSyncMutation(remote=>{
+      const remoteSnapshots = remote.snapshots || remote || [];
+      const remoteChangeLog = remote.changeLog || [];
+      const mergedSnapshots = unionMerge(remoteSnapshots, insSnapshots, loadDeletedIds(INS_DELETED_IDS_KEY));
+      const existingLogIds = new Set(insChangeLog.map(log=>log.id));
+      remoteChangeLog.forEach(log=>{
+        if(!existingLogIds.has(log.id) && mergedSnapshots.some(s=>s.id === log.snapshotId)){
+          insChangeLog.push(log);
+          existingLogIds.add(log.id);
+        }
+      });
+      return { version: 2, snapshots: mergedSnapshots, changeLog: insChangeLog };
+    });
+    insSnapshots = insMerged.snapshots;
+    insChangeLog = insMerged.changeLog;
+    persistIns(); renderInsItemList();
   }catch(err){ /* best-effort */ }
 }
 
@@ -2254,16 +2847,48 @@ async function cloudPullOnLoad(){
     nwSnapshots = nwMerged;
     persistNW(); renderNWItemList(); renderNWItemSuggestions();
   }catch(err){ /* best-effort */ }
+  // insurance pull is best-effort too, same rule: never override the status set above
+  try{
+    const { entries: insRemote } = await cloudFetchRemote(cloudCfg, "insurance.json");
+    const insDeletedIds = loadDeletedIds(INS_DELETED_IDS_KEY);
+    const remoteSnapshots = insRemote.snapshots || insRemote || [];
+    const remoteChangeLog = insRemote.changeLog || [];
+    const insMerged = unionMerge(remoteSnapshots, insSnapshots, insDeletedIds);
+    if(insDeletedIds.length && remoteSnapshots.some(e=>insDeletedIds.includes(e.id))) needsPushBack = true;
+    const existingLogIds = new Set(insChangeLog.map(log=>log.id));
+    remoteChangeLog.forEach(log=>{
+      if(!existingLogIds.has(log.id) && insMerged.some(s=>s.id === log.snapshotId)){
+        insChangeLog.push(log);
+        existingLogIds.add(log.id);
+      }
+    });
+    insSnapshots = insMerged;
+    persistIns(); renderInsItemList();
+  }catch(err){ /* best-effort */ }
   if(needsPushBack) cloudSyncNow();
 }
 
 function showNetWorth(){
   document.getElementById("entriesView").style.display = "none";
   document.getElementById("dashboardView").style.display = "none";
+  document.getElementById("insuranceView").style.display = "none";
   document.getElementById("netWorthView").style.display = "block";
+  document.getElementById("tabExpenseBtn").classList.remove("sel");
+  document.getElementById("tabIncomeBtn").classList.remove("sel");
+  document.getElementById("tabNetWorthBtn").classList.add("sel");
+  document.getElementById("tabDashboardBtn").classList.remove("sel");
   document.getElementById("fabAddBtn").style.display = "none";
   renderNWItemList();
   hideNWItemSuggestions();
+}
+
+function showInsurance(){
+  document.getElementById("entriesView").style.display = "none";
+  document.getElementById("dashboardView").style.display = "none";
+  document.getElementById("netWorthView").style.display = "none";
+  document.getElementById("insuranceView").style.display = "block";
+  document.getElementById("fabAddBtn").style.display = "none";
+  renderInsItemList();
 }
 
 // ===== Dashboard: all data computed entirely client-side from synced entries.
@@ -2273,13 +2898,21 @@ function showMainTab(tab){
   if(tab==="dashboard"){
     document.getElementById("entriesView").style.display = "none";
     document.getElementById("netWorthView").style.display = "none";
+    document.getElementById("insuranceView").style.display = "none";
     document.getElementById("dashboardView").style.display = "block";
     document.getElementById("settingsView").style.display = "none";
+    document.getElementById("tabExpenseBtn").classList.remove("sel");
+    document.getElementById("tabIncomeBtn").classList.remove("sel");
+    document.getElementById("tabNetWorthBtn").classList.remove("sel");
+    document.getElementById("tabDashboardBtn").classList.add("sel");
     document.getElementById("fabAddBtn").style.display = "flex";
     renderDashboard();
   } else if(tab==="networth"){
     document.getElementById("settingsView").style.display = "none";
     showNetWorth();
+  } else if(tab==="insurance"){
+    document.getElementById("settingsView").style.display = "none";
+    showInsurance();
   } else if(tab==="settings"){
     // Settings is a first-class view now, not a modal — hide every other
     // view, hide the floating "+" (nothing to add on the settings screen),
@@ -2287,8 +2920,13 @@ function showMainTab(tab){
     // what's currently active.
     document.getElementById("entriesView").style.display = "none";
     document.getElementById("netWorthView").style.display = "none";
+    document.getElementById("insuranceView").style.display = "none";
     document.getElementById("dashboardView").style.display = "none";
     document.getElementById("settingsView").style.display = "block";
+    document.getElementById("tabExpenseBtn").classList.remove("sel");
+    document.getElementById("tabIncomeBtn").classList.remove("sel");
+    document.getElementById("tabNetWorthBtn").classList.remove("sel");
+    document.getElementById("tabDashboardBtn").classList.remove("sel");
     document.getElementById("fabAddBtn").style.display = "none";
     renderSettings();
     // Land the user at the top of the Settings screen so the back chevron
@@ -2324,6 +2962,8 @@ function renderSettings(){
     if(IS_DEV_PREVIEW){ env.textContent = "Dev preview"; env.classList.add("dev"); }
     else { env.textContent = "Production"; env.classList.remove("dev"); }
   }
+  const devCopy = document.getElementById("devCopySection");
+  if(devCopy) devCopy.style.display = IS_DEV_PREVIEW ? "" : "none";
   // Restore theme selection state on the Settings buttons. setTheme() only
   // touches these buttons if they're already in the DOM — on first load
   // they don't exist yet, so this is where the correct ".sel" gets stamped
@@ -2431,11 +3071,14 @@ function showDashTab(tab){
   document.getElementById("dashOverviewView").style.display = tab==="overview" ? "" : "none";
   document.getElementById("dashMonthlyView").style.display = tab==="monthly" ? "" : "none";
   document.getElementById("dashNetWorthView").style.display = tab==="networth" ? "block" : "none";
+  document.getElementById("dashCoverageView").style.display = tab==="coverage" ? "" : "none";
   document.getElementById("dashOverviewBtn").classList.toggle("sel", tab==="overview");
   document.getElementById("dashMonthlyBtn").classList.toggle("sel", tab==="monthly");
   document.getElementById("dashNetWorthBtn").classList.toggle("sel", tab==="networth");
+  document.getElementById("dashCoverageBtn").classList.toggle("sel", tab==="coverage");
   if(tab==="overview") renderOverview();
   else if(tab==="monthly") renderMonthlyDetail();
+  else if(tab==="coverage") renderDashCoverage();
   else renderDashNetWorth();
 }
 
@@ -2455,6 +3098,7 @@ function showNWRegion(region){
 function renderDashboard(){
   if(document.getElementById("dashOverviewView").style.display !== "none") renderOverview();
   else if(document.getElementById("dashMonthlyView").style.display !== "none") renderMonthlyDetail();
+  else if(document.getElementById("dashCoverageView").style.display !== "none") renderDashCoverage();
   else renderDashNetWorth();
 }
 
@@ -2647,7 +3291,7 @@ function nwAllMonths(){
 // guessed — items that can't be converted are called out, never silently
 // mixed into a wrong-looking total. =====
 function getManualFxRate(){
-  return StorageService.getSync(FX_MANUAL_KEY);
+  try{ return JSON.parse(localStorage.getItem(FX_MANUAL_KEY)||"null"); }catch(e){ return null; }
 }
 function saveManualFxRate(){
   const val = Number(document.getElementById("nwManualRateInput").value);
@@ -2662,7 +3306,7 @@ function saveManualFxRate(){
   // manual rate can never silently outlive its day even if the device clock
   // rolls forward mid\u2011session
   const fresh = { rate:val, date:todayStr(), manual:true };
-  StorageService.setSync(FX_MANUAL_KEY, fresh);
+  try{ localStorage.setItem(FX_MANUAL_KEY, JSON.stringify(fresh)); }catch(e){}
   toast("Rate saved ✓");
   renderDashNetWorth();
 }
@@ -2678,7 +3322,8 @@ async function getUsdInrRate(){
   const today = todayStr();
   const manual = getManualFxRate();
   if(manual && manual.date===today) return manual; // a rate you typed in yourself always wins for today
-  let cached = StorageService.getSync(FX_CACHE_KEY);
+  let cached = null;
+  try{ cached = JSON.parse(localStorage.getItem(FX_CACHE_KEY)||"null"); }catch(e){}
   if(cached && cached.date===today) return cached;
   try{
     const res = await fetch(`https://api.frankfurter.dev/v1/latest?from=${PRIMARY_CUR}&to=${SECONDARY_CUR}`);
@@ -2687,7 +3332,7 @@ async function getUsdInrRate(){
     const rate = data.rates && data.rates[SECONDARY_CUR];
     if(!rate) throw new Error("no rate in response");
     const fresh = { rate, date:today, manual:false };
-    StorageService.setSync(FX_CACHE_KEY, fresh);
+    try{ localStorage.setItem(FX_CACHE_KEY, JSON.stringify(fresh)); }catch(e){}
     return fresh;
   }catch(err){
     return manual || cached; // a stale manual entry beats a stale auto one; null if neither ever existed
@@ -2727,6 +3372,43 @@ function nwValueAsOf(monthStr, toCur, rateInfo, currencyFilter){
     else assets += converted;
   });
   return { assets, liabilities, net:assets-liabilities, incomplete };
+}
+
+function nwCalculateMonthlyGrowth(toCur, rateInfo, currencyFilter){
+  // Calculate net worth for each month (last 13 months for comparison)
+  const activeSnapshots = nwSnapshots.filter(s => s.source !== "undo");
+  if(!activeSnapshots.length) return { months:[], amounts:[], changes:[] };
+
+  // Get all unique months with data
+  const months = nwAllMonths();
+  if(months.length === 0) return { months:[], amounts:[], changes:[] };
+
+  const amounts = [];
+  const monthLabels = [];
+
+  months.forEach(monthStr => {
+    const result = nwValueAsOf(monthStr, toCur, rateInfo, currencyFilter);
+    amounts.push(result.net);
+    monthLabels.push(monthStr.substring(5)); // MM format (e.g., "08" for August)
+  });
+
+  // Calculate month-to-month changes
+  const changes = [];
+  for(let i=1; i<amounts.length; i++){
+    const prev = amounts[i-1];
+    const curr = amounts[i];
+    const change = curr - prev;
+    changes.push(change);
+  }
+
+  // Return last 13 months (12 months to show + 1 previous for baseline)
+  const startIdx = Math.max(0, months.length - 13);
+  return {
+    months: months.slice(startIdx),
+    amounts: amounts.slice(startIdx),
+    changes: changes.slice(startIdx),
+    labels: monthLabels.slice(startIdx)
+  };
 }
 
 function nwCalculateWeeklyGrowth(items, toCur, rateInfo, currencyFilter){
@@ -2823,11 +3505,16 @@ function nwComputeAndRender(suffix, itemsWithIdx, toCur, rateInfo, opts){
   const netWorth = totalAssets - totalLiabilities;
   const investable = items.filter(e=>!isLiability(e.category));
 
-  const weeklyData = nwCalculateWeeklyGrowth(items, toCur, rateInfo, currencyFilter);
+  // Use monthly trends (not weekly) for better visibility of small changes
+  const monthlyData = nwCalculateMonthlyGrowth(toCur, rateInfo, currencyFilter);
 
   // Calculate monthly change for dashboard card
+  // NOTE: Always use ALL items (currencyFilter=null) for trend, even if viewing a single region.
+  // This ensures "Change This Month" shows the actual change across all assets, not just the
+  // currently-selected region (US/IN). The items list passed to nwComputeAndRender is already
+  // filtered by region, but monthlyTrend should represent the COMPLETE picture.
   const months = nwAllMonths();
-  const monthlyTrend = months.map(m=>({ m, ...nwValueAsOf(m, toCur, rateInfo, currencyFilter) }));
+  const monthlyTrend = months.map(m=>({ m, ...nwValueAsOf(m, toCur, rateInfo, null) }));
   const curMonthIdx = monthlyTrend.length-1;
   const changeThisMonth = curMonthIdx>0 ? monthlyTrend[curMonthIdx].net - monthlyTrend[curMonthIdx-1].net : null;
 
@@ -2842,7 +3529,7 @@ function nwComputeAndRender(suffix, itemsWithIdx, toCur, rateInfo, opts){
     const textColor = themeColor("--text");
     const gridColor = themeColor("--border");
 
-    if(!weeklyData.weeks.length){
+    if(!monthlyData.months.length){
       showChartFallback("nwTrendChart"+suffix, "📊 No net worth data yet");
     } else {
       showChartCanvas("nwTrendChart"+suffix);
@@ -2850,16 +3537,16 @@ function nwComputeAndRender(suffix, itemsWithIdx, toCur, rateInfo, opts){
       charts["nwTrend"+suffix] = new Chart(document.getElementById("nwTrendChart"+suffix), {
         type:"line",
         data:{
-          labels:weeklyData.weeks.map(w=>`${w.start.substring(5)}`),
+          labels:monthlyData.labels,
           datasets:[{
-            label:"Net Worth",
-            data:weeklyData.amounts,
+            label:"Net Worth (Monthly)",
+            data:monthlyData.amounts,
             borderColor:themeColor("--accent"),
             backgroundColor:"rgba(79,140,255,0.15)",
             fill:true,
             tension:.3,
-            pointRadius:3,
-            pointHoverRadius:5,
+            pointRadius:5,
+            pointHoverRadius:7,
             pointBackgroundColor:themeColor("--accent")
           }]
         },
@@ -2873,11 +3560,10 @@ function nwComputeAndRender(suffix, itemsWithIdx, toCur, rateInfo, opts){
                   const amt = ctx.parsed.y;
                   const idx = ctx.dataIndex;
                   let label = nwFmtAmount(amt, toCur);
-                  if(idx > 0 && weeklyData.amounts[idx-1] !== undefined){
-                    const prev = weeklyData.amounts[idx-1];
+                  if(idx > 0 && monthlyData.amounts[idx-1] !== undefined){
+                    const prev = monthlyData.amounts[idx-1];
                     const change = amt - prev;
-                    const pctChange = prev !== 0 ? ((change / Math.abs(prev)) * 100) : 0;
-                    label += ` (${change>=0?"+":""}${nwFmtAmount(change, toCur)}, ${pctChange>=0?"+":""}${pctChange.toFixed(1)}%)`;
+                    label += ` (${change>=0?"+":""}${nwFmtAmount(change, toCur)})`;
                   }
                   return label;
                 }
@@ -3041,6 +3727,49 @@ async function deleteFromNWDashboard(itemName, evt){
   renderDashNetWorth();
 }
 
+// ===== Coverage dashboard: what happens if something goes wrong — total
+// life/health coverage and how many policies are active, converted into
+// the user's primary currency the same way net worth totals are =====
+async function renderDashCoverage(){
+  const rateInfo = await getUsdInrRate();
+  const toCur = PRIMARY_CUR;
+  const items = insLatestPerItem().map(o=>o.e);
+
+  let lifeTotal = 0, healthTotal = 0, incomplete = false;
+  items.forEach(e=>{
+    const converted = nwConvert(Number(e.value||0), e.currency||"USD", toCur, rateInfo);
+    if(converted==null){ incomplete = true; return; }
+    if(e.category==="Life Insurance") lifeTotal += converted;
+    else if(e.category==="Health Insurance") healthTotal += converted;
+  });
+
+  const today = todayStr();
+  const upcoming = items.filter(e=>e.renewalDate && e.renewalDate >= today).sort((a,b)=>a.renewalDate<b.renewalDate?-1:1);
+  const nextRenewal = upcoming.length ? `${upcoming[0].provider} · ${upcoming[0].renewalDate}` : null;
+
+  document.getElementById("insCards").innerHTML = `
+    <div class="card"><div class="card-label">🛡️ Total Life Coverage${incomplete?" ⚠️":""}</div><div class="card-value">${nwFmtAmount(lifeTotal, toCur)}</div></div>
+    <div class="card green"><div class="card-label">🏥 Total Health Coverage</div><div class="card-value">${nwFmtAmount(healthTotal, toCur)}</div></div>
+    <div class="card orange"><div class="card-label">📋 Active Policies</div><div class="card-value">${items.length}</div></div>
+    <div class="card purple"><div class="card-label">📅 Next Renewal</div><div class="card-value" style="font-size:14px">${nextRenewal || "None scheduled"}</div></div>
+  `;
+
+  document.getElementById("insCoverageTable").innerHTML = items.length ? `<table><thead><tr><th>Provider</th><th>Type</th><th>Country</th><th>Coverage</th><th>Renews</th><th></th></tr></thead><tbody>
+    ${items.map(e=>`<tr class="entry-row" onclick="editFromInsDashboard('${e.provider.replace(/'/g,"\\'")}')"><td>${e.provider}</td><td>${insCatIcon(e.category)}${e.category}</td><td>${e.country||""}</td><td>${nwFmtAmount(Number(e.value), e.currency||"USD")}</td><td>${e.renewalDate||"—"}</td><td><button class="row-del" onclick="deleteFromInsDashboard('${e.provider.replace(/'/g,"\\'")}',event)">✕</button></td></tr>`).join("")}
+  </tbody></table>` : `<div class="dash-empty">🛡️ No insurance policies yet</div>`;
+}
+
+function editFromInsDashboard(providerName){
+  insStartUpdate(providerName);
+  showInsurance();
+}
+
+async function deleteFromInsDashboard(providerName, evt){
+  if(evt) evt.stopPropagation();
+  await delInsItem(providerName, evt);
+  renderDashCoverage();
+}
+
 // ===== Light / dark theme, persisted =====
 // The theme toggles now live in the Settings view, not in a header menu.
 // setTheme keeps the selection state in sync on those buttons if they're
@@ -3053,7 +3782,7 @@ function setTheme(theme){
   const lBtn = document.getElementById("settingsLightBtn");
   if(dBtn) dBtn.classList.toggle("sel", theme!=="light");
   if(lBtn) lBtn.classList.toggle("sel", theme==="light");
-  StorageService.setSync(nsKey("iexpense_theme"), theme);
+  try{ localStorage.setItem(nsKey("iexpense_theme"), theme); }catch(e){}
   if(document.getElementById("dashboardView").style.display !== "none") renderDashboard();
 }
 
@@ -3066,6 +3795,7 @@ function applyPrefs(){
   NW_CURRENCIES = SECONDARY_CUR ? [PRIMARY_CUR, SECONDARY_CUR] : [PRIMARY_CUR];
   if(!NW_CURRENCIES.includes(nwDisplayCurrency)) nwDisplayCurrency = PRIMARY_CUR;
   if(!NW_CURRENCIES.includes(nwSel.currency)) nwSel.currency = PRIMARY_CUR;
+  if(!NW_CURRENCIES.includes(insSel.currency)) insSel.currency = PRIMARY_CUR;
   document.documentElement.style.setProperty("--cur-sym", JSON.stringify(curSym(PRIMARY_CUR)));
 
   const hello = document.getElementById("helloName");
@@ -3096,6 +3826,7 @@ function applyPrefs(){
   document.getElementById("nwDisplayCurrencyRow").parentElement.style.display = SECONDARY_CUR ? "" : "none";
   renderNWCurrencyRow();
   renderNWDisplayCurrencyRow();
+  renderInsCurrencyRow();
   // If the Settings screen is currently visible, refresh its profile row so
   // the name/currency summary updates immediately after a Preferences save.
   const settingsView = document.getElementById("settingsView");
@@ -3118,7 +3849,7 @@ function obSetSecondary(yes){
 }
 function openPrefs(){
   const returning = !!prefs;
-  document.getElementById("obTitle").textContent = returning ? "Preferences" : "Welcome to iExpense 👋";
+  document.getElementById("obTitle").textContent = returning ? "Preferences" : "Welcome to iFinWell 👋";
   document.getElementById("obIntro").textContent = returning
     ? "Changing currency only changes how things are displayed — none of your saved entries are modified."
     : "Let's set up your preferences — takes 30 seconds, saved only on this device.";
@@ -3154,9 +3885,12 @@ setFormType("expense");
 renderList();
 renderCategoryFilterOptions();
 renderNWCatGrid();
+renderInsCatGrid();
 applyPrefs();
 document.getElementById("nwDate").value=todayStr(); document.getElementById("nwDate").max=todayStr();
+document.getElementById("insStartDate").value=todayStr(); document.getElementById("insStartDate").max=todayStr();
 renderNWItemList();
+renderInsItemList();
 if(cloudCfg){
   document.getElementById("cloudSetup").style.display="none";
   document.getElementById("cloudControls").style.display="block";
@@ -3176,21 +3910,14 @@ document.addEventListener("visibilitychange", ()=>{
 // Backup/Export options now visible on both prod and dev
 // Note: dev has Cloud Sync AND local backup for complete data protection
 (function initTheme(){
-  const saved = StorageService.getSync(nsKey("iexpense_theme")) || "dark";
+  let saved="dark";
+  try{ saved = localStorage.getItem(nsKey("iexpense_theme")) || "dark"; }catch(e){}
   setTheme(saved);
 })();
 showMainTab("dashboard"); // Dashboard is the app's home screen; the + button is the only way to log an expense/income/net worth entry
 // a truly fresh install (no prefs, no data — see the migration block up top)
 // starts with the one-time welcome/preferences screen
 if(!prefs) openPrefs();
-
-// Quick-add FAB functionality
-document.getElementById("quickAddFab")?.addEventListener("click", ()=>{
-  formType="expense";
-  showForm();
-  document.getElementById("fAmount").focus();
-});
 </script>
-<button class="fab" id="quickAddFab" title="Quick add expense">+</button>
 </body>
 </html>
