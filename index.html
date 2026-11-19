@@ -280,6 +280,66 @@
       grid-column:span 1;
     }
   }
+  /* ===== Home tab: streak, budget ring, quick log, insights, badges ===== */
+  .dash-tabs{overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .dash-tabs::-webkit-scrollbar{display:none}
+  .dash-tabs button{flex:1 0 auto;white-space:nowrap;padding:8px 12px}
+  .hm-hero{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 16%,var(--card)),var(--card));border:1px solid var(--border);border-radius:22px;padding:16px;margin-bottom:14px;box-shadow:0 4px 18px rgba(20,30,15,.08)}
+  .hm-hello{font-size:13px;color:var(--muted);font-weight:600;margin-bottom:10px}
+  .hm-top{display:flex;align-items:center;gap:14px}
+  .hm-streak{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:84px;height:84px;border-radius:50%;background:var(--card2);border:2px solid var(--amber);flex:none}
+  .hm-streak.cold{border-color:var(--border);filter:grayscale(.6)}
+  .hm-streak .flame{font-size:22px;line-height:1}
+  .hm-streak .num{font-size:24px;font-weight:800;line-height:1.1}
+  .hm-streak .lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .hm-month .k{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .hm-month .v{font-size:28px;font-weight:800;line-height:1.15}
+  .hm-delta{font-size:13px;font-weight:600;margin-top:2px}
+  .hm-delta.up{color:var(--red)} .hm-delta.down{color:var(--green)} .hm-delta.flat{color:var(--muted)}
+  .hm-streak-note{font-size:12.5px;color:var(--muted);margin-top:10px}
+  .hm-budget{display:flex;align-items:center;gap:14px;margin-top:14px;padding-top:14px;border-top:1px dashed var(--border)}
+  .hm-ring{flex:none;width:64px;height:64px}
+  .hm-ring circle{fill:none;stroke-width:8}
+  .hm-ring .bg{stroke:var(--card2)}
+  .hm-ring .fg{stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset .8s ease}
+  .hm-ring text{font-size:15px;font-weight:800;fill:var(--text)}
+  .hm-budget-txt{font-size:13.5px;line-height:1.45}
+  .hm-budget-txt b{font-size:15px}
+  .hm-link{background:none;border:none;color:var(--accent);font-weight:700;font-size:13px;padding:4px 0;cursor:pointer}
+  .hm-budget-edit{display:flex;gap:8px;margin-top:10px;align-items:center}
+  .hm-budget-edit input{flex:1}
+  .hm-btn{background:var(--accent2);color:#fff;border:none;border-radius:999px;padding:11px 16px;font-size:14px;font-weight:700;cursor:pointer;transition:transform .1s ease}
+  .hm-btn:active{transform:scale(.96)}
+  .hm-btn.ghost{background:var(--card2);color:var(--text);border:1px solid var(--border)}
+  .hm-nospend{width:100%;margin-top:12px}
+  .hm-sec{display:flex;align-items:baseline;justify-content:space-between;margin:18px 2px 8px}
+  .hm-sec h3{font-size:15px;margin:0}
+  .hm-sec span{font-size:12px;color:var(--muted)}
+  .hm-quick{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+  .hm-quick::-webkit-scrollbar{display:none}
+  .hm-qchip{flex:none;display:flex;flex-direction:column;align-items:flex-start;gap:2px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:10px 12px;min-width:112px;max-width:160px;cursor:pointer;color:var(--text);text-align:left;transition:transform .1s ease}
+  .hm-qchip:active{transform:scale(.95)}
+  .hm-qchip .ic{font-size:18px}
+  .hm-qchip .st{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:136px}
+  .hm-qchip .am{font-size:12px;color:var(--muted)}
+  .hm-ins{display:flex;gap:12px;background:var(--card);border:1px solid var(--border);border-left:4px solid var(--accent2);border-radius:16px;padding:12px 14px;margin-bottom:8px}
+  .hm-ins.good{border-left-color:var(--green)} .hm-ins.warn{border-left-color:var(--amber)} .hm-ins.info{border-left-color:var(--purple)}
+  .hm-ins .ic{font-size:22px;line-height:1.2;flex:none}
+  .hm-ins .t{font-weight:700;font-size:14px}
+  .hm-ins .b{font-size:13px;color:var(--muted);margin-top:2px;line-height:1.4}
+  .hm-badges{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .hm-badge{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:10px 4px;text-align:center}
+  .hm-badge .ic{font-size:24px}
+  .hm-badge .n{font-size:11px;font-weight:700;margin-top:4px;line-height:1.2}
+  .hm-badge .h{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.2}
+  .hm-badge.locked .ic{filter:grayscale(1);opacity:.35}
+  .hm-badge.locked .n{color:var(--muted)}
+  .hm-empty{background:var(--card);border:1px dashed var(--border);border-radius:16px;padding:16px;text-align:center;color:var(--muted);font-size:13.5px}
+  .hm-share{width:100%;margin:16px 0 8px}
+  .confetti-piece{position:fixed;top:-12px;width:9px;height:14px;border-radius:2px;z-index:200;pointer-events:none;animation:confetti-fall 1.5s ease-in forwards}
+  @keyframes confetti-fall{to{transform:translate(var(--dx),105vh) rotate(var(--rot));opacity:.2}}
+  @media (prefers-reduced-motion:reduce){.confetti-piece{display:none}.hm-ring .fg{transition:none}}
+  @media (min-width:700px){.hm-badges{grid-template-columns:repeat(8,1fr)}}
 </style>
 </head>
 <body>
@@ -493,13 +553,16 @@
 
 <div id="dashboardView" style="display:none">
   <div class="dash-tabs">
-    <button class="sel" id="dashMonthlyBtn" onclick="showDashTab('monthly')">Monthly Detail</button>
+    <button class="sel" id="dashTodayBtn" onclick="showDashTab('today')">🏠 Home</button>
+    <button id="dashMonthlyBtn" onclick="showDashTab('monthly')">Monthly Detail</button>
     <button id="dashOverviewBtn" onclick="showDashTab('overview')">Summary</button>
     <button id="dashNetWorthBtn" onclick="showDashTab('networth')">Net Worth</button>
     <button id="dashCoverageBtn" onclick="showDashTab('coverage')">Coverage</button>
   </div>
 
-  <div id="dashMonthlyView">
+  <div id="dashTodayView"></div>
+
+  <div id="dashMonthlyView" style="display:none">
     <div class="dash-month">
       <select id="dashMonthSel" onchange="renderMonthlyDetail()"></select>
     </div>
@@ -657,6 +720,16 @@
       <button class="btn btn-ghost" onclick="cloudDisconnect()">Disconnect</button>
     </div>
     <div class="settings-hint">Your data stays in your own private GitHub repo. No third party sees it.</div>
+  </div>
+
+  <!-- Dev preview only: one tap copies this browser's production data into
+       the dev copy so dev can be tested against real data. It only READS
+       production (local storage, or the production cloud repo with GET
+       requests) and never writes to it. Hidden on the production site. -->
+  <div class="settings-section" id="devCopySection" style="display:none">
+    <div class="settings-section-label">🧪 Dev data</div>
+    <button class="btn btn-ghost" onclick="copyProdDataToDev()">Copy production data into dev</button>
+    <div class="settings-hint">Copies production's data over dev's. Production is only read, never changed.</div>
   </div>
 
   <!-- Backup + Restore + Excel export. Backup/Restore is hidden on the
@@ -1344,9 +1417,10 @@ async function saveEntry(){
     toast("Updated ✓");
   } else {
     targetId = genId();
+    const badgesBefore = earnedBadgeIds();
     entries.push({ ...candidate, id:targetId });
     persist();
-    toast("Saved ✓");
+    celebrate(badgesBefore, "Saved ✓");
   }
   resetForm();
   showMainTab("dashboard");
@@ -1413,6 +1487,46 @@ function editEntry(i){
 function cancelEdit(){
   document.getElementById("fDate").value=todayStr(); document.getElementById("fDate").max=todayStr();
   resetForm();
+}
+
+// ===== Dev preview: copy production data into the dev copy =====
+// Same site origin, so the dev page can read production's (unsuffixed)
+// storage keys. Production keys are only read; writes go to "_dev" keys.
+// Cloud settings/tokens are deliberately NOT copied, so dev can never end up
+// writing to the production cloud repo.
+const PROD_DATA_KEYS = ["iexpense_entries_v1","iexpense_networth_v1","iexpense_insurance_v1",
+  "iexpense_prefs_v1","iexpense_fx_rate","iexpense_fx_manual","iexpense_hidden_chips_v1",
+  "iexpense_nw_hidden_items_v1","iexpense_deleted_ids_v1","iexpense_nw_deleted_ids_v1","iexpense_ins_deleted_ids_v1","iexpense_nospend_v1"];
+async function copyProdDataToDev(){
+  if(!IS_DEV_PREVIEW) return; // never runs on the production site
+  if(!confirm("Copy production's data over dev's data? Production is not changed.")) return;
+  let copied = 0;
+  PROD_DATA_KEYS.forEach(k=>{
+    const v = localStorage.getItem(k);
+    if(v!==null){ localStorage.setItem(k+"_dev", v); copied++; }
+  });
+  // production data may live only in its cloud repo on this browser: read it
+  // (GET only) with production's saved cloud settings, if they're here
+  let cloudNote = "";
+  try{
+    const prodCfg = JSON.parse(localStorage.getItem("iexpense_cloud_cfg")||"null");
+    const prodToken = localStorage.getItem("iexpense_cloud_cfg_token");
+    if(prodCfg && prodCfg.owner && prodCfg.repo && prodToken){
+      const cfg = { ...prodCfg, token: prodToken };
+      const files = [["entries.json","iexpense_entries_v1"],["networth.json","iexpense_networth_v1"],["insurance.json","iexpense_insurance_v1"]];
+      for(const [file,key] of files){
+        const { entries: remote, sha } = await cloudFetchRemote(cfg, file);
+        if(sha){ localStorage.setItem(key+"_dev", JSON.stringify(remote)); copied++; }
+      }
+      cloudNote = " (including production's cloud copy)";
+    }
+  }catch(e){ cloudNote = " (couldn't read production's cloud copy: "+e.message+")"; }
+  if(!copied){
+    toast("No production data found in this browser. Open the production app here first, then try again.","var(--red)");
+    return;
+  }
+  toast("Copied production data into dev"+cloudNote);
+  setTimeout(()=>location.reload(), 1200);
 }
 
 function backupData(){
@@ -2912,6 +3026,8 @@ function renderSettings(){
     if(IS_DEV_PREVIEW){ env.textContent = "Dev preview"; env.classList.add("dev"); }
     else { env.textContent = "Production"; env.classList.remove("dev"); }
   }
+  const devCopy = document.getElementById("devCopySection");
+  if(devCopy) devCopy.style.display = IS_DEV_PREVIEW ? "" : "none";
   // Restore theme selection state on the Settings buttons. setTheme() only
   // touches these buttons if they're already in the DOM — on first load
   // they don't exist yet, so this is where the correct ".sel" gets stamped
@@ -3016,6 +3132,8 @@ function renderCatTrend(prefix){
 function showDashTab(tab){
   // "" (not "block") when shown, so the desktop media query's display:grid
   // isn't clobbered by a higher-specificity inline style
+  document.getElementById("dashTodayView").style.display = tab==="today" ? "" : "none";
+  document.getElementById("dashTodayBtn").classList.toggle("sel", tab==="today");
   document.getElementById("dashOverviewView").style.display = tab==="overview" ? "" : "none";
   document.getElementById("dashMonthlyView").style.display = tab==="monthly" ? "" : "none";
   document.getElementById("dashNetWorthView").style.display = tab==="networth" ? "block" : "none";
@@ -3024,7 +3142,8 @@ function showDashTab(tab){
   document.getElementById("dashMonthlyBtn").classList.toggle("sel", tab==="monthly");
   document.getElementById("dashNetWorthBtn").classList.toggle("sel", tab==="networth");
   document.getElementById("dashCoverageBtn").classList.toggle("sel", tab==="coverage");
-  if(tab==="overview") renderOverview();
+  if(tab==="today") renderHome();
+  else if(tab==="overview") renderOverview();
   else if(tab==="monthly") renderMonthlyDetail();
   else if(tab==="coverage") renderDashCoverage();
   else renderDashNetWorth();
@@ -3044,7 +3163,8 @@ function showNWRegion(region){
 }
 
 function renderDashboard(){
-  if(document.getElementById("dashOverviewView").style.display !== "none") renderOverview();
+  if(document.getElementById("dashTodayView").style.display !== "none") renderHome();
+  else if(document.getElementById("dashOverviewView").style.display !== "none") renderOverview();
   else if(document.getElementById("dashMonthlyView").style.display !== "none") renderMonthlyDetail();
   else if(document.getElementById("dashCoverageView").style.display !== "none") renderDashCoverage();
   else renderDashNetWorth();
@@ -3825,6 +3945,389 @@ function finishOnboarding(){
   renderNWItemList();
   if(document.getElementById("dashboardView").style.display !== "none") renderDashboard();
   toast(firstTime ? `Welcome, ${name}! You're all set` : "Preferences saved ✓");
+}
+
+// ===== Home tab: the screen the app opens on. Everything here is DERIVED
+// from the entries you already have, so it never changes or rewrites them.
+// The only new things stored are additive and device-only: an optional
+// monthly budget (inside prefs) and the dates you tapped "No-spend day". =====
+const NOSPEND_KEY = nsKey("iexpense_nospend_v1");
+function loadNoSpend(){ try{ const v = JSON.parse(localStorage.getItem(NOSPEND_KEY)||"[]"); return Array.isArray(v) ? v.filter(d=>typeof d==="string") : []; }catch(e){ return []; } }
+function saveNoSpend(list){ try{ localStorage.setItem(NOSPEND_KEY, JSON.stringify(list)); }catch(e){} }
+function escH(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function hmDay(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function hmAddDays(str, n){ const [y,m,d]=str.split("-").map(Number); return hmDay(new Date(y, m-1, d+n)); }
+function hmDaysInMonth(y, m){ return new Date(y, m, 0).getDate(); } // m is 1-based
+function fmt0(v){ return curSym(PRIMARY_CUR) + Math.round(v).toLocaleString(PRIMARY_CUR==="INR"?"en-IN":"en-US"); }
+function hmExpenses(){ return entries.filter(e=>(e.type||"expense")==="expense" && e.date && Number(e.amount)>0); }
+function hmSum(list){ return list.reduce((s,e)=>s+Number(e.amount||0),0); }
+// categories that are fixed bills — kept out of "habit" insights so a rent
+// payment landing on a different day doesn't read as a spending spike
+const HM_FIXED = new Set(["Rent","Utilities/Phone","Remittance","Education"]);
+// lumpy categories (a doctor's bill, a trip) swing for reasons that aren't
+// habits, so they're left out of the "up/down vs usual" comparison too
+const HM_LUMPY = new Set(["Health","Travel","Gifts & Donations","Automotive","Home","Others"]);
+
+function hmStreak(){
+  const days = new Set(entries.map(e=>e.date).filter(Boolean));
+  loadNoSpend().forEach(d=>days.add(d));
+  const t = todayStr();
+  let d = days.has(t) ? t : hmAddDays(t,-1), cur = 0;
+  while(days.has(d)){ cur++; d = hmAddDays(d,-1); }
+  const sorted = [...days].filter(x=>x<=t).sort();
+  let best = 0, run = 0, prev = null;
+  sorted.forEach(x=>{ run = (prev && hmAddDays(prev,1)===x) ? run+1 : 1; best = Math.max(best, run); prev = x; });
+  return { cur, best:Math.max(best,cur), today:days.has(t), total:days.size };
+}
+
+// only days you deliberately marked count, so a day you simply forgot to log
+// never gets passed off as a "no-spend" win
+function hmNoSpendDaysThisMonth(){
+  const ym = todayStr().slice(0,7);
+  const spent = new Set(hmExpenses().filter(e=>e.date.slice(0,7)===ym).map(e=>e.date));
+  return loadNoSpend().filter(d=>d.slice(0,7)===ym && !spent.has(d)).length;
+}
+
+function hmMonthPace(){
+  const t = todayStr(), [y,m,dd] = t.split("-").map(Number);
+  const ym = t.slice(0,7);
+  const lm = new Date(y, m-2, 1), lmYm = hmDay(lm).slice(0,7);
+  const lmCut = Math.min(dd, hmDaysInMonth(lm.getFullYear(), lm.getMonth()+1));
+  const exp = hmExpenses();
+  const mtd = hmSum(exp.filter(e=>e.date.slice(0,7)===ym));
+  const lastSame = hmSum(exp.filter(e=>e.date.slice(0,7)===lmYm && Number(e.date.slice(8))<=lmCut));
+  const hasLast = exp.some(e=>e.date.slice(0,7)===lmYm);
+  return { mtd, lastSame, hasLast, day:dd, daysInMonth:hmDaysInMonth(y,m) };
+}
+
+// a reasonable starting budget: the average of the last three full months
+function hmSuggestBudget(){
+  const t = todayStr(), [y,m] = t.split("-").map(Number);
+  const exp = hmExpenses(), totals = [];
+  for(let i=1;i<=3;i++){
+    const ym = hmDay(new Date(y, m-1-i, 1)).slice(0,7);
+    const s = hmSum(exp.filter(e=>e.date.slice(0,7)===ym));
+    if(s>0) totals.push(s);
+  }
+  if(!totals.length) return 0;
+  return Math.round(totals.reduce((a,b)=>a+b,0)/totals.length/50)*50;
+}
+
+// The insight feed: each rule looks at your own history and only speaks up
+// when there's something worth changing (or celebrating). Highest score wins.
+function hmInsights(){
+  const out = [];
+  const t = todayStr(), exp = hmExpenses();
+  if(!exp.length) return out;
+  const d30 = hmAddDays(t,-30), d120 = hmAddDays(t,-120);
+  const last30 = exp.filter(e=>e.date>d30 && e.date<=t);
+  const earliest = exp.reduce((a,e)=>e.date<a?e.date:a, t);
+  const priorStart = earliest > d120 ? earliest : hmAddDays(d120,1);
+  const prior = exp.filter(e=>e.date>=priorStart && e.date<=d30);
+  const priorDays = Math.round((new Date(d30) - new Date(priorStart))/864e5) + 1;
+
+  // 1. category up or down vs your usual month
+  if(priorDays >= 28 && last30.length){
+    const cats = [...new Set(exp.map(e=>e.category))].filter(c=>!HM_FIXED.has(c) && !HM_LUMPY.has(c));
+    let up=null, down=null;
+    cats.forEach(c=>{
+      const pc = prior.filter(e=>e.category===c);
+      if(pc.length < 2) return;
+      const usual = hmSum(pc) / priorDays * 30;
+      const now = hmSum(last30.filter(e=>e.category===c));
+      const diff = now - usual;
+      if(now > usual*1.25 && diff >= 40 && (!up || diff>up.diff)) up = {c, now, usual, diff};
+      if(now < usual*0.75 && -diff >= 40 && (!down || -diff>-down.diff)) down = {c, now, usual, diff};
+    });
+    if(up) out.push({ score:90, tone:"warn", ic:CAT_ICONS[up.c]||"📈",
+      t:`${up.c} is up ${Math.round((up.now/up.usual-1)*100)}%`,
+      b:`${fmt0(up.now)} in the last 30 days vs about ${fmt0(up.usual)} usually. Getting back to normal frees up ${fmt0(up.diff)} a month.` });
+    if(down) out.push({ score:70, tone:"good", ic:"🎉",
+      t:`${down.c} is down ${Math.round((1-down.now/down.usual)*100)}%`,
+      b:`${fmt0(down.now)} in the last 30 days vs about ${fmt0(down.usual)} usually. That's ${fmt0(-down.diff)} kept. Keep it going!` });
+  }
+
+  // 2. your most-visited place
+  const byStore = {};
+  last30.forEach(e=>{ const k=(e.store||"").trim(); if(!k) return; const key=k.toLowerCase(); (byStore[key]=byStore[key]||{name:k,n:0,sum:0}); byStore[key].n++; byStore[key].sum+=Number(e.amount); });
+  const topStore = Object.values(byStore).filter(s=>s.n>=3).sort((a,b)=>b.sum-a.sum)[0];
+  if(topStore) out.push({ score:60, tone:"info", ic:"📍",
+    t:`${topStore.n} trips to ${topStore.name}`,
+    b:`${fmt0(topStore.sum)} there in the last 30 days, about ${fmt0(topStore.sum/topStore.n)} a visit. Fewer, planned trips usually cost less.` });
+
+  // 3. small buys that quietly add up
+  const small = last30.filter(e=>Number(e.amount)<15 && !HM_FIXED.has(e.category));
+  if(small.length>=5) out.push({ score:55, tone:"info", ic:"🪙",
+    t:`${small.length} small buys added up to ${fmt0(hmSum(small))}`,
+    b:`Each was under ${curSym(PRIMARY_CUR)}15, in the last 30 days. Small ones are the easiest to skip.` });
+
+  // 4. weekends vs weekdays (last 8 weeks, fixed bills left out)
+  const d56 = hmAddDays(t,-56);
+  if(earliest <= d56){
+    let we=0, wd=0;
+    exp.filter(e=>e.date>d56 && e.date<=t && !HM_FIXED.has(e.category)).forEach(e=>{
+      const [y,m,d]=e.date.split("-").map(Number); const dow=new Date(y,m-1,d).getDay();
+      if(dow===0||dow===6) we+=Number(e.amount); else wd+=Number(e.amount);
+    });
+    const weAvg = we/16, wdAvg = wd/40;
+    if(weAvg >= 20 && weAvg >= wdAvg*1.5) out.push({ score:50, tone:"warn", ic:"📅",
+      t:`Weekends cost ${(weAvg/Math.max(wdAvg,1)).toFixed(1)}x more`,
+      b:`About ${fmt0(weAvg)} a weekend day vs ${fmt0(wdAvg)} on weekdays. A plan for Saturday helps.` });
+  }
+
+  // 5. subscriptions, shown as a yearly number so they feel real
+  const subs = hmSum(last30.filter(e=>e.category==="Subscriptions"));
+  if(subs>0) out.push({ score:45, tone:"info", ic:"🔁",
+    t:`Subscriptions ≈ ${fmt0(subs*12)} a year`,
+    b:`${fmt0(subs)} in the last 30 days. Is there one you've stopped using?` });
+
+  // 6. dining out as a share of the month
+  const ym = t.slice(0,7), monthExp = exp.filter(e=>e.date.slice(0,7)===ym);
+  const monthTotal = hmSum(monthExp), dining = hmSum(monthExp.filter(e=>e.category==="Dining Out"));
+  if(monthTotal>0 && dining/monthTotal >= 0.15 && dining>=50) out.push({ score:48, tone:"warn", ic:"🍽️",
+    t:`Dining out is ${Math.round(dining/monthTotal*100)}% of this month`,
+    b:`${fmt0(dining)} so far. Cooking one more meal a week adds up fast.` });
+
+  // 7. no-spend days: the habit worth celebrating
+  const ns = hmNoSpendDaysThisMonth();
+  if(ns>=1) out.push({ score:40+ns, tone:"good", ic:"✨",
+    t:`${ns} no-spend day${ns===1?"":"s"} this month`,
+    b:`Days with nothing spent are the fastest way to save. Can you add one more this week?` });
+
+  // 8. savings rate this month
+  const inc = hmSum(entries.filter(e=>e.type==="income" && e.date && e.date.slice(0,7)===ym));
+  if(inc>0){
+    const rate = (inc-monthTotal)/inc;
+    out.push(rate>=0.2
+      ? { score:65, tone:"good", ic:"🏦", t:`You're saving ${Math.round(rate*100)}% this month`, b:`${fmt0(inc-monthTotal)} kept from ${fmt0(inc)} earned. 20% or more is a great habit.` }
+      : rate<0
+      ? { score:95, tone:"warn", ic:"⚠️", t:`Spending is ahead of income this month`, b:`${fmt0(monthTotal)} out vs ${fmt0(inc)} in so far.` }
+      : { score:35, tone:"info", ic:"🏦", t:`You're saving ${Math.round(rate*100)}% this month`, b:`Aim for 20%: that's ${fmt0(inc*0.2-(inc-monthTotal))} more to keep.` });
+  }
+  return out.sort((a,b)=>b.score-a.score).slice(0,5);
+}
+
+// one-tap "log it again": your most repeated places, with a typical amount
+function hmQuickLogs(){
+  const t = todayStr(), d90 = hmAddDays(t,-90), groups = {};
+  hmExpenses().filter(e=>e.date>d90 && (e.store||"").trim()).forEach(e=>{
+    const key = e.category+"|"+e.store.trim().toLowerCase();
+    (groups[key]=groups[key]||{cat:e.category, store:e.store.trim(), amts:[], pays:{}});
+    groups[key].amts.push(Number(e.amount));
+    if(e.payment) groups[key].pays[e.payment]=(groups[key].pays[e.payment]||0)+1;
+  });
+  return Object.values(groups).filter(g=>g.amts.length>=2 && EXP_CATS.includes(g.cat)).sort((a,b)=>b.amts.length-a.amts.length).slice(0,6).map(g=>{
+    const a=[...g.amts].sort((x,y)=>x-y), mid=Math.floor(a.length/2);
+    const median = a.length%2 ? a[mid] : (a[mid-1]+a[mid])/2;
+    const pay = Object.entries(g.pays).sort((x,y)=>y[1]-x[1])[0];
+    return { cat:g.cat, store:g.store, amount:Math.round(median*100)/100, pay:pay?pay[0]:null };
+  });
+}
+let hmQuick = [];
+function quickLog(i){
+  const q = hmQuick[i]; if(!q) return;
+  resetForm(); // a chip always adds a NEW entry, never overwrites one left mid-edit
+  showMainTab("expense");
+  selectCategory(q.cat);
+  document.getElementById("fStore").value = q.store;
+  document.getElementById("fAmount").value = q.amount;
+  document.getElementById("fDate").value = todayStr();
+  if(q.pay){ sel.pay = q.pay; [...payRow.children].forEach(x=>x.classList.toggle("sel", x.textContent===q.pay)); }
+  hideStoreSuggestions();
+  const a = document.getElementById("fAmount");
+  try{ a.focus(); a.select(); }catch(e){}
+  toast("Check the amount, then tap Save","var(--amber)");
+}
+
+// badges are computed from your data every time, so nothing extra is stored
+const HM_BADGES = [
+  { id:"first",   ic:"🌱", n:"First step",   h:"Log an entry",          test:c=>c.count>=1 },
+  { id:"s3",      ic:"🔥", n:"On a roll",    h:"3-day streak",          test:c=>c.best>=3 },
+  { id:"s7",      ic:"⚡", n:"Week warrior", h:"7-day streak",          test:c=>c.best>=7 },
+  { id:"s30",     ic:"🏆", n:"Habit formed", h:"30-day streak",         test:c=>c.best>=30 },
+  { id:"c100",    ic:"💯", n:"Century",      h:"100 entries",           test:c=>c.count>=100 },
+  { id:"nospend", ic:"✨", n:"Zero day",     h:"A no-spend day",        test:c=>c.noSpend>=1 },
+  { id:"saver",   ic:"🏦", n:"Saver",        h:"Save 20% in a month",   test:c=>c.saverMonth },
+  { id:"budget",  ic:"🎯", n:"On target",    h:"A month under budget",  test:c=>c.underBudget }
+];
+function hmBadgeCtx(){
+  const s = hmStreak(), exp = hmExpenses();
+  const months = [...new Set(entries.map(e=>e.date&&e.date.slice(0,7)).filter(Boolean))];
+  const cur = todayStr().slice(0,7);
+  const saverMonth = months.some(m=>{
+    const inc = hmSum(entries.filter(e=>e.type==="income" && e.date && e.date.slice(0,7)===m));
+    const out = hmSum(exp.filter(e=>e.date.slice(0,7)===m));
+    return inc>0 && (inc-out)/inc>=0.2;
+  });
+  const budget = prefs && Number(prefs.monthlyBudget) || 0;
+  const underBudget = budget>0 && months.some(m=>m<cur && hmSum(exp.filter(e=>e.date.slice(0,7)===m))>0 && hmSum(exp.filter(e=>e.date.slice(0,7)===m))<=budget);
+  const spentDays = new Set(exp.map(e=>e.date));
+  const noSpend = loadNoSpend().filter(d=>!spentDays.has(d)).length;
+  return { count:entries.length, best:s.best, noSpend, saverMonth, underBudget };
+}
+function earnedBadgeIds(){ const c = hmBadgeCtx(); return HM_BADGES.filter(b=>b.test(c)).map(b=>b.id); }
+
+function hmRing(pct){
+  const r=26, C=2*Math.PI*r, shown=Math.min(pct,1);
+  const color = pct>=1 ? "var(--red)" : pct>=0.85 ? "var(--amber)" : "var(--green)";
+  return `<svg class="hm-ring" viewBox="0 0 64 64" aria-hidden="true"><circle class="bg" cx="32" cy="32" r="${r}"/>
+    <circle class="fg" cx="32" cy="32" r="${r}" stroke="${color}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-shown)).toFixed(1)}"/>
+    <text x="32" y="37" text-anchor="middle">${Math.round(pct*100)}%</text></svg>`;
+}
+
+let hmEditingBudget = false;
+function renderHome(){
+  const el = document.getElementById("dashTodayView");
+  if(!el) return;
+  const hour = new Date().getHours();
+  const greet = hour<12 ? "Good morning" : hour<17 ? "Good afternoon" : "Good evening";
+  const name = prefs && prefs.name ? ", "+escH(prefs.name) : "";
+
+  if(!entries.length){
+    el.innerHTML = `<div class="hm-hero">
+      <div class="hm-hello">${greet}${name} 👋</div>
+      <div style="font-size:20px;font-weight:800;margin-bottom:6px">Let's build a money habit</div>
+      <div class="hm-budget-txt" style="color:var(--muted);margin-bottom:14px">Log what you spend for a few days. Streaks, badges and personal insights unlock as you go.</div>
+      <button class="hm-btn" onclick="chooseAdd('expense')">➕ Log your first expense</button>
+    </div>${hmBadgesHtml()}`;
+    return;
+  }
+
+  const s = hmStreak(), p = hmMonthPace();
+  const delta = p.lastSame>0 ? (p.mtd-p.lastSame)/p.lastSame : null;
+  let deltaHtml = `<div class="hm-delta flat">${p.day} day${p.day===1?"":"s"} into the month</div>`;
+  if(p.hasLast && delta!==null){
+    const pct = Math.round(Math.abs(delta)*100);
+    deltaHtml = pct<3 ? `<div class="hm-delta flat">About the same as last month by now</div>`
+      : delta>0 ? `<div class="hm-delta up">▲ ${pct}% vs last month by now</div>`
+      : `<div class="hm-delta down">▼ ${pct}% vs last month by now</div>`;
+  }
+  const streakNote = s.cur===0 ? "Log anything today to start a new streak."
+    : s.today ? (s.cur>=s.best ? "That's your best streak yet. 🙌" : `Best streak: ${s.best} days. Keep going!`)
+    : `Log something today to keep your ${s.cur}-day streak alive.`;
+
+  const budget = prefs && Number(prefs.monthlyBudget) || 0;
+  let budgetHtml;
+  if(hmEditingBudget){
+    const sug = budget || hmSuggestBudget();
+    budgetHtml = `<div style="flex:1"><div class="hm-budget-txt">Monthly spending budget${sug&&!budget?` <span style="color:var(--muted)">(your recent average is about ${fmt0(sug)})</span>`:""}</div>
+      <div class="hm-budget-edit"><div class="amount-wrap" style="flex:1"><input type="tel" inputmode="decimal" id="hmBudgetInput" value="${sug||""}" placeholder="0"></div>
+      <button class="hm-btn" onclick="saveBudget()">Save</button><button class="hm-btn ghost" onclick="hmEditingBudget=false;renderHome()">✕</button></div>
+      ${budget?`<button class="hm-link" style="color:var(--red)" onclick="clearBudget()">Remove budget</button>`:""}</div>`;
+  } else if(budget>0){
+    const left = budget - p.mtd, daysLeft = p.daysInMonth - p.day + 1;
+    const txt = left>=0
+      ? `<b>${fmt0(left)}</b> left this month<br><span style="color:var(--muted)">About ${fmt0(left/daysLeft)} a day for ${daysLeft} day${daysLeft===1?"":"s"}</span>`
+      : `<b style="color:var(--red)">${fmt0(-left)} over</b> this month's budget<br><span style="color:var(--muted)">A few no-spend days will help</span>`;
+    budgetHtml = `${hmRing(p.mtd/budget)}<div class="hm-budget-txt" style="flex:1">${txt}<br><button class="hm-link" onclick="hmEditingBudget=true;renderHome()">Budget ${fmt0(budget)} · Edit</button></div>`;
+  } else {
+    budgetHtml = `<div class="hm-budget-txt" style="flex:1">🎯 Set a monthly budget to see what's safe to spend each day.<br><button class="hm-link" onclick="hmEditingBudget=true;renderHome()">Set a budget ›</button></div>`;
+  }
+
+  const t = todayStr();
+  const spentToday = hmExpenses().some(e=>e.date===t);
+  const markedToday = loadNoSpend().includes(t);
+  const noSpendHtml = spentToday ? "" : markedToday
+    ? `<div class="hm-streak-note" style="text-align:center;color:var(--green);font-weight:700">✨ Today is a no-spend day</div>`
+    : `<button class="hm-btn ghost hm-nospend" onclick="markNoSpend()">✨ Spent nothing today? Mark a no-spend day</button>`;
+
+  hmQuick = hmQuickLogs();
+  const quickHtml = hmQuick.length ? `<div class="hm-sec"><h3>⚡ Quick log</h3><span>Tap, check, save</span></div>
+    <div class="hm-quick">${hmQuick.map((q,i)=>`<button class="hm-qchip" onclick="quickLog(${i})"><span class="ic">${CAT_ICONS[q.cat]||"📦"}</span><span class="st">${escH(q.store)}</span><span class="am">~${fmtUSD(q.amount)}</span></button>`).join("")}</div>` : "";
+
+  const ins = hmInsights();
+  const insHtml = `<div class="hm-sec"><h3>💡 Insights for you</h3><span>From your last 30 days</span></div>` + (ins.length
+    ? ins.map(i=>`<div class="hm-ins ${i.tone}"><div class="ic">${i.ic}</div><div><div class="t">${escH(i.t)}</div><div class="b">${escH(i.b)}</div></div></div>`).join("")
+    : `<div class="hm-empty">Keep logging for a couple of weeks and personal insights will show up here.</div>`);
+
+  el.innerHTML = `<div class="hm-hero">
+    <div class="hm-hello">${greet}${name} 👋</div>
+    <div class="hm-top">
+      <div class="hm-streak${s.cur?"":" cold"}"><div class="flame">🔥</div><div class="num">${s.cur}</div><div class="lbl">day streak</div></div>
+      <div class="hm-month"><div class="k">Spent this month</div><div class="v">${fmt0(p.mtd)}</div>${deltaHtml}</div>
+    </div>
+    <div class="hm-streak-note">${streakNote}</div>
+    <div class="hm-budget">${budgetHtml}</div>
+    ${noSpendHtml}
+  </div>${quickHtml}${insHtml}${hmBadgesHtml()}
+  <button class="hm-btn ghost hm-share" onclick="shareProgress()">📣 Share my progress</button>`;
+  const bi = document.getElementById("hmBudgetInput");
+  if(bi){ try{ bi.focus(); bi.select(); }catch(e){} bi.onkeydown = e=>{ if(e.key==="Enter") saveBudget(); }; }
+}
+function hmBadgesHtml(){
+  const earned = new Set(earnedBadgeIds());
+  return `<div class="hm-sec"><h3>🏅 Badges</h3><span>${earned.size} of ${HM_BADGES.length}</span></div>
+    <div class="hm-badges">${HM_BADGES.map(b=>`<div class="hm-badge${earned.has(b.id)?"":" locked"}"><div class="ic">${b.ic}</div><div class="n">${b.n}</div><div class="h">${b.h}</div></div>`).join("")}</div>`;
+}
+
+function saveBudget(){
+  const v = parseFloat((document.getElementById("hmBudgetInput")||{}).value);
+  if(!v || v<=0){ toast("Enter a budget amount","var(--red)"); return; }
+  if(!prefs){ toast("Finish setup first","var(--red)"); return; }
+  prefs.monthlyBudget = Math.round(v*100)/100;
+  savePrefs();
+  hmEditingBudget = false;
+  renderHome();
+  toast("Budget set 🎯");
+}
+function clearBudget(){
+  if(!prefs) return;
+  delete prefs.monthlyBudget;
+  savePrefs();
+  hmEditingBudget = false;
+  renderHome();
+}
+function markNoSpend(){
+  const t = todayStr(), list = loadNoSpend();
+  if(list.includes(t)) return;
+  const before = earnedBadgeIds();
+  list.push(t); saveNoSpend(list);
+  renderHome();
+  celebrate(before, "No-spend day logged ✨");
+}
+
+function confettiBurst(){
+  try{ if(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return; }catch(e){}
+  const colors = ["#a3e635","#4ade80","#fbbf24","#fb7185","#c084fc","#38bdf8"];
+  for(let i=0;i<28;i++){
+    const c = document.createElement("span");
+    c.className = "confetti-piece";
+    c.style.left = (35 + Math.random()*30) + "vw";
+    c.style.background = colors[i%colors.length];
+    c.style.setProperty("--dx", ((Math.random()-.5)*70)+"vw");
+    c.style.setProperty("--rot", (Math.random()*720-360)+"deg");
+    c.style.animationDelay = (Math.random()*0.25)+"s";
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(), 1900);
+  }
+}
+// called after a new entry or no-spend day: a short, honest reward
+function celebrate(badgesBefore, baseMsg){
+  const s = hmStreak(), nowEarned = earnedBadgeIds();
+  const newBadge = HM_BADGES.find(b=>nowEarned.includes(b.id) && !badgesBefore.includes(b.id));
+  const milestone = s.today && [3,7,14,21,30,50,75,100,150,200,365].includes(s.cur);
+  let msg = baseMsg;
+  if(s.today && s.cur>=2) msg += ` · 🔥 ${s.cur}-day streak`;
+  if(newBadge) msg = `${baseMsg} · New badge: ${newBadge.ic} ${newBadge.n}!`;
+  toast(msg.trim());
+  if(newBadge || milestone) confettiBurst();
+  try{ if(navigator.vibrate) navigator.vibrate(newBadge||milestone ? [20,40,20] : 12); }catch(e){}
+}
+
+async function shareProgress(){
+  const s = hmStreak(), ns = hmNoSpendDaysThisMonth(), badges = earnedBadgeIds().length;
+  const parts = [];
+  if(s.cur>=1) parts.push(`I'm on a ${s.cur}-day money tracking streak 🔥`);
+  else parts.push(`I'm tracking my money with iFinWell`);
+  if(ns>=1) parts.push(`${ns} no-spend day${ns===1?"":"s"} this month ✨`);
+  parts.push(`${badges} of ${HM_BADGES.length} badges earned 🏅`);
+  const text = parts.join(" · ");
+  const url = location.origin + location.pathname;
+  try{
+    if(navigator.share){ await navigator.share({ title:"iFinWell", text, url }); return; }
+    await navigator.clipboard.writeText(text+" "+url);
+    toast("Copied, paste it anywhere");
+  }catch(e){ /* user closed the share sheet */ }
 }
 
 renderPayRow();
