@@ -35,6 +35,8 @@ jobs:
           cp develop/index.html main/dev/index.html
           cp develop/icon-180.png main/dev/icon-180.png 2>/dev/null || true
           cp develop/icon-512.png main/dev/icon-512.png 2>/dev/null || true
+          cp develop/icon-180-dark.png main/dev/icon-180-dark.png 2>/dev/null || true
+          cp develop/icon-512-dark.png main/dev/icon-512-dark.png 2>/dev/null || true
 
       - name: Commit and push the updated preview (only if something changed)
         run: |
